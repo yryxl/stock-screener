@@ -1,0 +1,32 @@
+name: 每日选股分析
+
+on:
+  schedule:
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 配置 PushPlus Token
+        run: |
+          sed -i "s/YOUR_PUSHPLUS_TOKEN/${{ secrets.PUSHPLUS_TOKEN }}/" config.yaml
+
+      - name: 运行选股分析
+        run: python main.py
+        env:
+          PYTHONUNBUFFERED: "1"
