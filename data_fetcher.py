@@ -1,5 +1,6 @@
 """
 数据获取模块 - 使用 AKShare 获取A股财务和估值数据
+优化版：使用批量接口，避免逐个股票查询
 """
 
 import time
@@ -17,6 +18,7 @@ def safe_fetch(func, *args, retry=2, delay=2, **kwargs):
             if i < retry - 1:
                 time.sleep(delay)
             else:
+                print(f"  获取数据失败: {e}")
                 return None
 
 
@@ -30,8 +32,39 @@ def get_all_stocks():
     return df.reset_index(drop=True)
 
 
+def get_realtime_quotes():
+    """获取全A股实时行情"""
+    df = safe_fetch(ak.stock_zh_a_spot_em)
+    if df is None:
+        return pd.DataFrame()
+    return df
+
+
+def get_batch_roe_data(date="20241231"):
+    """批量获取全A股业绩报表（含ROE），一次调用获取所有股票"""
+    df = safe_fetch(ak.stock_yjbb_em, date=date)
+    if df is None:
+        return pd.DataFrame()
+    return df
+
+
+def get_batch_dividend_data():
+    """批量获取A股分红数据"""
+    # 尝试从东财获取股息率排行
+    try:
+        # 用实时行情的方式获取，某些AKShare版本可能包含股息率
+        df = safe_fetch(ak.stock_zh_a_spot_em)
+        if df is not None and not df.empty:
+            # 打印列名帮助调试
+            print(f"  实时行情列名: {list(df.columns)}")
+            return df
+    except Exception as e:
+        print(f"  获取股息率数据失败: {e}")
+    return pd.DataFrame()
+
+
 def get_financial_indicator(stock_code):
-    """获取财务分析指标（含ROE、负债率、利润率、现金流等）"""
+    """获取单只股票的财务分析指标（含ROE、负债率、利润率、现金流等）"""
     df = safe_fetch(ak.stock_financial_analysis_indicator, symbol=stock_code)
     if df is None or df.empty:
         return None
@@ -98,24 +131,3 @@ def get_fcf_series(df_annual):
     if col is None:
         return None
     return pd.to_numeric(df_annual[col], errors="coerce").dropna()
-
-
-def get_realtime_quotes():
-    """获取全A股实时行情（含PE、股息率等）"""
-    df = safe_fetch(ak.stock_zh_a_spot_em)
-    if df is None:
-        return pd.DataFrame()
-    return df
-
-
-def get_stock_name(code):
-    """根据代码获取股票名称"""
-    try:
-        df = safe_fetch(ak.stock_individual_info_em, symbol=code)
-        if df is not None and not df.empty:
-            for _, row in df.iterrows():
-                if "股票简称" in str(row.get("item", "")):
-                    return str(row["value"])
-    except Exception:
-        pass
-    return code
