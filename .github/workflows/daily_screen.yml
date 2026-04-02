@@ -29,6 +29,6 @@ jobs:
           sed -i "s/YOUR_SECRET/${{ secrets.WECOM_SECRET }}/" config.yaml
 
       - name: 运行选股分析
-        run: python main.py
+        run: python test_push.py
         env:
           PYTHONUNBUFFERED: "1"
