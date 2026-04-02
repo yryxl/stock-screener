@@ -2,10 +2,11 @@
 # 芒格价值投资选股系统 - 配置文件
 # ============================================
 
-# PushPlus 配置（微信推送）
-# 获取方式：微信搜索"PushPlus推送加"公众号，关注后获取token
-pushplus:
-  token: "YOUR_PUSHPLUS_TOKEN"
+# 企业微信配置（消息推送到个人微信）
+wecom:
+  corpid: "YOUR_CORPID"
+  secret: "YOUR_SECRET"
+  agentid: 1000002
 
 # GitHub 配置（Streamlit界面读写持仓数据用）
 github:
