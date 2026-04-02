@@ -2,8 +2,9 @@ name: 每日选股分析
 
 on:
   schedule:
+    # 每个工作日北京时间下午5点运行（UTC 9:00）
     - cron: '0 9 * * 1-5'
-  workflow_dispatch:
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   screen:
@@ -22,9 +23,10 @@ jobs:
       - name: 安装依赖
         run: pip install -r requirements.txt
 
-      - name: 配置 PushPlus Token
+      - name: 配置企业微信
         run: |
-          sed -i "s/YOUR_PUSHPLUS_TOKEN/${{ secrets.PUSHPLUS_TOKEN }}/" config.yaml
+          sed -i "s/YOUR_CORPID/${{ secrets.WECOM_CORPID }}/" config.yaml
+          sed -i "s/YOUR_SECRET/${{ secrets.WECOM_SECRET }}/" config.yaml
 
       - name: 运行选股分析
         run: python main.py
