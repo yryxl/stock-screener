@@ -1,5 +1,5 @@
 """
-通知推送模块 - 通过 PushPlus 推送消息到微信
+通知推送模块 - 通过企业微信应用推送消息到个人微信
 """
 
 import requests
@@ -12,34 +12,57 @@ def load_config():
         return yaml.safe_load(f)
 
 
+def get_access_token(config):
+    """获取企业微信 access_token"""
+    corpid = config["wecom"]["corpid"]
+    secret = config["wecom"]["secret"]
+    url = f"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={corpid}&corpsecret={secret}"
+    try:
+        resp = requests.get(url, timeout=10)
+        data = resp.json()
+        if data.get("errcode") == 0:
+            return data["access_token"]
+        else:
+            print(f"获取 access_token 失败: {data.get('errmsg')}")
+            return None
+    except Exception as e:
+        print(f"获取 access_token 异常: {e}")
+        return None
+
+
 def send_wechat(title, content, config=None):
-    """通过 PushPlus 发送微信消息"""
+    """通过企业微信应用发送消息到个人微信"""
     if config is None:
         config = load_config()
 
-    token = config["pushplus"]["token"]
-    if token == "YOUR_PUSHPLUS_TOKEN":
-        print("PushPlus token 未配置，跳过推送")
+    if config["wecom"]["corpid"] == "YOUR_CORPID":
+        print("企业微信未配置，跳过推送")
         print(f"标题: {title}")
         print(f"内容:\n{content}")
         return False
 
-    url = "http://www.pushplus.plus/send"
+    access_token = get_access_token(config)
+    if not access_token:
+        return False
+
+    url = f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={access_token}"
     data = {
-        "token": token,
-        "title": title,
-        "content": content,
-        "template": "html",
+        "touser": "@all",
+        "msgtype": "text",
+        "agentid": config["wecom"]["agentid"],
+        "text": {
+            "content": f"{title}\n\n{content}"
+        },
     }
 
     try:
         resp = requests.post(url, json=data, timeout=30)
         result = resp.json()
-        if result.get("code") == 200:
+        if result.get("errcode") == 0:
             print(f"微信推送成功: {title}")
             return True
         else:
-            print(f"微信推送失败: {result.get('msg', '未知错误')}")
+            print(f"微信推送失败: {result.get('errmsg', '未知错误')}")
             return False
     except Exception as e:
         print(f"微信推送异常: {e}")
@@ -47,69 +70,49 @@ def send_wechat(title, content, config=None):
 
 
 def format_buy_signals(buy_list):
-    """格式化买入信号为HTML"""
+    """格式化买入信号为纯文本"""
     if not buy_list:
         return ""
 
-    html = "<h2>买入信号</h2>"
+    lines = ["📈 【买入信号】\n"]
     for i, stock in enumerate(buy_list, 1):
         checks = stock.get("checks", {})
         val = stock.get("valuation", {})
 
-        html += f"""
-        <div style="border:1px solid #4CAF50;border-radius:8px;padding:12px;margin:8px 0;background:#f9fff9;">
-            <h3 style="color:#4CAF50;">
-                {i}. {stock.get('name', '')}（{stock['code']}）
-            </h3>
-            <table style="width:100%;font-size:14px;">
-        """
+        lines.append(f"{i}. {stock.get('name', '')}（{stock['code']}）")
 
         for key, label in [("roe", "ROE"), ("debt", "负债"), ("fcf", "现金流"), ("opm", "利润率"), ("valuation", "估值")]:
             if key in checks:
                 detail = checks[key].get("detail", "")
-                html += f"<tr><td><b>{label}</b></td><td>{detail}</td></tr>"
+                lines.append(f"   {label}: {detail}")
 
         if val.get("price"):
-            html += f"<tr><td><b>当前价</b></td><td>{val['price']:.2f} 元</td></tr>"
+            lines.append(f"   当前价: {val['price']:.2f}元")
+        lines.append("")
 
-        html += "</table></div>"
-
-    return html
+    return "\n".join(lines)
 
 
 def format_sell_signals(sell_list):
-    """格式化卖出信号为HTML"""
+    """格式化卖出信号为纯文本"""
     if not sell_list:
         return ""
 
-    html = "<h2>卖出信号</h2>"
+    lines = ["📉 【卖出信号】\n"]
     for i, sig in enumerate(sell_list, 1):
-        color = "#f44336"
-        html += f"""
-        <div style="border:1px solid {color};border-radius:8px;padding:12px;margin:8px 0;background:#fff9f9;">
-            <h3 style="color:{color};">
-                {i}. {sig['name']}（{sig['code']}）— 持有 {sig['shares']}股
-            </h3>
-            <p style="font-size:16px;font-weight:bold;">
-                {sig['action']}：卖出 {sig['sell_shares']}股
-            </p>
-        """
+        lines.append(f"{i}. {sig['name']}（{sig['code']}）— 持有{sig['shares']}股")
+        lines.append(f"   {sig['action']}：卖出 {sig['sell_shares']}股")
 
         if sig.get("cost") and sig.get("current_price"):
             pnl = (sig["current_price"] - sig["cost"]) * sig["shares"]
             pnl_pct = (sig["current_price"] / sig["cost"] - 1) * 100 if sig["cost"] > 0 else 0
-            pnl_color = "#4CAF50" if pnl >= 0 else "#f44336"
-            html += f"""
-            <p>成本价: {sig['cost']:.2f} | 现价: {sig['current_price']:.2f} |
-            <span style="color:{pnl_color};">浮动盈亏: {pnl:+,.0f}元 ({pnl_pct:+.1f}%)</span></p>
-            """
+            pnl_sign = "+" if pnl >= 0 else ""
+            lines.append(f"   成本: {sig['cost']:.2f} | 现价: {sig['current_price']:.2f} | 盈亏: {pnl_sign}{pnl:,.0f}元({pnl_sign}{pnl_pct:.1f}%)")
 
-        html += "<p><b>触发原因：</b></p><ul>"
-        for w in sig.get("warnings", []):
-            html += f"<li>{w}</li>"
-        html += "</ul></div>"
+        lines.append(f"   原因: {'；'.join(sig.get('warnings', []))}")
+        lines.append("")
 
-    return html
+    return "\n".join(lines)
 
 
 def send_daily_report(buy_list, sell_list, config=None):
@@ -119,21 +122,14 @@ def send_daily_report(buy_list, sell_list, config=None):
         return
 
     today = datetime.now().strftime("%Y-%m-%d")
-    title = f"选股信号 {today}"
+    title = f"芒格选股信号 {today}"
 
-    html = f"<h1>芒格选股系统 - {today}</h1>"
-
+    content = ""
     if buy_list:
-        html += format_buy_signals(buy_list)
-
+        content += format_buy_signals(buy_list)
     if sell_list:
-        html += format_sell_signals(sell_list)
+        content += format_sell_signals(sell_list)
 
-    html += """
-    <hr>
-    <p style="color:#999;font-size:12px;">
-        本消息由芒格价值投资选股系统自动生成，仅供参考，不构成投资建议。
-    </p>
-    """
+    content += "\n⚠️ 本消息由系统自动生成，仅供参考，不构成投资建议。"
 
-    send_wechat(title, html, config)
+    send_wechat(title, content, config)
