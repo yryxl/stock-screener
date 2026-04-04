@@ -1,5 +1,5 @@
 """
-通知推送模块 - 通过企业微信应用推送消息到个人微信
+通知推送模块 - 通过微信测试号模板消息推送到个人微信
 """
 
 import requests
@@ -12,18 +12,16 @@ def load_config():
         return yaml.safe_load(f)
 
 
-def get_access_token(config):
-    """获取企业微信 access_token"""
-    corpid = config["wecom"]["corpid"]
-    secret = config["wecom"]["secret"]
-    url = f"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={corpid}&corpsecret={secret}"
+def get_access_token(appid, appsecret):
+    """获取微信 access_token"""
+    url = f"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={appid}&secret={appsecret}"
     try:
         resp = requests.get(url, timeout=10)
         data = resp.json()
-        if data.get("errcode") == 0:
+        if "access_token" in data:
             return data["access_token"]
         else:
-            print(f"获取 access_token 失败: {data.get('errmsg')}")
+            print(f"获取 access_token 失败: {data}")
             return None
     except Exception as e:
         print(f"获取 access_token 异常: {e}")
@@ -31,27 +29,33 @@ def get_access_token(config):
 
 
 def send_wechat(title, content, config=None):
-    """通过企业微信应用发送消息到个人微信"""
+    """通过微信测试号发送模板消息"""
     if config is None:
         config = load_config()
 
-    if config["wecom"]["corpid"] == "YOUR_CORPID":
-        print("企业微信未配置，跳过推送")
+    wx = config["wechat"]
+    appid = wx["appid"]
+    appsecret = wx["appsecret"]
+    openid = wx["openid"]
+    template_id = wx["template_id"]
+
+    if appid == "YOUR_APPID":
+        print("微信测试号未配置，跳过推送")
         print(f"标题: {title}")
         print(f"内容:\n{content}")
         return False
 
-    access_token = get_access_token(config)
+    access_token = get_access_token(appid, appsecret)
     if not access_token:
         return False
 
-    url = f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={access_token}"
+    url = f"https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={access_token}"
     data = {
-        "touser": "@all",
-        "msgtype": "text",
-        "agentid": config["wecom"]["agentid"],
-        "text": {
-            "content": f"{title}\n\n{content}"
+        "touser": openid,
+        "template_id": template_id,
+        "data": {
+            "title": {"value": title, "color": "#173177"},
+            "content": {"value": content, "color": "#333333"},
         },
     }
 
@@ -62,7 +66,7 @@ def send_wechat(title, content, config=None):
             print(f"微信推送成功: {title}")
             return True
         else:
-            print(f"微信推送失败: {result.get('errmsg', '未知错误')}")
+            print(f"微信推送失败: {result}")
             return False
     except Exception as e:
         print(f"微信推送异常: {e}")
@@ -70,11 +74,11 @@ def send_wechat(title, content, config=None):
 
 
 def format_buy_signals(buy_list):
-    """格式化买入信号为纯文本"""
+    """格式化买入信号"""
     if not buy_list:
         return ""
 
-    lines = ["📈 【买入信号】\n"]
+    lines = ["【买入信号】\n"]
     for i, stock in enumerate(buy_list, 1):
         checks = stock.get("checks", {})
         val = stock.get("valuation", {})
@@ -94,11 +98,11 @@ def format_buy_signals(buy_list):
 
 
 def format_sell_signals(sell_list):
-    """格式化卖出信号为纯文本"""
+    """格式化卖出信号"""
     if not sell_list:
         return ""
 
-    lines = ["📉 【卖出信号】\n"]
+    lines = ["【卖出信号】\n"]
     for i, sig in enumerate(sell_list, 1):
         lines.append(f"{i}. {sig['name']}（{sig['code']}）— 持有{sig['shares']}股")
         lines.append(f"   {sig['action']}：卖出 {sig['sell_shares']}股")
@@ -130,6 +134,6 @@ def send_daily_report(buy_list, sell_list, config=None):
     if sell_list:
         content += format_sell_signals(sell_list)
 
-    content += "\n⚠️ 本消息由系统自动生成，仅供参考，不构成投资建议。"
+    content += "\n仅供参考，不构成投资建议。"
 
     send_wechat(title, content, config)

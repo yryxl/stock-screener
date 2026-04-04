@@ -2,11 +2,12 @@
 # 芒格价值投资选股系统 - 配置文件
 # ============================================
 
-# 企业微信配置（消息推送到个人微信）
-wecom:
-  corpid: "YOUR_CORPID"
-  secret: "YOUR_SECRET"
-  agentid: 1000002
+# 微信测试号配置（消息推送）
+wechat:
+  appid: "YOUR_APPID"
+  appsecret: "YOUR_APPSECRET"
+  openid: "YOUR_OPENID"
+  template_id: "YOUR_TEMPLATE_ID"
 
 # GitHub 配置（Streamlit界面读写持仓数据用）
 github:
@@ -18,33 +19,20 @@ github:
 # 筛选条件（芒格五大硬指标）
 # ============================================
 screener:
-  # 1. ROE（净资产收益率）
-  roe_years: 10          # 考察年数
-  roe_min: 20            # 年均ROE下限（%）
-
-  # 2. 负债
-  debt_ratio_max: 50     # 资产负债率上限（%）
-  current_ratio_min: 1.5 # 流动比率下限
-
-  # 3. 自由现金流
-  fcf_positive_years: 5  # 近N年需为正
-
-  # 4. 营业利润率
-  opm_years: 10          # 考察年数
-  opm_allow_decline: false  # 不允许持续下降
-
-  # 5. 估值
-  dividend_yield_min: 6  # 股息率下限（%）
+  roe_years: 10
+  roe_min: 20
+  debt_ratio_max: 50
+  current_ratio_min: 1.5
+  fcf_positive_years: 5
+  opm_years: 10
+  opm_allow_decline: false
+  dividend_yield_min: 6
 
 # ============================================
 # 卖出条件
 # ============================================
 sell_rules:
-  roe_warning: 15        # ROE跌破此值触发警告（%）
-  opm_decline_years: 2   # 营业利润率连续下降N年触发
-  dividend_yield_low: 3  # 股息率低于此值触发（%）
-  debt_ratio_danger: 60  # 负债率超过此值触发（%）
-  # 恶化指标数 → 操作建议
-  # 1个 → 减仓1/3
-  # 2个 → 减仓2/3
-  # 3个+ → 清仓
+  roe_warning: 15
+  opm_decline_years: 2
+  dividend_yield_low: 3
+  debt_ratio_danger: 60
