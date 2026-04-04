@@ -142,37 +142,34 @@ def main():
     # 4. 推送通知
     print("\n=== 第四步：推送通知 ===")
 
-    # 判断是否有需要推送的信号
+    today = datetime.now().strftime("%Y-%m-%d")
+    title = f"芒格选股 {today}"
+
     has_watchlist_signal = watchlist_buy > 0 or watchlist_sell > 0
     has_candidate_signal = any(s.get("signal") and s["signal"] != "hold" for s in candidates)
     has_holding_signal = len(holding_signals) > 0
 
-    if has_watchlist_signal or has_candidate_signal or has_holding_signal:
-        today = datetime.now().strftime("%Y-%m-%d")
-        title = f"选股信号 {today}"
+    content = ""
 
-        content = ""
+    if has_watchlist_signal:
+        content += format_watchlist_signals(watchlist_signals)
 
-        # 关注表信号优先
-        if has_watchlist_signal:
-            content += format_watchlist_signals(watchlist_signals)
+    if has_holding_signal:
+        from notifier import format_holdings_signals
+        content += "\n" + format_holdings_signals(holding_signals)
 
-        # 持仓信号
-        if has_holding_signal:
-            from notifier import format_holdings_signals
-            content += "\n" + format_holdings_signals(holding_signals)
+    if has_candidate_signal:
+        from notifier import format_candidate_list
+        content += "\n" + format_candidate_list(candidates)
 
-        # 候选池买卖信号
-        if has_candidate_signal:
-            from notifier import format_candidate_list
-            content += "\n" + format_candidate_list(candidates)
+    # 无任何信号时显示"无推荐"
+    if not has_watchlist_signal and not has_candidate_signal and not has_holding_signal:
+        content = "今日无推荐\n\n关注表和候选池均在合理区间，继续持有观察。"
 
-        content += f"\n\n关注表{len(watchlist_signals)}只 | 候选池{len(candidates)}只"
-        content += "\n仅供参考，不构成投资建议。"
+    content += f"\n\n关注表{len(watchlist_signals)}只 | 候选池{len(candidates)}只"
+    content += "\n仅供参考，不构成投资建议。"
 
-        send_wechat(title, content, config)
-    else:
-        print("今日无买卖信号，不推送")
+    send_wechat(title, content, config)
 
     # 5. 总结
     print(f"\n=== 运行完成 ===")
