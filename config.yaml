@@ -16,23 +16,35 @@ github:
   holdings_file: "holdings.json"
 
 # ============================================
-# 筛选条件（芒格五大硬指标）
+# 筛选条件
 # ============================================
 screener:
-  roe_years: 10
+  # ROE（10年均值，剔除高杠杆）
   roe_min: 20
+
+  # 负债
   debt_ratio_max: 50
   current_ratio_min: 1.5
-  fcf_positive_years: 5
+
+  # 营业利润率（10年稳定或上升）
   opm_years: 10
-  opm_allow_decline: false
-  dividend_yield_min: 6
+
+  # 自由现金流（近N年为正）
+  fcf_positive_years: 5
+
+  # 毛利率（定价权，轻资产特征）
+  gross_margin_min: 40
+
+  # 股价上限（1手不超过1万）
+  max_price_per_share: 100
 
 # ============================================
-# 卖出条件
+# PE买卖信号阈值
 # ============================================
-sell_rules:
-  roe_warning: 15
-  opm_decline_years: 2
-  dividend_yield_low: 3
-  debt_ratio_danger: 60
+pe_signals:
+  buy_heavy: 8       # ≤此值：可以重仓买入
+  buy_light: 12      # ≤此值：可以轻仓买入
+  buy_watch: 16      # ≤此值：重点关注买入
+  sell_watch: 25     # ≥此值：重点关注卖出
+  sell_light: 30     # ≥此值：可以适当卖出
+  sell_heavy: 40     # ≥此值：可以大量卖出

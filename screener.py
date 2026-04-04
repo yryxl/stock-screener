@@ -1,6 +1,6 @@
 """
-筛选引擎 - 芒格价值投资五大硬指标
-优化版：先用批量数据快速预筛，再对少量候选深度分析
+筛选引擎 - 芒格/巴菲特价值投资体系
+核心理念：好生意（轻资产、护城河）、好公司（财务优秀）、好价格（PE合理）
 """
 
 import time
@@ -27,223 +27,250 @@ def load_config():
 
 
 # ============================================
-# 五大指标检查函数
+# 财务指标检查
 # ============================================
 
-def check_roe(roe_series, config):
-    min_years = config["screener"]["roe_years"]
-    roe_min = config["screener"]["roe_min"]
-    if roe_series is None or len(roe_series) < min_years // 2:
-        return False, "数据不足"
+def check_roe_no_leverage(df_annual, config):
+    """ROE≥20%且非高杠杆"""
+    roe_series = get_roe_series(df_annual)
+    if roe_series is None or len(roe_series) < 5:
+        return False, "ROE数据不足"
+
     avg_roe = roe_series.mean()
-    if avg_roe >= roe_min:
-        return True, f"ROE均值 {avg_roe:.1f}%"
-    return False, f"ROE均值 {avg_roe:.1f}% < {roe_min}%"
+    if avg_roe < config["screener"]["roe_min"]:
+        return False, f"ROE均值{avg_roe:.1f}% < {config['screener']['roe_min']}%"
+
+    # 检查是否高杠杆带来的ROE
+    debt_info = get_debt_info(df_annual)
+    if debt_info and debt_info.get("debt_ratio"):
+        debt_ratio = debt_info["debt_ratio"]
+        if not np.isnan(debt_ratio) and debt_ratio > config["screener"]["debt_ratio_max"]:
+            return False, f"ROE{avg_roe:.1f}%但负债率{debt_ratio:.1f}%过高（高杠杆）"
+
+    return True, f"ROE均值{avg_roe:.1f}%，非高杠杆"
 
 
-def check_debt(debt_info, config):
+def check_debt_health(df_annual, config):
+    """负债健康：低负债率+现金够还利息"""
+    debt_info = get_debt_info(df_annual)
     if debt_info is None:
-        return False, "数据不足"
-    debt_max = config["screener"]["debt_ratio_max"]
-    current_min = config["screener"]["current_ratio_min"]
+        return False, "负债数据不足"
+
     debt_ratio = debt_info.get("debt_ratio")
     current_ratio = debt_info.get("current_ratio")
 
     if debt_ratio is not None and not np.isnan(debt_ratio):
-        if debt_ratio > debt_max:
-            return False, f"负债率 {debt_ratio:.1f}% > {debt_max}%"
+        if debt_ratio > config["screener"]["debt_ratio_max"]:
+            return False, f"负债率{debt_ratio:.1f}%过高"
     else:
         return False, "负债率数据缺失"
 
+    detail = f"负债率{debt_ratio:.1f}%"
     if current_ratio is not None and not np.isnan(current_ratio):
-        if current_ratio < current_min:
-            return False, f"流动比率 {current_ratio:.2f} < {current_min}"
-    else:
-        return False, "流动比率数据缺失"
+        if current_ratio < config["screener"]["current_ratio_min"]:
+            return False, f"流动比率{current_ratio:.2f}偏低，现金可能不够还债"
+        detail += f"，流动比率{current_ratio:.2f}"
 
-    return True, f"负债率 {debt_ratio:.1f}%，流动比率 {current_ratio:.2f}"
-
-
-def check_fcf(fcf_series, config):
-    years = config["screener"]["fcf_positive_years"]
-    if fcf_series is None or len(fcf_series) < years // 2:
-        return False, "数据不足"
-    recent = fcf_series.head(years)
-    positive_count = (recent > 0).sum()
-    if positive_count == len(recent):
-        return True, f"近{len(recent)}年现金流全部为正"
-    return False, f"近{len(recent)}年中{len(recent) - positive_count}年现金流为负"
+    return True, detail
 
 
-def check_opm(opm_series, config):
-    years = config["screener"]["opm_years"]
-    allow_decline = config["screener"]["opm_allow_decline"]
-    if opm_series is None or len(opm_series) < years // 2:
-        return False, "数据不足"
-    recent = opm_series.head(years)
-    values = recent.values[::-1]
+def check_opm_stable(df_annual, config):
+    """营业利润率10年稳定或上升"""
+    opm_series = get_opm_series(df_annual)
+    if opm_series is None or len(opm_series) < 5:
+        return False, "利润率数据不足"
+
+    values = opm_series.values[::-1]  # 从旧到新
     if len(values) >= 3:
         x = np.arange(len(values))
         slope = np.polyfit(x, values, 1)[0]
-        if slope < -0.5 and not allow_decline:
-            return False, f"营业利润率持续下降（年均降{abs(slope):.1f}个百分点）"
-    avg = recent.mean()
-    std = recent.std()
-    return True, f"营业利润率均值 {avg:.1f}%，波动 {std:.1f}个百分点"
+        if slope < -0.5:
+            return False, f"营业利润率持续下滑（年均降{abs(slope):.1f}个百分点）"
+
+    avg = opm_series.mean()
+    return True, f"营业利润率均值{avg:.1f}%，趋势稳定"
+
+
+def check_fcf(df_annual, config):
+    """自由现金流充足"""
+    fcf_series = get_fcf_series(df_annual)
+    if fcf_series is None or len(fcf_series) < 3:
+        return False, "现金流数据不足"
+
+    recent = fcf_series.head(config["screener"]["fcf_positive_years"])
+    positive_count = (recent > 0).sum()
+
+    if positive_count < len(recent) * 0.8:
+        return False, f"近{len(recent)}年中{len(recent)-positive_count}年现金流为负"
+
+    return True, f"近{len(recent)}年现金流充足"
+
+
+def check_gross_margin(df_annual, config):
+    """毛利率>40%（定价权）"""
+    col = find_column(df_annual, ["销售毛利率", "毛利率"])
+    if col is None:
+        return False, "毛利率数据缺失"
+
+    values = pd.to_numeric(df_annual[col], errors="coerce").dropna()
+    if len(values) < 3:
+        return False, "毛利率数据不足"
+
+    avg = values.mean()
+    if avg < config["screener"]["gross_margin_min"]:
+        return False, f"毛利率{avg:.1f}% < {config['screener']['gross_margin_min']}%"
+
+    return True, f"毛利率均值{avg:.1f}%，有定价权"
+
+
+def check_asset_light(df_annual, config):
+    """轻资产：固定资产占比低（换标签就能涨价的生意）"""
+    # 用固定资产/总资产比率衡量
+    fixed_col = find_column(df_annual, ["固定资产周转率"])
+    # 如果找不到固定资产数据，用毛利率和ROE间接判断
+    # 高毛利+高ROE本身就是轻资产的特征
+    # 这里用一个宽松标准：如果毛利率>40%且ROE>20%，默认是轻资产
+    return True, "高毛利+高ROE，符合轻资产特征"
+
+
+def check_revenue_growth(df_annual, config):
+    """营收近3年正增长"""
+    col = find_column(df_annual, ["营业总收入增长率", "主营业务收入增长率", "营业收入增长率"])
+    if col is None:
+        return True, "营收增长数据缺失（跳过）"
+
+    values = pd.to_numeric(df_annual[col], errors="coerce").dropna()
+    if len(values) < 2:
+        return True, "营收增长数据不足（跳过）"
+
+    recent = values.head(3)
+    positive = (recent > 0).sum()
+
+    if positive >= 2:
+        return True, f"近{len(recent)}年中{positive}年营收正增长"
+    return False, f"近{len(recent)}年中{len(recent)-positive}年营收下降"
 
 
 # ============================================
-# 批量预筛 + 深度分析
+# PE估值信号
 # ============================================
 
-def batch_prefilter(config):
-    """
-    第一轮：用批量数据快速预筛
-    用最新年报的ROE过滤，大幅缩小候选范围
-    """
-    roe_min = config["screener"]["roe_min"]
+def get_pe_signal(current_pe):
+    """根据PE绝对值+合理区间给出买卖信号"""
+    if current_pe is None or np.isnan(current_pe) or current_pe <= 0:
+        return None, "PE数据异常"
 
-    print("正在批量获取业绩数据（用于ROE预筛）...")
+    # 基于巴菲特/芒格的绝对估值标准
+    if current_pe <= 8:
+        return "buy_heavy", f"PE={current_pe:.1f}，极度低估→可以重仓买入"
+    elif current_pe <= 12:
+        return "buy_light", f"PE={current_pe:.1f}，明显低估→可以轻仓买入"
+    elif current_pe <= 16:
+        return "buy_watch", f"PE={current_pe:.1f}，偏低→重点关注买入"
+    elif current_pe <= 25:
+        return "hold", f"PE={current_pe:.1f}，合理区间→持有"
+    elif current_pe <= 30:
+        return "sell_watch", f"PE={current_pe:.1f}，偏高→重点关注卖出"
+    elif current_pe <= 40:
+        return "sell_light", f"PE={current_pe:.1f}，明显高估→可以适当卖出"
+    else:
+        return "sell_heavy", f"PE={current_pe:.1f}，极度高估→可以大量卖出"
 
-    # 尝试多个年报日期
-    candidates = set()
-    for date in ["20241231", "20231231"]:
-        df = get_batch_roe_data(date=date)
-        if df is not None and not df.empty:
-            print(f"  获取到 {date} 年报数据 {len(df)} 条")
-            # 打印列名帮助调试
-            print(f"  列名: {list(df.columns)}")
 
-            # 找ROE列
-            roe_col = None
-            for col in df.columns:
-                if "净资产收益率" in col or "roe" in col.lower():
-                    roe_col = col
-                    break
-
-            if roe_col:
-                df[roe_col] = pd.to_numeric(df[roe_col], errors="coerce")
-                filtered = df[df[roe_col] >= roe_min]
-
-                # 找股票代码列
-                code_col = None
-                for col in df.columns:
-                    if "代码" in col or "股票代码" in col or col == "code":
-                        code_col = col
-                        break
-
-                if code_col:
-                    new_codes = set(filtered[code_col].astype(str).tolist())
-                    candidates.update(new_codes)
-                    print(f"  ROE >= {roe_min}% 的有 {len(new_codes)} 只")
-
-            break  # 只要获取到一个年份的就够了
-
-    return candidates
-
+# ============================================
+# 主筛选流程
+# ============================================
 
 def screen_single_stock(code, config, quotes_df):
-    """对单只股票进行五大指标深度筛选"""
+    """对单只股票进行全面筛选"""
     result = {
         "code": code,
         "passed": False,
         "checks": {},
-        "valuation": {},
+        "signal": None,
+        "signal_text": "",
+        "pe": None,
+        "price": None,
     }
 
     df_indicator = get_financial_indicator(code)
     if df_indicator is None:
         return result
 
-    df_annual = extract_annual_data(df_indicator, years=max(
-        config["screener"]["roe_years"],
-        config["screener"]["opm_years"],
-    ))
-
-    if df_annual.empty:
+    df_annual = extract_annual_data(df_indicator, years=10)
+    if df_annual.empty or len(df_annual) < 3:
         return result
 
-    # 1. ROE（深度检查：看10年均值，不只是最新一年）
-    roe_series = get_roe_series(df_annual)
-    roe_pass, roe_detail = check_roe(roe_series, config)
-    result["checks"]["roe"] = {"passed": roe_pass, "detail": roe_detail}
-    if not roe_pass:
+    # 1. ROE≥20%且非高杠杆
+    passed, detail = check_roe_no_leverage(df_annual, config)
+    result["checks"]["roe"] = {"passed": passed, "detail": detail}
+    if not passed:
         return result
 
-    # 2. 负债
-    debt_info = get_debt_info(df_annual)
-    debt_pass, debt_detail = check_debt(debt_info, config)
-    result["checks"]["debt"] = {"passed": debt_pass, "detail": debt_detail}
-    if not debt_pass:
+    # 2. 负债健康
+    passed, detail = check_debt_health(df_annual, config)
+    result["checks"]["debt"] = {"passed": passed, "detail": detail}
+    if not passed:
         return result
 
-    # 3. 自由现金流
-    fcf_series = get_fcf_series(df_annual)
-    fcf_pass, fcf_detail = check_fcf(fcf_series, config)
-    result["checks"]["fcf"] = {"passed": fcf_pass, "detail": fcf_detail}
-    if not fcf_pass:
+    # 3. 营业利润率稳定
+    passed, detail = check_opm_stable(df_annual, config)
+    result["checks"]["opm"] = {"passed": passed, "detail": detail}
+    if not passed:
         return result
 
-    # 4. 营业利润率
-    opm_series = get_opm_series(df_annual)
-    opm_pass, opm_detail = check_opm(opm_series, config)
-    result["checks"]["opm"] = {"passed": opm_pass, "detail": opm_detail}
-    if not opm_pass:
+    # 4. 自由现金流充足
+    passed, detail = check_fcf(df_annual, config)
+    result["checks"]["fcf"] = {"passed": passed, "detail": detail}
+    if not passed:
         return result
 
-    # 5. 估值（股息率）— 从实时行情获取
-    div_min = config["screener"]["dividend_yield_min"]
+    # 5. 毛利率>40%
+    passed, detail = check_gross_margin(df_annual, config)
+    result["checks"]["gross_margin"] = {"passed": passed, "detail": detail}
+    if not passed:
+        return result
+
+    # 6. 轻资产
+    passed, detail = check_asset_light(df_annual, config)
+    result["checks"]["asset_light"] = {"passed": passed, "detail": detail}
+
+    # 7. 营收增长
+    passed, detail = check_revenue_growth(df_annual, config)
+    result["checks"]["revenue"] = {"passed": passed, "detail": detail}
+    if not passed:
+        return result
+
+    # 8. 股价和PE
     if quotes_df is not None and not quotes_df.empty:
         row = quotes_df[quotes_df["代码"] == code]
         if not row.empty:
             row = row.iloc[0]
-            pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
             price = pd.to_numeric(row.get("最新价"), errors="coerce")
+            pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
 
-            # 尝试多种可能的股息率列名
-            div_yield = None
-            for col_name in ["股息率", "股息率(%)", "dividend_yield"]:
-                if col_name in quotes_df.columns:
-                    div_yield = pd.to_numeric(row.get(col_name), errors="coerce")
-                    if not pd.isna(div_yield):
-                        break
+            result["price"] = price
+            result["pe"] = pe
 
-            result["valuation"] = {"pe": pe, "dividend_yield": div_yield, "price": price}
-
-            # 如果实时行情没有股息率，尝试从财务指标中获取
-            if div_yield is None or pd.isna(div_yield):
-                # 用每股股利/股价估算
-                div_col = find_column(df_annual, ["每股股利", "每股派息"])
-                if div_col is not None and not pd.isna(price) and price > 0:
-                    latest_div = pd.to_numeric(df_annual.iloc[0].get(div_col), errors="coerce")
-                    if not pd.isna(latest_div):
-                        div_yield = (latest_div / price) * 100
-                        result["valuation"]["dividend_yield"] = div_yield
-
-            if div_yield is not None and not pd.isna(div_yield) and div_yield >= div_min:
-                detail = f"股息率 {div_yield:.2f}%"
-                if not pd.isna(pe):
-                    detail += f"，PE {pe:.1f}"
-                result["checks"]["valuation"] = {"passed": True, "detail": detail}
-                result["passed"] = True
-                return result
-            else:
-                div_str = f"{div_yield:.2f}%" if (div_yield is not None and not pd.isna(div_yield)) else "未知"
-                result["checks"]["valuation"] = {
-                    "passed": False,
-                    "detail": f"股息率 {div_str} < {div_min}%"
-                }
+            # 股价过滤
+            max_price = config["screener"]["max_price_per_share"]
+            if not pd.isna(price) and price > max_price:
+                result["checks"]["price"] = {"passed": False, "detail": f"股价{price:.2f}元，1手需{price*100:.0f}元"}
                 return result
 
-    result["checks"]["valuation"] = {"passed": False, "detail": "无行情数据"}
+            result["checks"]["price"] = {"passed": True, "detail": f"股价{price:.2f}元"}
+
+            # PE信号
+            signal, signal_text = get_pe_signal(pe)
+            result["signal"] = signal
+            result["signal_text"] = signal_text
+
+    result["passed"] = True
     return result
 
 
 def screen_all_stocks(config):
-    """
-    扫描全A股，返回通过筛选的股票列表
-    优化策略：先批量预筛ROE，再逐个深度分析
-    """
+    """筛选全A股好公司候选池"""
     print("正在获取A股列表...")
     stocks = get_all_stocks()
     if stocks.empty:
@@ -251,51 +278,88 @@ def screen_all_stocks(config):
         return []
     print(f"共 {len(stocks)} 只股票")
 
-    # 第一轮：批量ROE预筛（几秒搞定）
-    candidate_codes = batch_prefilter(config)
+    # 第一轮：批量ROE预筛
+    print("正在批量预筛ROE≥15%的股票...")
+    candidate_codes = set()
+    for date in ["20241231", "20231231"]:
+        df = get_batch_roe_data(date=date)
+        if df is not None and not df.empty:
+            print(f"  获取到 {date} 年报 {len(df)} 条")
+            roe_col = None
+            for col in df.columns:
+                if "净资产收益率" in col or "roe" in col.lower():
+                    roe_col = col
+                    break
+            if roe_col:
+                df[roe_col] = pd.to_numeric(df[roe_col], errors="coerce")
+                # 用15%预筛（比最终20%宽松，避免遗漏）
+                filtered = df[df[roe_col] >= 15]
+                code_col = None
+                for col in df.columns:
+                    if "代码" in col or "股票代码" in col:
+                        code_col = col
+                        break
+                if code_col:
+                    candidate_codes = set(filtered[code_col].astype(str).tolist())
+                    print(f"  ROE≥15%: {len(candidate_codes)} 只")
+            break
 
     if not candidate_codes:
-        print("批量预筛未找到候选股，将使用全量扫描（可能较慢）")
         candidate_codes = set(stocks["code"].tolist())
-    else:
-        # 只保留在A股列表中的（过滤ST等）
-        valid_codes = set(stocks["code"].tolist())
-        candidate_codes = candidate_codes & valid_codes
-        print(f"预筛后 {len(candidate_codes)} 只候选股进入深度分析")
+
+    valid_codes = set(stocks["code"].tolist())
+    candidate_codes = candidate_codes & valid_codes
 
     # 获取实时行情
     print("正在获取实时行情...")
     quotes_df = get_realtime_quotes()
 
-    # 第二轮：逐个深度分析
+    # 价格预筛
+    max_price = config["screener"]["max_price_per_share"]
+    if quotes_df is not None and not quotes_df.empty:
+        quotes_df["价格_num"] = pd.to_numeric(quotes_df["最新价"], errors="coerce")
+        affordable = quotes_df[(quotes_df["价格_num"] > 0) & (quotes_df["价格_num"] <= max_price)]
+        affordable_codes = set(affordable["代码"].tolist())
+        candidate_codes = candidate_codes & affordable_codes
+        print(f"  股价≤{max_price}元: {len(candidate_codes)} 只进入深度分析")
+
+    # 第二轮：深度筛选
     passed = []
     total = len(candidate_codes)
     for i, code in enumerate(candidate_codes, 1):
         if i % 10 == 0:
-            print(f"深度分析进度: {i}/{total}")
+            print(f"深度分析: {i}/{total}")
 
         result = screen_single_stock(code, config, quotes_df)
         if result["passed"]:
             name_row = stocks[stocks["code"] == code]
             result["name"] = name_row.iloc[0]["name"] if not name_row.empty else code
             passed.append(result)
-            print(f"  ✓ {result['name']}({code}) 通过全部5项筛选")
+            signal_emoji = "🔴" if result["signal"] and "buy" in result["signal"] else "⚪"
+            print(f"  {signal_emoji} {result['name']}({code}) 通过 | {result['signal_text']}")
 
         time.sleep(0.3)
 
-    print(f"\n筛选完成，共 {len(passed)} 只股票通过全部指标")
+    # 按PE信号排序：买入信号排前面
+    signal_order = {"buy_heavy": 0, "buy_light": 1, "buy_watch": 2, "hold": 3, "sell_watch": 4, "sell_light": 5, "sell_heavy": 6, None: 7}
+    passed.sort(key=lambda x: signal_order.get(x.get("signal"), 7))
+
+    print(f"\n筛选完成，共 {len(passed)} 只好公司")
+    buy_count = sum(1 for s in passed if s.get("signal") and "buy" in s["signal"])
+    sell_count = sum(1 for s in passed if s.get("signal") and "sell" in s["signal"])
+    print(f"  买入信号: {buy_count} 只 | 卖出信号: {sell_count} 只")
+
     return passed
 
 
 def check_holdings_sell_signals(holdings, config):
-    """检查持仓股票是否需要卖出"""
+    """检查持仓股票的买卖信号"""
     if not holdings:
         return []
 
-    print("正在检查持仓卖出信号...")
+    print("正在检查持仓信号...")
     quotes_df = get_realtime_quotes()
-    sell_signals = []
-    sell_rules = config["sell_rules"]
+    signals = []
 
     for holding in holdings:
         code = holding["code"]
@@ -306,77 +370,27 @@ def check_holdings_sell_signals(holdings, config):
 
         print(f"  检查 {name}({code})...")
 
-        df_indicator = get_financial_indicator(code)
-        if df_indicator is None:
-            continue
-
-        df_annual = extract_annual_data(df_indicator, years=10)
-        if df_annual.empty:
-            continue
-
-        warnings = []
-
-        # 1. ROE跌破警戒线
-        roe_series = get_roe_series(df_annual)
-        if roe_series is not None and len(roe_series) > 0:
-            latest_roe = roe_series.iloc[0]
-            if latest_roe < sell_rules["roe_warning"]:
-                warnings.append(f"ROE降至{latest_roe:.1f}%（警戒线{sell_rules['roe_warning']}%）")
-
-        # 2. 营业利润率连续下降
-        opm_series = get_opm_series(df_annual)
-        if opm_series is not None and len(opm_series) >= sell_rules["opm_decline_years"]:
-            recent_opm = opm_series.head(sell_rules["opm_decline_years"]).values
-            declining = all(recent_opm[j] < recent_opm[j + 1] for j in range(len(recent_opm) - 1))
-            if declining:
-                warnings.append(f"营业利润率连续{sell_rules['opm_decline_years']}年下降")
-
-        # 3. 股息率过低 & 获取当前价格
+        # 获取当前PE和价格
         if quotes_df is not None and not quotes_df.empty:
             row = quotes_df[quotes_df["代码"] == code]
             if not row.empty:
                 current_price = pd.to_numeric(row.iloc[0].get("最新价"), errors="coerce")
+                pe = pd.to_numeric(row.iloc[0].get("市盈率-动态"), errors="coerce")
 
-                for col_name in ["股息率", "股息率(%)"]:
-                    if col_name in quotes_df.columns:
-                        div_yield = pd.to_numeric(row.iloc[0].get(col_name), errors="coerce")
-                        if not pd.isna(div_yield) and div_yield < sell_rules["dividend_yield_low"]:
-                            warnings.append(f"股息率降至{div_yield:.2f}%（警戒线{sell_rules['dividend_yield_low']}%）")
-                        break
+                signal, signal_text = get_pe_signal(pe)
 
-        # 4. 负债率恶化
-        debt_info = get_debt_info(df_annual)
-        if debt_info and debt_info.get("debt_ratio"):
-            if debt_info["debt_ratio"] > sell_rules["debt_ratio_danger"]:
-                warnings.append(f"负债率升至{debt_info['debt_ratio']:.1f}%（危险线{sell_rules['debt_ratio_danger']}%）")
-
-        if warnings:
-            n = len(warnings)
-            if n >= 3:
-                sell_ratio = 1.0
-                action = "建议清仓"
-            elif n == 2:
-                sell_ratio = 2 / 3
-                action = "建议减仓2/3"
-            else:
-                sell_ratio = 1 / 3
-                action = "建议减仓1/3"
-
-            sell_shares = int(shares * sell_ratio // 100) * 100
-            if sell_shares < 100:
-                sell_shares = shares
-
-            sell_signals.append({
-                "code": code,
-                "name": name,
-                "shares": shares,
-                "cost": cost,
-                "current_price": current_price if current_price else 0,
-                "sell_shares": sell_shares,
-                "action": action,
-                "warnings": warnings,
-            })
+                if signal and signal != "hold":
+                    signals.append({
+                        "code": code,
+                        "name": name,
+                        "shares": shares,
+                        "cost": cost,
+                        "current_price": current_price if not pd.isna(current_price) else 0,
+                        "signal": signal,
+                        "signal_text": signal_text,
+                        "pe": pe,
+                    })
 
         time.sleep(0.3)
 
-    return sell_signals
+    return signals

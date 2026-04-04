@@ -1,5 +1,5 @@
 """
-主程序 - 每日运行，筛选股票并推送通知
+主程序 - 每日运行，筛选好公司+买卖信号推送
 """
 
 import json
@@ -20,7 +20,6 @@ def load_config():
 
 
 def load_holdings():
-    """加载持仓数据"""
     holdings_path = os.path.join(os.path.dirname(__file__), "holdings.json")
     if not os.path.exists(holdings_path):
         return []
@@ -29,9 +28,7 @@ def load_holdings():
 
 
 def is_trading_day():
-    """简单判断是否为交易日（排除周末）"""
     today = datetime.now()
-    # 周六=5，周日=6
     if today.weekday() >= 5:
         return False
     return True
@@ -40,36 +37,37 @@ def is_trading_day():
 def main():
     print(f"=== 芒格选股系统 {datetime.now().strftime('%Y-%m-%d %H:%M')} ===\n")
 
-    # 检查是否交易日
     if not is_trading_day():
         print("今天不是交易日（周末），跳过运行")
-        # GitHub Actions中通过参数可以强制运行
         if "--force" not in sys.argv:
             return
 
     config = load_config()
 
-    # 1. 扫描全A股，寻找买入机会
-    print("=== 第一步：全市场扫描（买入信号）===")
-    buy_list = screen_all_stocks(config)
+    # 1. 筛选好公司候选池 + PE信号
+    print("=== 第一步：筛选好公司候选池 ===")
+    candidates = screen_all_stocks(config)
 
-    # 2. 检查持仓，寻找卖出信号
-    print("\n=== 第二步：持仓检查（卖出信号）===")
+    # 2. 检查持仓信号
+    print("\n=== 第二步：检查持仓信号 ===")
     holdings = load_holdings()
     if holdings:
-        sell_list = check_holdings_sell_signals(holdings, config)
+        holding_signals = check_holdings_sell_signals(holdings, config)
     else:
-        sell_list = []
-        print("无持仓数据，跳过卖出检查")
+        holding_signals = []
+        print("无持仓数据，跳过")
 
-    # 3. 推送通知
+    # 3. 推送
     print("\n=== 第三步：推送通知 ===")
-    send_daily_report(buy_list, sell_list, config)
+    send_daily_report(candidates, holding_signals, config)
 
-    # 4. 输出总结
+    # 4. 总结
     print(f"\n=== 运行完成 ===")
-    print(f"买入信号: {len(buy_list)} 只")
-    print(f"卖出信号: {len(sell_list)} 只")
+    print(f"候选池: {len(candidates)} 只好公司")
+    buy_count = sum(1 for s in candidates if s.get("signal") and "buy" in s["signal"])
+    sell_count = sum(1 for s in candidates if s.get("signal") and "sell" in s["signal"])
+    print(f"买入信号: {buy_count} 只 | 卖出信号: {sell_count} 只")
+    print(f"持仓信号: {len(holding_signals)} 只")
 
 
 if __name__ == "__main__":
