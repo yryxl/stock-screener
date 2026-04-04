@@ -30,6 +30,6 @@ jobs:
           sed -i "s/YOUR_TEMPLATE_ID/${{ secrets.WX_TEMPLATE_ID }}/" config.yaml
 
       - name: 运行选股分析
-        run: python test_push.py
+        run: python main.py
         env:
           PYTHONUNBUFFERED: "1"
