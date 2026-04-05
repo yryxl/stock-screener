@@ -242,7 +242,7 @@ def screen_single_stock(code, config, quotes_df):
         if not passed:
             return result
 
-    # 股价和PE
+    # 股价预筛（用实时行情的价格，不查PE）
     if quotes_df is not None and not quotes_df.empty:
         row = quotes_df[quotes_df["代码"] == code]
         if not row.empty:
@@ -254,7 +254,7 @@ def screen_single_stock(code, config, quotes_df):
             if not pd.isna(price) and price > max_price:
                 return result
 
-            # 优先用PE(TTM)准确数据
+            # 财务全部通过后，才查PE(TTM)（节省API调用）
             pe = None
             ttm_data = get_pe_ttm(code)
             if ttm_data and ttm_data.get("pe_ttm"):
