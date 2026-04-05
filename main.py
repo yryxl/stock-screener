@@ -184,13 +184,22 @@ def main():
     w_buy = sum(1 for s in watchlist_signals if s.get("signal") and "buy" in s["signal"])
     print(f"  买入信号: {w_buy}只")
 
-    # 2. 全市场扫描（只在周一跑，其他天跳过）
+    # 2. 全市场扫描（周一或手动--full时跑，其他天用缓存）
     candidates = []
     if is_monday() or "--full" in sys.argv:
-        print("\n=== 第二步：全市场扫描（周一执行）===")
+        print("\n=== 第二步：全市场扫描（执行中）===")
         candidates = screen_all_stocks(config)
+        # 缓存结果供非扫描日使用
+        save_json("market_scan_cache.json", {
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "candidates": candidates,
+        })
     else:
-        print("\n=== 第二步：全市场扫描（非周一，跳过）===")
+        print("\n=== 第二步：全市场扫描（用上次缓存）===")
+        cache = load_json("market_scan_cache.json")
+        if cache and isinstance(cache, dict):
+            candidates = cache.get("candidates", [])
+            print(f"  缓存日期: {cache.get('date', '未知')}，{len(candidates)}只候选")
 
     # 3. 持仓检查（每天跑）
     print("\n=== 第三步：持仓检查 ===")
@@ -208,14 +217,22 @@ def main():
 
     # 5. 保存结果
     print("\n=== 第五步：保存结果 ===")
+
+    # AI推荐：只来自全市场扫描（不含关注表）
+    ai_recommendations = []
+    for s in candidates:
+        if s.get("signal") and s["signal"] not in ("hold", None):
+            s["source"] = "全市场筛选"
+            ai_recommendations.append(s)
+
     daily_data = {
         "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "watchlist_signals": watchlist_signals,
-        "candidates": [s for s in candidates if s.get("signal") and s["signal"] != "hold"],
-        "holding_signals": holding_signals,
+        "ai_recommendations": ai_recommendations,        # AI推荐（全市场）
+        "watchlist_signals": watchlist_signals,            # 关注表（含信号状态）
+        "holding_signals": holding_signals,                # 持仓信号
     }
     save_json("daily_results.json", daily_data)
-    print("  已保存")
+    print(f"  AI推荐: {len(ai_recommendations)}只 | 关注表: {len(watchlist_signals)}只 | 已保存")
 
     # 总结
     print(f"\n=== 完成 ===")

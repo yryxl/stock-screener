@@ -1,8 +1,8 @@
 """
 Streamlit 管理界面
-Tab1: AI推荐（每日筛选结果）
-Tab2: 持仓管理
-Tab3: 重点关注表（含实时数据+信号）
+Tab1: AI推荐（全市场扫描结果，可一键关注）
+Tab2: 持仓管理（含信号状态）
+Tab3: 重点关注表（含信号状态）
 """
 
 import json
@@ -17,10 +17,7 @@ st.set_page_config(page_title="芒格选股系统", page_icon="📊", layout="wi
 # ============================================
 
 def get_github_config():
-    return {
-        "token": st.secrets["github"]["token"],
-        "repo": st.secrets["github"]["repo"],
-    }
+    return {"token": st.secrets["github"]["token"], "repo": st.secrets["github"]["repo"]}
 
 
 def github_headers(token):
@@ -54,16 +51,10 @@ def save_to_github(filename, data, sha):
         resp = requests.put(url, json=payload, headers=github_headers(cfg["token"]), timeout=10)
         if resp.status_code in (200, 201):
             return resp.json()["content"]["sha"]
-        st.error(f"保存失败: {resp.status_code}")
         return None
-    except Exception as e:
-        st.error(f"保存失败: {e}")
+    except Exception:
         return None
 
-
-# ============================================
-# 信号标签
-# ============================================
 
 SIGNAL_LABELS = {
     "buy_heavy": "🔴 可以重仓买入",
@@ -82,59 +73,57 @@ SIGNAL_LABELS = {
 BUY_SIGNALS = ["buy_heavy", "buy_medium", "buy_light", "buy_watch"]
 
 # ============================================
+# 加载数据
+# ============================================
+
+def load_all_data():
+    if "data_loaded" not in st.session_state:
+        st.session_state["holdings"], st.session_state["holdings_sha"] = load_from_github("holdings.json")
+        st.session_state["watchlist"], st.session_state["watchlist_sha"] = load_from_github("watchlist.json")
+        st.session_state["daily"], _ = load_from_github("daily_results.json")
+        st.session_state["data_loaded"] = True
+
+load_all_data()
+
+# ============================================
 # 页面
 # ============================================
 
 st.title("📊 芒格选股系统")
-
 tab1, tab2, tab3 = st.tabs(["🤖 AI推荐", "📋 持仓管理", "⭐ 重点关注表"])
 
 # ============================================
-# Tab1: AI推荐
+# Tab1: AI推荐（只来自全市场扫描）
 # ============================================
 with tab1:
-    st.header("🤖 AI每日推荐")
+    st.header("🤖 AI推荐")
+    st.caption("来自全市场扫描，每周一自动更新")
 
-    results, _ = load_from_github("daily_results.json")
+    daily = st.session_state.get("daily", {})
+    watchlist = st.session_state.get("watchlist", [])
+    watchlist_codes = set(w["code"] for w in watchlist)
 
-    if not results:
-        st.info("暂无数据，等待首次运行后自动更新")
+    if not daily:
+        st.info("暂无数据，等待首次运行")
     else:
-        st.caption(f"数据更新时间：{results.get('date', '未知')}")
+        st.caption(f"数据更新：{daily.get('date', '未知')}")
 
-        # 合并所有买入信号
-        all_buy = []
-        for s in results.get("watchlist_signals", []):
-            if s.get("signal") in BUY_SIGNALS:
-                s["source"] = "关注表"
-                all_buy.append(s)
-        for s in results.get("candidates", []):
-            if s.get("signal") in BUY_SIGNALS:
-                s["source"] = "全市场筛选"
-                all_buy.append(s)
-        for s in results.get("false_declines", []):
-            s["source"] = "假跌机会"
-            all_buy.append(s)
-
-        if not all_buy:
-            st.info("今日无买入推荐，所有股票在合理区间")
+        ai_recs = daily.get("ai_recommendations", [])
+        if not ai_recs:
+            st.info("暂无AI推荐，等待周一全市场扫描")
         else:
-            # 按信号等级分组显示
             for signal_key in BUY_SIGNALS:
                 signal_label = SIGNAL_LABELS.get(signal_key, signal_key)
-                group = [s for s in all_buy if s.get("signal") == signal_key]
+                group = [s for s in ai_recs if s.get("signal") == signal_key]
                 if not group:
                     continue
 
                 st.subheader(signal_label)
                 for s in group:
-                    col1, col2, col3, col4 = st.columns([3, 2, 2, 3])
+                    code = s.get("code", "")
+                    col1, col2, col3, col4, col5 = st.columns([2.5, 1.5, 1.5, 3, 1.5])
                     with col1:
-                        st.markdown(f"**{s.get('name', '')}**（{s.get('code', '')}）")
-                        cat = s.get("category", "")
-                        src = s.get("source", "")
-                        if cat:
-                            st.caption(f"[{cat}] {src}")
+                        st.markdown(f"**{s.get('name', '')}**（{code}）")
                     with col2:
                         pe = s.get("pe", 0)
                         st.metric("PE(TTM)", f"{pe:.1f}" if pe else "—")
@@ -143,54 +132,66 @@ with tab1:
                         st.metric("股价", f"¥{price:.2f}" if price else "—")
                     with col4:
                         st.caption(s.get("signal_text", ""))
+                    with col5:
+                        if code in watchlist_codes:
+                            st.button("已关注", key=f"ai_{code}", disabled=True)
+                        else:
+                            if st.button("➕关注", key=f"ai_{code}"):
+                                watchlist.append({
+                                    "code": code,
+                                    "name": s.get("name", ""),
+                                    "category": s.get("category", ""),
+                                    "note": s.get("signal_text", "")[:30],
+                                })
+                                new_sha = save_to_github("watchlist.json", watchlist, st.session_state["watchlist_sha"])
+                                if new_sha:
+                                    st.session_state["watchlist_sha"] = new_sha
+                                    st.session_state["watchlist"] = watchlist
+                                    st.success(f"已添加 {s.get('name','')} 到关注表")
+                                    st.rerun()
                 st.divider()
 
-        # 持仓信号
-        holding_sigs = results.get("holding_signals", [])
-        true_declines = results.get("true_declines", [])
-        if holding_sigs or true_declines:
-            st.subheader("📉 持仓信号")
-            for s in holding_sigs + true_declines:
-                signal = s.get("signal", "")
-                label = SIGNAL_LABELS.get(signal, signal)
-                col1, col2, col3 = st.columns([3, 2, 5])
-                with col1:
-                    st.markdown(f"**{s.get('name', '')}**（{s.get('code', '')}）")
-                with col2:
-                    st.markdown(f"{label}")
-                with col3:
-                    st.caption(s.get("signal_text", ""))
-
 # ============================================
-# Tab2: 持仓管理
+# Tab2: 持仓管理（含信号状态）
 # ============================================
 with tab2:
     st.header("📋 我的持仓")
 
-    if "holdings" not in st.session_state:
-        h, sha = load_from_github("holdings.json")
-        st.session_state["holdings"] = h
-        st.session_state["holdings_sha"] = sha
+    holdings = st.session_state.get("holdings", [])
+    daily = st.session_state.get("daily", {})
 
-    holdings = st.session_state["holdings"]
+    # 持仓信号数据
+    holding_data = {}
+    for s in daily.get("holding_signals", []):
+        holding_data[s.get("code", "")] = s
 
     if not holdings:
         st.info("暂无持仓")
     else:
         for i, h in enumerate(holdings):
-            col1, col2, col3, col4, col5 = st.columns([2, 1.5, 1.5, 1.5, 1])
+            code = h["code"]
+            sig_data = holding_data.get(code, {})
+            signal = sig_data.get("signal", "")
+            signal_label = SIGNAL_LABELS.get(signal, "—")
+            pe = sig_data.get("pe", 0)
+
+            col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 1.2, 2.5, 0.8])
             with col1:
                 st.markdown(f"**{h.get('name', '未知')}**")
-                st.caption(h["code"])
+                st.caption(code)
             with col2:
                 st.metric("股数", f"{h.get('shares', 0):,}")
             with col3:
-                st.metric("成本价", f"¥{h.get('cost', 0):.2f}")
+                st.metric("成本", f"¥{h.get('cost', 0):.2f}")
             with col4:
-                total = h.get("shares", 0) * h.get("cost", 0)
-                st.metric("成本", f"¥{total:,.0f}")
+                if pe and pe > 0:
+                    st.metric("PE(TTM)", f"{pe:.1f}")
+                else:
+                    st.metric("PE(TTM)", "—")
             with col5:
-                st.write("")
+                st.markdown(f"{signal_label}")
+                st.caption(sig_data.get("signal_text", "")[:50])
+            with col6:
                 if st.button("🗑️", key=f"del_h_{i}"):
                     holdings.pop(i)
                     new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
@@ -214,17 +215,17 @@ with tab2:
                 new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
                 if new_sha:
                     st.session_state["holdings_sha"] = new_sha
-                    st.success(f"已添加 {new_name}")
+                    st.success(f"已添加")
                     st.rerun()
 
     if holdings:
         st.subheader("✏️ 修改持仓")
         opts = {f"{h['name']}（{h['code']}）": i for i, h in enumerate(holdings)}
-        sel = st.selectbox("选择股票", list(opts.keys()), key="edit_holding")
+        sel = st.selectbox("选择", list(opts.keys()), key="edit_h")
         if sel:
             idx = opts[sel]
             h = holdings[idx]
-            with st.form("edit_holding_form"):
+            with st.form("edit_h_form"):
                 c1, c2 = st.columns(2)
                 with c1:
                     es = st.number_input("新股数", min_value=0, value=h.get("shares", 0), step=100)
@@ -239,42 +240,31 @@ with tab2:
                     new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
                     if new_sha:
                         st.session_state["holdings_sha"] = new_sha
-                        st.success("已更新")
                         st.rerun()
 
 # ============================================
-# Tab3: 重点关注表（含实时数据+信号）
+# Tab3: 重点关注表（含信号状态）
 # ============================================
 with tab3:
     st.header("⭐ 重点关注表")
-    st.caption("每日自动更新PE(TTM)和买卖信号")
+    st.caption("你精选的好公司，每日自动更新PE和信号状态")
 
-    if "watchlist" not in st.session_state:
-        w, sha = load_from_github("watchlist.json")
-        st.session_state["watchlist"] = w
-        st.session_state["watchlist_sha"] = sha
+    watchlist = st.session_state.get("watchlist", [])
+    daily = st.session_state.get("daily", {})
 
-    watchlist = st.session_state["watchlist"]
-
-    # 从每日结果中获取实时数据
-    if "daily_results" not in st.session_state:
-        dr, _ = load_from_github("daily_results.json")
-        st.session_state["daily_results"] = dr
-
-    daily = st.session_state["daily_results"]
     watchlist_data = {}
+    for s in daily.get("watchlist_signals", []):
+        watchlist_data[s.get("code", "")] = s
+
     if daily:
         st.caption(f"数据更新：{daily.get('date', '未知')}")
-        for s in daily.get("watchlist_signals", []):
-            watchlist_data[s.get("code", "")] = s
 
     if not watchlist:
         st.info("暂无关注股票")
     else:
-        # 按分类显示
         categories = {}
         for item in watchlist:
-            cat = item.get("category", "其他")
+            cat = item.get("industry_auto", "") or item.get("category", "其他")
             if cat not in categories:
                 categories[cat] = []
             categories[cat].append(item)
@@ -292,20 +282,14 @@ with tab3:
                 signal_text = data.get("signal_text", "")
                 signal_label = SIGNAL_LABELS.get(signal, "—")
 
-                col1, col2, col3, col4, col5 = st.columns([2.5, 1.5, 1.5, 3, 0.8])
+                col1, col2, col3, col4, col5 = st.columns([2.5, 1.3, 1.3, 3, 0.8])
                 with col1:
                     st.markdown(f"**{item['name']}**（{code}）")
                     st.caption(item.get("note", ""))
                 with col2:
-                    if pe and pe > 0:
-                        st.metric("PE(TTM)", f"{pe:.1f}")
-                    else:
-                        st.metric("PE(TTM)", "—")
+                    st.metric("PE(TTM)", f"{pe:.1f}" if pe and pe > 0 else "—")
                 with col3:
-                    if price and price > 0:
-                        st.metric("股价", f"¥{price:.2f}")
-                    else:
-                        st.metric("股价", "—")
+                    st.metric("股价", f"¥{price:.2f}" if price and price > 0 else "—")
                 with col4:
                     st.markdown(f"{signal_label}")
                     if signal_text:
@@ -326,25 +310,15 @@ with tab3:
             wcode = st.text_input("股票代码", placeholder="600519", key="w_code")
             wname = st.text_input("名称", placeholder="贵州茅台", key="w_name")
         with c2:
-            wcat = st.text_input("分类", placeholder="白酒", key="w_cat")
-            wnote = st.text_input("备注", placeholder="品牌+地理+工艺三重垄断", key="w_note")
+            wnote = st.text_input("备注", placeholder="品牌+地理垄断", key="w_note")
         if st.form_submit_button("添加到关注表", use_container_width=True, type="primary"):
             if wcode:
-                watchlist.append({"code": wcode.strip(), "name": wname.strip() or wcode.strip(), "category": wcat.strip(), "note": wnote.strip()})
+                watchlist.append({"code": wcode.strip(), "name": wname.strip() or wcode.strip(), "note": wnote.strip()})
                 new_sha = save_to_github("watchlist.json", watchlist, st.session_state["watchlist_sha"])
                 if new_sha:
                     st.session_state["watchlist_sha"] = new_sha
                     st.success(f"已添加 {wname}")
                     st.rerun()
 
-# ============================================
-# 底部
-# ============================================
 st.divider()
-st.caption("""
-💡 **使用说明**
-- **AI推荐**：每日自动更新，显示模型推荐的买入/卖出信号及PE(TTM)等数据
-- **持仓管理**：管理你实际买入的股票和份额
-- **重点关注表**：你精选的好公司，显示实时PE和信号
-- 系统每个交易日下午5点自动分析，有信号微信通知你
-""")
+st.caption("💡 AI推荐来自全市场扫描(每周一) | 关注表和持仓每日更新PE和信号 | 系统每交易日下午5点自动运行")
