@@ -344,42 +344,83 @@ def screen_all_stocks(config):
 
 
 def check_holdings_sell_signals(holdings, config):
+    """
+    检查持仓信号：
+    1. 自动获取真实行业
+    2. 判断真跌/假跌
+    3. 真跌→基本面恶化警告
+    4. 假跌或判定不清→按PE给关注/适当/中仓/大量卖出信号
+    """
     if not holdings:
         return []
     print("检查持仓信号...")
     quotes_df = get_realtime_quotes()
     signals = []
+
     for h in holdings:
         code = h["code"]
         name = h.get("name", code)
-        if quotes_df is not None and not quotes_df.empty:
-            row = quotes_df[quotes_df["代码"] == code]
-            if not row.empty:
-                row = row.iloc[0]
-                price = pd.to_numeric(row.get("最新价"), errors="coerce")
-                # 优先用PE(TTM)
-                pe = None
-                ttm_data = get_pe_ttm(code)
-                if ttm_data and ttm_data.get("pe_ttm"):
-                    pe = ttm_data["pe_ttm"]
-                else:
-                    pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
-                industry = str(row.get("所属行业", "")) if "所属行业" in quotes_df.columns else ""
-                signal, signal_text = get_pe_signal(pe, industry)
+        if quotes_df is None or quotes_df.empty:
+            continue
 
-                # 持仓股：hold变成"建议持续持有"
-                if signal == "hold":
-                    signal = "hold_keep"
-                    signal_text += " →建议持续持有"
+        row = quotes_df[quotes_df["代码"] == code]
+        if row.empty:
+            continue
+        row = row.iloc[0]
 
-                signals.append({
-                    "code": code, "name": name,
-                    "shares": h.get("shares", 0), "cost": h.get("cost", 0),
-                    "price": price if not pd.isna(price) else 0,
-                    "pe": pe if not pd.isna(pe) else 0,
-                    "signal": signal, "signal_text": signal_text,
-                })
+        price = pd.to_numeric(row.get("最新价"), errors="coerce")
+
+        # 1. 自动获取真实行业
+        industry = ""
+        if "所属行业" in quotes_df.columns:
+            industry = str(row.get("所属行业", ""))
+
+        # 2. 获取PE(TTM)
+        pe = None
+        ttm_data = get_pe_ttm(code)
+        if ttm_data and ttm_data.get("pe_ttm"):
+            pe = ttm_data["pe_ttm"]
+        else:
+            pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
+
+        # 3. PE信号
+        signal, signal_text = get_pe_signal(pe, industry)
+
+        # 4. 如果是卖出信号，先判断真跌还是假跌
+        if signal and "sell" in signal:
+            is_healthy, problems = check_fundamental_health(code)
+
+            if is_healthy is not None and not is_healthy:
+                # 真跌：基本面恶化，直接发最严重警告
+                signal = "true_decline"
+                signal_text = f"基本面恶化({', '.join(problems[:3])})，建议卖出"
+                print(f"  {name} 真跌→基本面恶化")
+            else:
+                # 假跌或判定不清：按PE级别给卖出信号（关注/适当/中仓/大量）
+                # 检查同行业是否也在跌
+                if industry:
+                    peers = quotes_df[quotes_df.get("所属行业", pd.Series()) == industry]
+                    if len(peers) > 3:
+                        peer_changes = pd.to_numeric(peers.get("涨跌幅", pd.Series()), errors="coerce").dropna()
+                        if peer_changes.mean() < -1:
+                            signal_text += "（同行业普跌，市场因素）"
+                print(f"  {name} PE卖出信号: {signal}")
+
+        # 5. 持仓股：hold变成"建议持续持有"
+        if signal == "hold":
+            signal = "hold_keep"
+            signal_text += " →建议持续持有"
+
+        signals.append({
+            "code": code, "name": name,
+            "shares": h.get("shares", 0), "cost": h.get("cost", 0),
+            "price": price if not pd.isna(price) else 0,
+            "pe": pe if not pd.isna(pe) else 0,
+            "signal": signal, "signal_text": signal_text,
+            "industry": industry,
+        })
         time.sleep(0.3)
+
     return signals
 
 
