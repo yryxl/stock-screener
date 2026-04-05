@@ -3,6 +3,7 @@
 按信号等级分条发送，内容直接显示在微信对话框
 """
 
+import json as json_lib
 import requests
 import yaml
 from datetime import datetime
@@ -33,7 +34,9 @@ def send_text_msg(access_token, openid, text):
         "text": {"content": text}
     }
     try:
-        resp = requests.post(url, json=data, timeout=30)
+        # 关键：ensure_ascii=False 让中文正常显示，不被转义
+        body = json_lib.dumps(data, ensure_ascii=False).encode("utf-8")
+        resp = requests.post(url, data=body, headers={"Content-Type": "application/json; charset=utf-8"}, timeout=30)
         result = resp.json()
         if result.get("errcode") == 0:
             print(f"  发送成功")
@@ -59,7 +62,8 @@ def send_template_msg(access_token, openid, template_id, title, content):
         },
     }
     try:
-        resp = requests.post(url, json=data, timeout=30)
+        body = json_lib.dumps(data, ensure_ascii=False).encode("utf-8")
+        resp = requests.post(url, data=body, headers={"Content-Type": "application/json; charset=utf-8"}, timeout=30)
         result = resp.json()
         if result.get("errcode") == 0:
             print(f"  模板消息发送成功: {title}")
