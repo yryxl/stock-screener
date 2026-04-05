@@ -20,7 +20,8 @@ from screener import (
     check_watchlist_financial_health,
 )
 from notifier import send_daily_report
-from data_fetcher import get_realtime_quotes, get_pe_ttm
+from data_fetcher import get_realtime_quotes, get_pe_ttm, safe_fetch
+import akshare as ak
 
 
 def load_config():
@@ -41,8 +42,21 @@ def is_trading_day():
     return datetime.now().weekday() < 5
 
 
+def get_stock_industry(code):
+    """从东财获取股票的真实行业分类"""
+    try:
+        df = safe_fetch(ak.stock_individual_info_em, symbol=code)
+        if df is not None and not df.empty:
+            for _, row in df.iterrows():
+                if "行业" in str(row.get("item", "")):
+                    return str(row["value"])
+    except Exception:
+        pass
+    return ""
+
+
 def check_watchlist(config, quotes_df):
-    """检查重点关注表：PE信号 + 财务健康验证"""
+    """检查重点关注表：自动获取行业 + PE信号 + 财务健康验证 + 真假跌验证"""
     watchlist = load_json("watchlist.json")
     if not watchlist:
         return [], watchlist
@@ -53,7 +67,12 @@ def check_watchlist(config, quotes_df):
     for stock in watchlist:
         code = stock["code"]
         name = stock.get("name", code)
-        category = stock.get("category", "")
+        # 自动获取真实行业（不依赖手动填写）
+        category = get_stock_industry(code)
+        if not category:
+            category = stock.get("category", "")
+        else:
+            stock["category"] = category  # 更新关注表中的行业
 
         if quotes_df is not None and not quotes_df.empty:
             row = quotes_df[quotes_df["代码"] == code]
@@ -91,20 +110,31 @@ def check_watchlist(config, quotes_df):
                     max_signal = signal_cap.get(roe_level, "buy_light")
                     signal_rank = {"buy_heavy": 0, "buy_medium": 1, "buy_light": 2, "buy_watch": 3, "hold": 4}
 
-                    if signal_rank.get(signal, 3) < signal_rank.get(max_signal, 3):
+                    if signal_rank.get(signal, 4) < signal_rank.get(max_signal, 4):
+                        # 降级后重写信号文字，避免矛盾
                         signal = max_signal
                         if roe_level == "none":
-                            signal_text += f" 但ROE过低不建议买入"
+                            signal_text = f"PE偏低但ROE过低，不建议买入"
                         else:
-                            signal_text += f" (ROE限制最高{max_signal.replace('buy_','').replace('_','')})"
+                            level_names = {"buy_light": "轻仓买入", "buy_watch": "关注买入", "buy_medium": "中仓买入"}
+                            signal_text = f"PE偏低，但ROE限制最高{level_names.get(max_signal, '轻仓')}"
 
                     # 财务风险直接降为hold
                     if not health_ok:
                         signal = "hold"
-                        signal_text += f" 但{health_warning}，暂不建议买入"
+                        signal_text = f"财务风险: {health_warning}，暂不建议买入"
                         print(f"  {name} 财务风险: {health_warning}")
                     elif health_warning:
                         signal_text += f" ({health_warning})"
+
+                # 买入信号还要验证：不是"真跌"（基本面恶化）
+                if signal and "buy" in signal:
+                    from screener import check_fundamental_health
+                    is_healthy, problems = check_fundamental_health(code)
+                    if is_healthy is not None and not is_healthy:
+                        signal = "hold"
+                        signal_text = f"基本面恶化({','.join(problems[:2])})，不推荐买入"
+                        print(f"  {name} 基本面恶化，pass")
 
                 signals.append({
                     "code": code, "name": name,

@@ -65,6 +65,13 @@ INDUSTRY_PE = {
     "锂电": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "tech"},
     "光伏": {"low": 15, "fair_low": 25, "fair_high": 45, "high": 55, "type": "tech"},
 
+    # 制造业/装备
+    "轨道交通": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle"},
+    "铁路装备": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle"},
+    "铁路设备": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle"},
+    "机械制造": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle"},
+    "汽车玻璃": {"low": 10, "fair_low": 14, "fair_high": 22, "high": 30, "type": "cycle"},
+
     # 化工/资源（周期）
     "化工": {"low": 8, "fair_low": 12, "fair_high": 20, "high": 30, "type": "cycle"},
     "有色金属": {"low": 8, "fair_low": 12, "fair_high": 20, "high": 30, "type": "cycle"},
