@@ -1,9 +1,9 @@
 """
 主程序 - 每日运行
-1. 检查重点关注表PE信号（行业感知）
+1. 重点关注表PE信号 + 真假下跌判断
 2. 全市场筛选好公司候选池
-3. 检查持仓信号
-4. 推送通知（每天都发，无信号发"无推荐"）
+3. 持仓信号（PE + 真跌检测）
+4. 每天推送（无信号发"无推荐"）
 """
 
 import json
@@ -14,7 +14,10 @@ from datetime import datetime
 import pandas as pd
 import yaml
 
-from screener import screen_all_stocks, check_holdings_sell_signals, get_pe_signal
+from screener import (
+    screen_all_stocks, check_holdings_sell_signals,
+    get_pe_signal, check_decline_signals,
+)
 from notifier import send_daily_report
 from data_fetcher import get_realtime_quotes
 
@@ -37,14 +40,13 @@ def is_trading_day():
     return datetime.now().weekday() < 5
 
 
-def check_watchlist(config):
-    """检查重点关注表（行业感知PE信号）"""
+def check_watchlist(config, quotes_df):
+    """检查重点关注表PE信号"""
     watchlist = load_json("watchlist.json")
     if not watchlist:
-        return []
+        return [], watchlist
 
     print(f"检查重点关注表（{len(watchlist)}只）...")
-    quotes_df = get_realtime_quotes()
     signals = []
 
     for stock in watchlist:
@@ -59,7 +61,6 @@ def check_watchlist(config):
                 price = pd.to_numeric(row.get("最新价"), errors="coerce")
                 pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
 
-                # 用分类/备注匹配行业
                 industry = category + " " + stock.get("note", "")
                 signal, signal_text = get_pe_signal(pe, industry)
 
@@ -72,10 +73,7 @@ def check_watchlist(config):
                     "signal": signal, "signal_text": signal_text,
                 })
 
-                if signal and signal != "hold":
-                    print(f"  {signal_text[:50]}... {name}({code})")
-
-    return signals
+    return signals, watchlist
 
 
 def main():
@@ -87,28 +85,58 @@ def main():
 
     config = load_config()
 
-    # 1. 重点关注表
-    print("=== 第一步：重点关注表 ===")
-    watchlist_signals = check_watchlist(config)
+    # 获取实时行情（后续多处复用）
+    print("获取实时行情...")
+    quotes_df = get_realtime_quotes()
 
-    # 2. 全市场筛选
-    print("\n=== 第二步：全市场筛选 ===")
+    # 1. 重点关注表PE信号（买入方向）
+    print("\n=== 第一步：重点关注表 ===")
+    watchlist_signals, watchlist_raw = check_watchlist(config, quotes_df)
+    w_buy = sum(1 for s in watchlist_signals if s.get("signal") and "buy" in s["signal"])
+    print(f"  PE买入信号: {w_buy}只")
+
+    # 2. 关注表 + 全A股的假跌检测（买入方向）
+    print("\n=== 第二步：真假下跌检测 ===")
+    # 对关注表做真假下跌判断
+    false_declines_w, true_declines_w = check_decline_signals(watchlist_raw, quotes_df)
+    print(f"  关注表: 假跌{len(false_declines_w)}只 真跌{len(true_declines_w)}只")
+
+    # 3. 全市场筛选好公司候选池（买入方向）
+    print("\n=== 第三步：全市场筛选 ===")
     candidates = screen_all_stocks(config)
 
-    # 3. 持仓信号
-    print("\n=== 第三步：持仓信号 ===")
+    # 4. 持仓PE信号 + 真跌检测（卖出方向，只针对持仓）
+    print("\n=== 第四步：持仓检查 ===")
     holdings = load_json("holdings.json")
-    holding_signals = check_holdings_sell_signals(holdings, config) if holdings else []
+    holding_pe_signals = []
+    holding_decline_signals = []
 
-    # 4. 推送（每天都发）
-    print("\n=== 第四步：推送 ===")
-    send_daily_report(watchlist_signals, candidates, holding_signals, config)
+    if holdings:
+        # PE信号
+        holding_pe_signals = check_holdings_sell_signals(holdings, config)
+        # 真假下跌（只关注真跌作为卖出警告）
+        _, true_declines_h = check_decline_signals(holdings, quotes_df)
+        holding_decline_signals = true_declines_h
+        print(f"  持仓PE卖出信号: {len(holding_pe_signals)}只")
+        print(f"  持仓真跌警告: {len(holding_decline_signals)}只")
+    else:
+        print("  无持仓")
+
+    # 5. 推送
+    print("\n=== 第五步：推送 ===")
+    send_daily_report(
+        watchlist_signals=watchlist_signals,
+        candidates=candidates,
+        holding_signals=holding_pe_signals,
+        false_declines=false_declines_w,      # 关注表假跌→买入机会
+        true_declines=holding_decline_signals, # 持仓真跌→卖出警告
+        config=config,
+    )
 
     # 总结
-    w_buy = sum(1 for s in watchlist_signals if s.get("signal") and "buy" in s["signal"])
-    w_sell = sum(1 for s in watchlist_signals if s.get("signal") and "sell" in s["signal"])
     print(f"\n=== 完成 ===")
-    print(f"关注表: 买入{w_buy} 卖出{w_sell} | 候选池: {len(candidates)} | 持仓信号: {len(holding_signals)}")
+    print(f"关注表买入信号: {w_buy} | 假跌买入: {len(false_declines_w)}")
+    print(f"候选池: {len(candidates)} | 持仓卖出: {len(holding_pe_signals)} | 真跌警告: {len(holding_decline_signals)}")
 
 
 if __name__ == "__main__":

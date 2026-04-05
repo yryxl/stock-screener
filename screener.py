@@ -353,3 +353,161 @@ def check_holdings_sell_signals(holdings, config):
                     })
         time.sleep(0.3)
     return signals
+
+
+# ============================================
+# 真假下跌判断
+# ============================================
+
+def check_fundamental_health(code):
+    """检查公司基本面是否健康（用于区分真假下跌）"""
+    df = get_financial_indicator(code)
+    if df is None:
+        return None, []
+
+    df_annual = extract_annual_data(df, years=5)
+    if df_annual.empty or len(df_annual) < 2:
+        return None, []
+
+    problems = []  # 基本面问题列表
+    healthy = []   # 健康指标列表
+
+    # 1. 营收利润是否连续下滑
+    rev_col = find_column(df_annual, ["营业总收入增长率", "主营业务收入增长率"])
+    if rev_col:
+        rev_growth = pd.to_numeric(df_annual[rev_col], errors="coerce").dropna()
+        if len(rev_growth) >= 2:
+            recent2 = rev_growth.head(2).values
+            if all(v < 0 for v in recent2):
+                problems.append(f"营收连续{len([v for v in recent2 if v<0])}年下滑")
+            else:
+                healthy.append("营收正增长")
+
+    # 2. 净利润是否连续下滑
+    profit_col = find_column(df_annual, ["净利润增长率", "净利润同比增长率"])
+    if profit_col:
+        profit_growth = pd.to_numeric(df_annual[profit_col], errors="coerce").dropna()
+        if len(profit_growth) >= 2:
+            recent2 = profit_growth.head(2).values
+            if all(v < 0 for v in recent2):
+                problems.append(f"净利润连续下滑")
+            else:
+                healthy.append("利润正增长")
+
+    # 3. 毛利率/净利率是否稳定
+    gm_col = find_column(df_annual, ["销售毛利率", "毛利率"])
+    if gm_col:
+        gm = pd.to_numeric(df_annual[gm_col], errors="coerce").dropna()
+        if len(gm) >= 3:
+            gm_values = gm.values[::-1]
+            slope = np.polyfit(np.arange(len(gm_values)), gm_values, 1)[0]
+            if slope < -1.0:
+                problems.append(f"毛利率持续下降")
+            else:
+                healthy.append(f"毛利率稳定{gm.iloc[0]:.1f}%")
+
+    # 4. 现金流是否健康
+    fcf = get_fcf_series(df_annual)
+    if fcf is not None and len(fcf) >= 2:
+        recent_fcf = fcf.head(2)
+        if (recent_fcf <= 0).all():
+            problems.append("现金流连续为负")
+        else:
+            healthy.append("现金流健康")
+
+    # 5. 应收账款是否暴增
+    ar_col = find_column(df_annual, ["应收账款周转率"])
+    if ar_col:
+        ar = pd.to_numeric(df_annual[ar_col], errors="coerce").dropna()
+        if len(ar) >= 2:
+            if ar.iloc[0] < ar.iloc[1] * 0.7:  # 周转率下降30%以上
+                problems.append("应收账款周转率大幅下降（回款变慢）")
+
+    is_healthy = len(problems) == 0
+    return is_healthy, problems if problems else healthy
+
+
+def check_decline_signals(stock_list, quotes_df):
+    """
+    对关注表/持仓中近期下跌的股票进行真假下跌判断
+    返回：假跌买入机会 + 真跌卖出警告
+    """
+    if quotes_df is None or quotes_df.empty:
+        return [], []
+
+    false_declines = []  # 假跌（买入机会）
+    true_declines = []   # 真跌（卖出警告）
+
+    for stock in stock_list:
+        code = stock["code"]
+        name = stock.get("name", code)
+        category = stock.get("category", "")
+
+        row = quotes_df[quotes_df["代码"] == code]
+        if row.empty:
+            continue
+        row = row.iloc[0]
+
+        # 检查涨跌幅（当日+近期）
+        change_pct = pd.to_numeric(row.get("涨跌幅"), errors="coerce")
+        price = pd.to_numeric(row.get("最新价"), errors="coerce")
+
+        # 只关注下跌超过3%的股票
+        if pd.isna(change_pct) or change_pct > -3:
+            continue
+
+        print(f"  {name}({code}) 下跌{change_pct:.1f}%，分析真假...")
+
+        # 检查基本面
+        is_healthy, details = check_fundamental_health(code)
+        if is_healthy is None:
+            continue
+
+        # 检查同行业是否也在跌
+        industry = ""
+        if "所属行业" in quotes_df.columns:
+            industry = str(row.get("所属行业", ""))
+
+        industry_also_down = False
+        if industry:
+            peers = quotes_df[quotes_df.get("所属行业", pd.Series()) == industry]
+            if len(peers) > 3:
+                peer_changes = pd.to_numeric(peers["涨跌幅"], errors="coerce").dropna()
+                avg_peer_change = peer_changes.mean()
+                industry_also_down = avg_peer_change < -1
+
+        stock_info = {
+            "code": code,
+            "name": name,
+            "category": category,
+            "price": price if not pd.isna(price) else 0,
+            "change_pct": change_pct,
+            "details": details,
+            "industry": industry,
+            "industry_also_down": industry_also_down,
+        }
+
+        if is_healthy:
+            # 基本面健康 + 下跌 = 假跌（买入机会）
+            reason = "基本面健康"
+            if industry_also_down:
+                reason += "，同行业普跌（市场原因）"
+            reason += "：" + "、".join(details[:3])
+            stock_info["signal"] = "false_decline"
+            stock_info["signal_text"] = f"假跌{change_pct:.1f}% {reason}→逢低关注"
+            false_declines.append(stock_info)
+            print(f"    -> 假跌（买入机会）")
+        else:
+            # 基本面恶化 + 下跌 = 真跌（卖出警告）
+            reason = "基本面恶化"
+            if not industry_also_down and industry:
+                reason += "，同行未跌（公司自身问题）"
+            reason += "：" + "、".join(details[:3])
+            stock_info["signal"] = "true_decline"
+            stock_info["signal_text"] = f"真跌{change_pct:.1f}% {reason}→建议卖出"
+            true_declines.append(stock_info)
+            print(f"    -> 真跌（卖出警告）")
+
+        time.sleep(0.5)
+
+    return false_declines, true_declines
