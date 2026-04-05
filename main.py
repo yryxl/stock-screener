@@ -20,7 +20,7 @@ from screener import (
     check_watchlist_financial_health,
 )
 from notifier import send_daily_report
-from data_fetcher import get_realtime_quotes
+from data_fetcher import get_realtime_quotes, get_pe_ttm
 
 
 def load_config():
@@ -60,10 +60,22 @@ def check_watchlist(config, quotes_df):
             if not row.empty:
                 row = row.iloc[0]
                 price = pd.to_numeric(row.get("最新价"), errors="coerce")
-                pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
+
+                # 优先用PE(TTM)准确数据，失败才用动态PE
+                pe = None
+                pe_source = ""
+                ttm_data = get_pe_ttm(code)
+                if ttm_data and ttm_data.get("pe_ttm"):
+                    pe = ttm_data["pe_ttm"]
+                    pe_source = "TTM"
+                else:
+                    pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
+                    pe_source = "动态"
 
                 industry = category + " " + stock.get("note", "")
                 signal, signal_text = get_pe_signal(pe, industry)
+                if pe_source == "TTM":
+                    signal_text = signal_text.replace(f"PE={pe:.1f}", f"PE(TTM)={pe:.1f}")
 
                 # 如果是买入信号，需要验证财务健康
                 if signal and "buy" in signal:

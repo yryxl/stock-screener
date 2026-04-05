@@ -131,3 +131,22 @@ def get_fcf_series(df_annual):
     if col is None:
         return None
     return pd.to_numeric(df_annual[col], errors="coerce").dropna()
+
+
+def get_pe_ttm(stock_code):
+    """获取准确的PE(TTM)（最近4个季度真实利润）"""
+    try:
+        df = safe_fetch(ak.stock_a_indicator_lg, symbol=stock_code)
+        if df is not None and not df.empty:
+            # 取最新一条数据
+            latest = df.iloc[-1]
+            pe_ttm = pd.to_numeric(latest.get("pe_ttm"), errors="coerce")
+            pb = pd.to_numeric(latest.get("pb"), errors="coerce")
+            ps_ttm = pd.to_numeric(latest.get("ps_ttm"), errors="coerce")
+            return {
+                "pe_ttm": pe_ttm if not pd.isna(pe_ttm) else None,
+                "pb": pb if not pd.isna(pb) else None,
+            }
+    except Exception as e:
+        print(f"  获取{stock_code} PE_TTM失败: {e}")
+    return None
