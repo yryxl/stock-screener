@@ -17,6 +17,7 @@ from data_fetcher import (
     get_fcf_series,
     get_realtime_quotes,
     get_batch_roe_data,
+    get_pe_ttm,
     find_column,
 )
 
@@ -247,15 +248,21 @@ def screen_single_stock(code, config, quotes_df):
         if not row.empty:
             row = row.iloc[0]
             price = pd.to_numeric(row.get("最新价"), errors="coerce")
-            pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
             result["price"] = price
-            result["pe"] = pe
 
             max_price = config["screener"]["max_price_per_share"]
             if not pd.isna(price) and price > max_price:
                 return result
 
-            # 尝试获取行业信息
+            # 优先用PE(TTM)准确数据
+            pe = None
+            ttm_data = get_pe_ttm(code)
+            if ttm_data and ttm_data.get("pe_ttm"):
+                pe = ttm_data["pe_ttm"]
+            else:
+                pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
+            result["pe"] = pe
+
             industry = str(row.get("所属行业", "")) if "所属行业" in quotes_df.columns else ""
             signal, signal_text = get_pe_signal(pe, industry)
             result["signal"] = signal
@@ -340,7 +347,13 @@ def check_holdings_sell_signals(holdings, config):
             if not row.empty:
                 row = row.iloc[0]
                 price = pd.to_numeric(row.get("最新价"), errors="coerce")
-                pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
+                # 优先用PE(TTM)
+                pe = None
+                ttm_data = get_pe_ttm(code)
+                if ttm_data and ttm_data.get("pe_ttm"):
+                    pe = ttm_data["pe_ttm"]
+                else:
+                    pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
                 industry = str(row.get("所属行业", "")) if "所属行业" in quotes_df.columns else ""
                 signal, signal_text = get_pe_signal(pe, industry)
                 if signal and signal != "hold":
