@@ -374,19 +374,63 @@ def check_holdings_sell_signals(holdings, config):
 
 def check_watchlist_financial_health(code):
     """
-    对关注表股票做财务健康检查
-    通过返回 (True, "")
-    不通过返回 (False, "风险描述")
+    对关注表股票做财务健康检查+ROE等级判定
+    返回 (通过?, 警告信息, ROE等级)
+    ROE等级决定最高允许的买入信号：
+      "heavy"  ROE>=20% → 允许重仓
+      "light"  ROE 15-20% → 最高轻仓
+      "watch"  ROE 10-15% → 最高关注
+      "none"   ROE<10% → 不给买入信号
     """
     df = get_financial_indicator(code)
     if df is None:
-        return True, ""  # 数据不足时不拦截
+        return True, "", "light"  # 数据不足时默认轻仓
 
     df_annual = extract_annual_data(df, years=5)
     if df_annual.empty:
-        return True, ""
+        return True, "", "light"
 
     warnings = []
+    roe_level = "heavy"  # 默认允许重仓
+
+    # 0. ROE检查（决定买入信号上限）
+    roe_series = get_roe_series(df_annual)
+    if roe_series is not None and len(roe_series) >= 2:
+        avg_roe = roe_series.mean()
+        data_years = len(roe_series)
+
+        # 数据不足10年，自动降一级（保守处理）
+        if data_years < 8:
+            warnings.append(f"仅{data_years}年数据(不足10年)")
+            if avg_roe >= 20:
+                roe_level = "light"  # 数据不足，降级
+                warnings.append(f"ROE={avg_roe:.1f}%但数据不足(最高轻仓)")
+            elif avg_roe >= 15:
+                roe_level = "watch"
+                warnings.append(f"ROE={avg_roe:.1f}%(最高关注)")
+            elif avg_roe >= 10:
+                roe_level = "watch"
+                warnings.append(f"ROE={avg_roe:.1f}%(仅关注)")
+            else:
+                roe_level = "none"
+                warnings.append(f"ROE={avg_roe:.1f}%过低(不建议买入)")
+        else:
+            # 数据充足（>=8年）
+            if avg_roe >= 20:
+                roe_level = "heavy"
+            elif avg_roe >= 15:
+                roe_level = "light"
+                warnings.append(f"ROE={avg_roe:.1f}%(最高轻仓)")
+            elif avg_roe >= 10:
+                roe_level = "watch"
+                warnings.append(f"ROE={avg_roe:.1f}%(仅关注)")
+            else:
+                roe_level = "none"
+                warnings.append(f"ROE={avg_roe:.1f}%过低(不建议买入)")
+    else:
+        # 完全没有ROE数据
+        roe_level = "watch"
+        warnings.append("ROE数据缺失(最高关注)")
 
     # 1. 负债率检查（>55%警告）
     debt_info = get_debt_info(df_annual)
@@ -399,7 +443,7 @@ def check_watchlist_financial_health(code):
     if debt_info and debt_info.get("current_ratio"):
         cr = debt_info["current_ratio"]
         if not np.isnan(cr) and cr < 1.0:
-            warnings.append(f"流动比率{cr:.2f}偏低(短期偿债压力)")
+            warnings.append(f"流动比率{cr:.2f}偏低")
 
     # 3. 营业利润率是否下滑
     opm = get_opm_series(df_annual)
@@ -415,9 +459,14 @@ def check_watchlist_financial_health(code):
         if (fcf.head(2) <= 0).all():
             warnings.append("现金流连续为负")
 
-    if warnings:
-        return False, "、".join(warnings)
-    return True, ""
+    # 4. 现金流检查
+    fcf = get_fcf_series(df_annual)
+    if fcf is not None and len(fcf) >= 2:
+        if (fcf.head(2) <= 0).all():
+            warnings.append("现金流连续为负")
+
+    has_risk = any(w for w in warnings if "负债率" in w or "流动比率" in w or "现金流" in w or "利润率" in w)
+    return not has_risk, "、".join(warnings) if warnings else "", roe_level
 
 
 # ============================================

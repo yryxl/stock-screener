@@ -77,14 +77,34 @@ def check_watchlist(config, quotes_df):
                 if pe_source == "TTM":
                     signal_text = signal_text.replace(f"PE={pe:.1f}", f"PE(TTM)={pe:.1f}")
 
-                # 如果是买入信号，需要验证财务健康
+                # 如果是买入信号，验证财务健康+ROE等级
                 if signal and "buy" in signal:
-                    health_ok, health_warning = check_watchlist_financial_health(code)
+                    health_ok, health_warning, roe_level = check_watchlist_financial_health(code)
+
+                    # ROE等级限制信号上限
+                    signal_cap = {
+                        "heavy": "buy_heavy",   # ROE>=20% 允许重仓
+                        "light": "buy_light",   # ROE 15-20% 最高轻仓
+                        "watch": "buy_watch",   # ROE 10-15% 最高关注
+                        "none": "hold",         # ROE<10% 不买
+                    }
+                    max_signal = signal_cap.get(roe_level, "buy_light")
+                    signal_rank = {"buy_heavy": 0, "buy_light": 1, "buy_watch": 2, "hold": 3}
+
+                    if signal_rank.get(signal, 3) < signal_rank.get(max_signal, 3):
+                        signal = max_signal
+                        if roe_level == "none":
+                            signal_text += f" 但ROE过低不建议买入"
+                        else:
+                            signal_text += f" (ROE限制最高{max_signal.replace('buy_','').replace('_','')})"
+
+                    # 财务风险直接降为hold
                     if not health_ok:
-                        # 财务有风险，降级信号
                         signal = "hold"
                         signal_text += f" 但{health_warning}，暂不建议买入"
-                        print(f"  {name} PE触发买入但财务风险: {health_warning}")
+                        print(f"  {name} 财务风险: {health_warning}")
+                    elif health_warning:
+                        signal_text += f" ({health_warning})"
 
                 signals.append({
                     "code": code, "name": name,
