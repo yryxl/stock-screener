@@ -1,6 +1,6 @@
 """
-通知推送模块 - 通过微信测试号模板消息推送
-按6个信号等级分块发送，每条消息简短直接
+通知推送模块 - 通过微信测试号客服消息接口发送纯文本
+按信号等级分条发送，内容直接显示在微信对话框
 """
 
 import requests
@@ -24,82 +24,85 @@ def get_access_token(appid, appsecret):
         return None
 
 
+def send_text_msg(access_token, openid, text):
+    """发送客服文本消息（内容直接显示在对话框）"""
+    url = f"https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token={access_token}"
+    data = {
+        "touser": openid,
+        "msgtype": "text",
+        "text": {"content": text}
+    }
+    try:
+        resp = requests.post(url, json=data, timeout=30)
+        result = resp.json()
+        if result.get("errcode") == 0:
+            print(f"  发送成功")
+            return True
+        else:
+            print(f"  发送失败: {result}")
+            # 如果客服接口不可用，回退到模板消息
+            return False
+    except Exception as e:
+        print(f"  发送异常: {e}")
+        return False
+
+
 def send_template_msg(access_token, openid, template_id, title, content):
-    """发送一条模板消息"""
+    """模板消息（备用方案）"""
     url = f"https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={access_token}"
-    # 截断content避免超长
-    if len(content) > 800:
-        content = content[:800] + "..."
     data = {
         "touser": openid,
         "template_id": template_id,
         "data": {
-            "title": {"value": title, "color": "#173177"},
-            "content": {"value": content, "color": "#333333"},
+            "title": {"value": title},
+            "content": {"value": content[:200]},
         },
     }
     try:
         resp = requests.post(url, json=data, timeout=30)
         result = resp.json()
         if result.get("errcode") == 0:
-            print(f"  推送成功: {title}")
+            print(f"  模板消息发送成功: {title}")
             return True
         else:
-            print(f"  推送失败: {result}")
+            print(f"  模板消息失败: {result}")
             return False
     except Exception as e:
-        print(f"  推送异常: {e}")
+        print(f"  模板消息异常: {e}")
         return False
 
 
-SIGNAL_LABELS = {
-    "buy_heavy": "🔴 可以重仓买入",
-    "buy_light": "🟠 可以轻仓买入",
-    "buy_watch": "🟡 重点关注买入",
-    "hold": "⚪ 持有观察",
-    "sell_watch": "🟡 重点关注卖出",
-    "sell_light": "🟠 可以适当卖出",
-    "sell_heavy": "🔴 可以大量卖出",
-}
-
-# 信号分组顺序
 SIGNAL_GROUPS = [
-    ("buy_heavy", "可以重仓买入"),
-    ("buy_light", "可以轻仓买入"),
-    ("buy_watch", "重点关注买入"),
-    ("sell_watch", "重点关注卖出"),
-    ("sell_light", "可以适当卖出"),
-    ("sell_heavy", "可以大量卖出"),
+    ("buy_heavy", "【可以重仓买入】"),
+    ("buy_light", "【可以轻仓买入】"),
+    ("buy_watch", "【重点关注买入】"),
+    ("sell_watch", "【重点关注卖出】"),
+    ("sell_light", "【可以适当卖出】"),
+    ("sell_heavy", "【可以大量卖出】"),
 ]
 
 
 def format_stock_line(s):
-    """格式化一只股票为一行文字"""
+    """一只股票一行"""
     name = s.get("name", "")
     code = s.get("code", "")
     pe = s.get("pe", 0)
     price = s.get("price", 0)
-    note = s.get("note", "")
     category = s.get("category", "")
+    note = s.get("note", "")
 
     line = f"{name}({code})"
     if pe and pe > 0:
         line += f" PE={pe:.1f}"
     if price and price > 0:
-        line += f" ¥{price:.2f}"
+        line += f" {price:.2f}元"
     if category:
-        line += f"\n  [{category}]"
-    if note:
-        line += f" {note}"
+        line += f" [{category}]"
     return line
 
 
 def send_daily_report(watchlist_signals, candidates, holding_signals, config):
-    """
-    每天发送消息
-    按6个信号等级分块发送
-    无信号时发送"无推荐"
-    """
+    """每天发送消息，按信号分条"""
     wx = config["wechat"]
     if wx["appid"] == "YOUR_APPID":
         print("微信未配置，跳过")
@@ -111,41 +114,41 @@ def send_daily_report(watchlist_signals, candidates, holding_signals, config):
 
     openid = wx["openid"]
     template_id = wx["template_id"]
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now().strftime("%m-%d")
 
-    # 合并所有信号源
+    # 合并所有信号
     all_signals = []
     for s in watchlist_signals:
-        s["source"] = "关注表"
         all_signals.append(s)
     for s in candidates:
         if s.get("signal") and s["signal"] != "hold":
-            s["source"] = "候选池"
             all_signals.append(s)
     for s in holding_signals:
-        s["source"] = "持仓"
         all_signals.append(s)
 
-    # 按信号分组
-    has_any_signal = False
-    for signal_key, signal_name in SIGNAL_GROUPS:
+    # 按信号分组发送
+    sent_any = False
+    for signal_key, signal_title in SIGNAL_GROUPS:
         group = [s for s in all_signals if s.get("signal") == signal_key]
         if not group:
             continue
 
-        has_any_signal = True
-        title = f"{signal_name} {today}"
-        lines = []
+        sent_any = True
+        lines = [f"{signal_title} {today}", ""]
         for s in group:
             lines.append(format_stock_line(s))
-        content = "\n\n".join(lines)
+        text = "\n".join(lines)
 
-        send_template_msg(access_token, openid, template_id, title, content)
+        # 先尝试客服消息，失败则用模板消息
+        ok = send_text_msg(access_token, openid, text)
+        if not ok:
+            send_template_msg(access_token, openid, template_id, f"{signal_title} {today}", text)
 
-    # 无任何信号时发送"无推荐"
-    if not has_any_signal:
-        title = f"芒格选股 {today}"
-        content = f"今日无推荐\n\n关注表{len(watchlist_signals)}只均在合理区间\n继续持有观察"
-        send_template_msg(access_token, openid, template_id, title, content)
+    # 无信号时发"无推荐"
+    if not sent_any:
+        text = f"芒格选股 {today}\n\n今日无推荐\n关注表均在合理区间，继续观察"
+        ok = send_text_msg(access_token, openid, text)
+        if not ok:
+            send_template_msg(access_token, openid, template_id, f"芒格选股 {today}", "今日无推荐，继续观察")
 
-    print(f"推送完成")
+    print("推送完成")
