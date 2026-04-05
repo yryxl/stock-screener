@@ -175,6 +175,21 @@ def main():
         config=config,
     )
 
+    # 6. 保存每日结果（供Streamlit页面展示）
+    print("\n=== 第六步：保存结果 ===")
+    daily_data = {
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "watchlist_signals": watchlist_signals,
+        "candidates": [s for s in candidates if s.get("signal") and s["signal"] != "hold"],
+        "holding_signals": holding_pe_signals,
+        "false_declines": false_declines_w,
+        "true_declines": holding_decline_signals,
+    }
+    results_path = os.path.join(os.path.dirname(__file__), "daily_results.json")
+    with open(results_path, "w", encoding="utf-8") as f:
+        json.dump(daily_data, f, ensure_ascii=False, indent=2, default=str)
+    print(f"  结果已保存到 daily_results.json")
+
     # 总结
     print(f"\n=== 完成 ===")
     print(f"关注表买入信号: {w_buy} | 假跌买入: {len(false_declines_w)}")
