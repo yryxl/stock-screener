@@ -356,6 +356,58 @@ def check_holdings_sell_signals(holdings, config):
 
 
 # ============================================
+# 关注表财务健康验证（买入前必须过关）
+# ============================================
+
+def check_watchlist_financial_health(code):
+    """
+    对关注表股票做财务健康检查
+    通过返回 (True, "")
+    不通过返回 (False, "风险描述")
+    """
+    df = get_financial_indicator(code)
+    if df is None:
+        return True, ""  # 数据不足时不拦截
+
+    df_annual = extract_annual_data(df, years=5)
+    if df_annual.empty:
+        return True, ""
+
+    warnings = []
+
+    # 1. 负债率检查（>55%警告）
+    debt_info = get_debt_info(df_annual)
+    if debt_info and debt_info.get("debt_ratio"):
+        dr = debt_info["debt_ratio"]
+        if not np.isnan(dr) and dr > 55:
+            warnings.append(f"负债率{dr:.0f}%偏高")
+
+    # 2. 流动比率检查（<1.0警告）
+    if debt_info and debt_info.get("current_ratio"):
+        cr = debt_info["current_ratio"]
+        if not np.isnan(cr) and cr < 1.0:
+            warnings.append(f"流动比率{cr:.2f}偏低(短期偿债压力)")
+
+    # 3. 营业利润率是否下滑
+    opm = get_opm_series(df_annual)
+    if opm is not None and len(opm) >= 3:
+        values = opm.values[::-1]
+        slope = np.polyfit(np.arange(len(values)), values, 1)[0]
+        if slope < -1.0:
+            warnings.append("利润率持续下滑")
+
+    # 4. 现金流检查
+    fcf = get_fcf_series(df_annual)
+    if fcf is not None and len(fcf) >= 2:
+        if (fcf.head(2) <= 0).all():
+            warnings.append("现金流连续为负")
+
+    if warnings:
+        return False, "、".join(warnings)
+    return True, ""
+
+
+# ============================================
 # 真假下跌判断
 # ============================================
 

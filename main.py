@@ -17,6 +17,7 @@ import yaml
 from screener import (
     screen_all_stocks, check_holdings_sell_signals,
     get_pe_signal, check_decline_signals,
+    check_watchlist_financial_health,
 )
 from notifier import send_daily_report
 from data_fetcher import get_realtime_quotes
@@ -41,7 +42,7 @@ def is_trading_day():
 
 
 def check_watchlist(config, quotes_df):
-    """检查重点关注表PE信号"""
+    """检查重点关注表：PE信号 + 财务健康验证"""
     watchlist = load_json("watchlist.json")
     if not watchlist:
         return [], watchlist
@@ -63,6 +64,15 @@ def check_watchlist(config, quotes_df):
 
                 industry = category + " " + stock.get("note", "")
                 signal, signal_text = get_pe_signal(pe, industry)
+
+                # 如果是买入信号，需要验证财务健康
+                if signal and "buy" in signal:
+                    health_ok, health_warning = check_watchlist_financial_health(code)
+                    if not health_ok:
+                        # 财务有风险，降级信号
+                        signal = "hold"
+                        signal_text += f" 但{health_warning}，暂不建议买入"
+                        print(f"  {name} PE触发买入但财务风险: {health_warning}")
 
                 signals.append({
                     "code": code, "name": name,
