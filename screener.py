@@ -393,44 +393,54 @@ def check_watchlist_financial_health(code):
     warnings = []
     roe_level = "heavy"  # 默认允许重仓
 
-    # 0. ROE检查（决定买入信号上限）
+    # 0. ROE检查（考虑杠杆率调整）
+    # 低负债公司ROE门槛放宽（零杠杆13%比高杠杆20%更有价值）
     roe_series = get_roe_series(df_annual)
+    debt_info_for_roe = get_debt_info(df_annual)
+    debt_ratio_val = 50  # 默认
+    if debt_info_for_roe and debt_info_for_roe.get("debt_ratio"):
+        dr = debt_info_for_roe["debt_ratio"]
+        if not np.isnan(dr):
+            debt_ratio_val = dr
+
+    # 根据负债率确定ROE门槛
+    if debt_ratio_val < 30:
+        # 低杠杆：赚钱全靠真本事，放宽要求
+        roe_thresholds = {"heavy": 12, "light": 10, "watch": 8}
+    elif debt_ratio_val < 50:
+        # 中杠杆：正常要求
+        roe_thresholds = {"heavy": 15, "light": 12, "watch": 10}
+    else:
+        # 高杠杆：严格要求（杠杆推高的ROE不算）
+        roe_thresholds = {"heavy": 20, "light": 15, "watch": 12}
+
     if roe_series is not None and len(roe_series) >= 2:
         avg_roe = roe_series.mean()
         data_years = len(roe_series)
 
-        # 数据不足10年，自动降一级（保守处理）
-        if data_years < 8:
-            warnings.append(f"仅{data_years}年数据(不足10年)")
-            if avg_roe >= 20:
-                roe_level = "light"  # 数据不足，降级
-                warnings.append(f"ROE={avg_roe:.1f}%但数据不足(最高轻仓)")
-            elif avg_roe >= 15:
-                roe_level = "watch"
-                warnings.append(f"ROE={avg_roe:.1f}%(最高关注)")
-            elif avg_roe >= 10:
-                roe_level = "watch"
-                warnings.append(f"ROE={avg_roe:.1f}%(仅关注)")
-            else:
-                roe_level = "none"
-                warnings.append(f"ROE={avg_roe:.1f}%过低(不建议买入)")
+        # 数据不足8年，自动降一级
+        downgrade = 1 if data_years < 8 else 0
+
+        if avg_roe >= roe_thresholds["heavy"]:
+            levels = ["heavy", "light", "watch", "watch"]
+            roe_level = levels[min(downgrade, len(levels)-1)]
+        elif avg_roe >= roe_thresholds["light"]:
+            levels = ["light", "watch", "watch"]
+            roe_level = levels[min(downgrade, len(levels)-1)]
+        elif avg_roe >= roe_thresholds["watch"]:
+            roe_level = "watch"
         else:
-            # 数据充足（>=8年）
-            if avg_roe >= 20:
-                roe_level = "heavy"
-            elif avg_roe >= 15:
-                roe_level = "light"
-                warnings.append(f"ROE={avg_roe:.1f}%(最高轻仓)")
-            elif avg_roe >= 10:
-                roe_level = "watch"
-                warnings.append(f"ROE={avg_roe:.1f}%(仅关注)")
-            else:
-                roe_level = "none"
-                warnings.append(f"ROE={avg_roe:.1f}%过低(不建议买入)")
+            roe_level = "none"
+            warnings.append(f"ROE={avg_roe:.1f}%过低")
+
+        if data_years < 8:
+            warnings.append(f"仅{data_years}年数据")
+        if roe_level != "heavy" and roe_level != "none":
+            debt_note = f"负债率{debt_ratio_val:.0f}%" if debt_ratio_val < 30 else ""
+            warnings.append(f"ROE={avg_roe:.1f}% {debt_note}")
     else:
-        # 完全没有ROE数据
         roe_level = "watch"
-        warnings.append("ROE数据缺失(最高关注)")
+        warnings.append("ROE数据缺失")
 
     # 1. 负债率检查（>55%警告）
     debt_info = get_debt_info(df_annual)
