@@ -113,13 +113,8 @@ def format_stock_line(s):
     return line
 
 
-def send_daily_report(watchlist_signals, candidates, holding_signals,
-                      false_declines=None, true_declines=None, config=None):
-    """
-    每天发送消息
-    买入信号：来自关注表PE + 候选池PE（只有假跌或正常下跌才触发）
-    卖出信号：来自持仓PE + 持仓真跌（基本面恶化）
-    """
+def send_daily_report(watchlist_signals, candidates, holding_signals, config=None):
+    """每天发送消息，按信号分组"""
     if config is None:
         config = load_config()
     wx = config["wechat"]
@@ -135,40 +130,17 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
     template_id = wx["template_id"]
     today = datetime.now().strftime("%m-%d")
 
-    if false_declines is None:
-        false_declines = []
-    if true_declines is None:
-        true_declines = []
-
-    # 合并所有买入信号（关注表 + 候选池，只看买入方向）
+    # 合并所有信号
     all_signals = []
     for s in watchlist_signals:
-        if s.get("signal") and "buy" in s["signal"]:
+        if s.get("signal") and s["signal"] not in ("hold", None):
             all_signals.append(s)
     for s in candidates:
-        if s.get("signal") and "buy" in s["signal"]:
+        if s.get("signal") and s["signal"] not in ("hold", None):
             all_signals.append(s)
-
-    # 假跌的股票也加入买入信号（按PE级别分配信号）
-    for s in false_declines:
-        change = abs(s.get("change_pct", 0))
-        if change >= 7:
-            s["signal"] = "buy_heavy"
-        elif change >= 5:
-            s["signal"] = "buy_light"
-        else:
-            s["signal"] = "buy_watch"
-        all_signals.append(s)
-
-    # 合并所有卖出信号（只来自持仓）
     for s in holding_signals:
-        if s.get("signal") and "sell" in s["signal"]:
+        if s.get("signal") and s["signal"] not in (None,):
             all_signals.append(s)
-
-    # 真跌作为独立的"基本面恶化"信号（只来自持仓）
-    for s in true_declines:
-        s["signal"] = "true_decline"
-        all_signals.append(s)
 
     # 按信号分组发送
     sent_any = False
@@ -176,18 +148,14 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
         group = [s for s in all_signals if s.get("signal") == signal_key]
         if not group:
             continue
-
         sent_any = True
         lines = [f"{signal_title} {today}", ""]
         for s in group:
             lines.append(format_stock_line(s))
-        text = "\n".join(lines)
+        send_msg(access_token, openid, template_id, "\n".join(lines))
 
-        send_msg(access_token, openid, template_id, text)
-
-    # 无信号时发"无推荐"
     if not sent_any:
-        text = f"芒格选股 {today}\n\n今日无推荐\n关注表均在合理区间\n持仓无异常\n继续观察"
-        send_msg(access_token, openid, template_id, text)
+        send_msg(access_token, openid, template_id,
+                 f"芒格选股 {today}\n\n今日无推荐\n关注表均在合理区间\n持仓无异常\n继续观察")
 
     print("推送完成")
