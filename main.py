@@ -83,13 +83,13 @@ def check_watchlist(config, quotes_df):
 
                     # ROE等级限制信号上限
                     signal_cap = {
-                        "heavy": "buy_heavy",   # ROE>=20% 允许重仓
-                        "light": "buy_light",   # ROE 15-20% 最高轻仓
-                        "watch": "buy_watch",   # ROE 10-15% 最高关注
-                        "none": "hold",         # ROE<10% 不买
+                        "heavy": "buy_heavy",   # ROE高+低杠杆 允许重仓
+                        "light": "buy_light",   # ROE中等 最高轻仓
+                        "watch": "buy_watch",   # ROE偏低 最高关注
+                        "none": "hold",         # ROE过低 不买
                     }
                     max_signal = signal_cap.get(roe_level, "buy_light")
-                    signal_rank = {"buy_heavy": 0, "buy_light": 1, "buy_watch": 2, "hold": 3}
+                    signal_rank = {"buy_heavy": 0, "buy_medium": 1, "buy_light": 2, "buy_watch": 3, "hold": 4}
 
                     if signal_rank.get(signal, 3) < signal_rank.get(max_signal, 3):
                         signal = max_signal

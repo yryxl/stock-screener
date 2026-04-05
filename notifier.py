@@ -76,11 +76,17 @@ def send_msg(access_token, openid, template_id, text):
 
 # 信号分组
 SIGNAL_GROUPS = [
+    # 买入信号（关注表+全市场，从强到弱）
     ("buy_heavy", "【可以重仓买入】"),
+    ("buy_medium", "【可以中仓买入】"),
     ("buy_light", "【可以轻仓买入】"),
     ("buy_watch", "【重点关注买入】"),
+    # 持仓信号
+    ("hold_keep", "【建议持续持有】"),
+    # 卖出信号（只针对持仓，从轻到重）
     ("sell_watch", "【重点关注卖出】"),
     ("sell_light", "【可以适当卖出】"),
+    ("sell_medium", "【可以中仓卖出】"),
     ("sell_heavy", "【可以大量卖出】"),
     ("true_decline", "【基本面恶化警告】"),
 ]

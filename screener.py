@@ -128,10 +128,11 @@ def get_pe_signal(current_pe, industry="", net_profit_growth=None):
     # 基于行业PE区间判断
     if current_pe <= pe_range["low"]:
         return "buy_heavy", f"PE={current_pe:.1f}，远低于行业底部{pe_range['low']}{peg_hint}→可以重仓买入"
+    elif current_pe <= (pe_range["low"] + pe_range["fair_low"]) / 2:
+        return "buy_medium", f"PE={current_pe:.1f}，明显低于合理区间{peg_hint}→可以中仓买入"
     elif current_pe <= pe_range["fair_low"]:
         return "buy_light", f"PE={current_pe:.1f}，低于行业合理区间{pe_range['fair_low']}-{pe_range['fair_high']}{peg_hint}→可以轻仓买入"
     elif current_pe <= pe_range["fair_high"]:
-        # 在合理区间内，看是偏低还是偏高
         mid = (pe_range["fair_low"] + pe_range["fair_high"]) / 2
         if current_pe <= mid * 0.9:
             return "buy_watch", f"PE={current_pe:.1f}，合理偏低{peg_hint}→重点关注买入"
@@ -139,8 +140,10 @@ def get_pe_signal(current_pe, industry="", net_profit_growth=None):
             return "sell_watch", f"PE={current_pe:.1f}，合理偏高{peg_hint}→重点关注卖出"
         else:
             return "hold", f"PE={current_pe:.1f}，处于合理区间{pe_range['fair_low']}-{pe_range['fair_high']}{peg_hint}"
-    elif current_pe <= pe_range["high"]:
+    elif current_pe <= (pe_range["fair_high"] + pe_range["high"]) / 2:
         return "sell_light", f"PE={current_pe:.1f}，高于合理区间{peg_hint}→可以适当卖出"
+    elif current_pe <= pe_range["high"]:
+        return "sell_medium", f"PE={current_pe:.1f}，明显高于合理区间{peg_hint}→可以中仓卖出"
     else:
         return "sell_heavy", f"PE={current_pe:.1f}，远高于行业上限{pe_range['high']}{peg_hint}→可以大量卖出"
 
@@ -327,7 +330,7 @@ def screen_all_stocks(config):
             passed.append(result)
         time.sleep(0.3)
 
-    signal_order = {"buy_heavy": 0, "buy_light": 1, "buy_watch": 2, "hold": 3, "sell_watch": 4, "sell_light": 5, "sell_heavy": 6, None: 7}
+    signal_order = {"buy_heavy": 0, "buy_medium": 1, "buy_light": 2, "buy_watch": 3, "hold_keep": 4, "hold": 5, "sell_watch": 6, "sell_light": 7, "sell_medium": 8, "sell_heavy": 9, "true_decline": 10, None: 11}
     passed.sort(key=lambda x: signal_order.get(x.get("signal"), 7))
     print(f"\n候选池: {len(passed)} 只好公司")
     return passed
@@ -356,14 +359,19 @@ def check_holdings_sell_signals(holdings, config):
                     pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
                 industry = str(row.get("所属行业", "")) if "所属行业" in quotes_df.columns else ""
                 signal, signal_text = get_pe_signal(pe, industry)
-                if signal and signal != "hold":
-                    signals.append({
-                        "code": code, "name": name,
-                        "shares": h.get("shares", 0), "cost": h.get("cost", 0),
-                        "price": price if not pd.isna(price) else 0,
-                        "pe": pe if not pd.isna(pe) else 0,
-                        "signal": signal, "signal_text": signal_text,
-                    })
+
+                # 持仓股：hold变成"建议持续持有"
+                if signal == "hold":
+                    signal = "hold_keep"
+                    signal_text += " →建议持续持有"
+
+                signals.append({
+                    "code": code, "name": name,
+                    "shares": h.get("shares", 0), "cost": h.get("cost", 0),
+                    "price": price if not pd.isna(price) else 0,
+                    "pe": pe if not pd.isna(pe) else 0,
+                    "signal": signal, "signal_text": signal_text,
+                })
         time.sleep(0.3)
     return signals
 
