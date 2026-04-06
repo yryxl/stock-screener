@@ -102,14 +102,15 @@ INDUSTRY_PE = {
 # 默认PE区间（找不到行业时用）
 DEFAULT_PE = {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "default", "complexity": "medium"}
 
-# 复杂度对ROE门槛的影响（和screener的check_watchlist_financial_health配合）
-# 简单生意：ROE要求宽松（低杠杆12%就够，巴菲特最爱）
-# 中等复杂：ROE要求正常
-# 复杂生意：ROE要求严格（必须赚够多才值得投入重资产）
+# 复杂度对ROE门槛（基于巴菲特1987年股东信）
+# 巴菲特原话：10年均值≥20%，且单年不低于15%
+# 简单生意：按巴菲特标准（20%重仓/15%轻仓/12%关注）
+# 中等复杂：略严（需更多利润缓冲技术门槛）
+# 复杂生意：最严（重资产持续烧钱，必须赚足够多）
 COMPLEXITY_ROE_ADJUST = {
-    "simple": {"heavy": 12, "light": 10, "watch": 8},    # 宽松
-    "medium": {"heavy": 15, "light": 12, "watch": 10},   # 正常
-    "complex": {"heavy": 20, "light": 15, "watch": 12},  # 严格
+    "simple": {"heavy": 20, "light": 15, "watch": 12},   # 巴菲特标准
+    "medium": {"heavy": 22, "light": 17, "watch": 14},   # 略严
+    "complex": {"heavy": 25, "light": 20, "watch": 15},  # 最严
 }
 
 
@@ -638,8 +639,31 @@ def check_fundamental_health(code):
     if ar_col:
         ar = pd.to_numeric(df_annual[ar_col], errors="coerce").dropna()
         if len(ar) >= 2:
-            if ar.iloc[0] < ar.iloc[1] * 0.7:  # 周转率下降30%以上
-                problems.append("应收账款周转率大幅下降（回款变慢）")
+            if ar.iloc[0] < ar.iloc[1] * 0.7:
+                problems.append("应收账款周转率大幅下降")
+
+    # 6. ROE连续下滑（巴菲特清仓信号）
+    # 从20%+掉到<15%且持续2-3年 → 基本面恶化
+    roe_series = get_roe_series(df_annual)
+    if roe_series is not None and len(roe_series) >= 3:
+        recent_roe = roe_series.head(3).values
+        # 连续3年下滑
+        if all(recent_roe[i] > recent_roe[i+1] for i in range(len(recent_roe)-1)):
+            if recent_roe[-1] < 15:
+                problems.append(f"ROE连续下滑至{recent_roe[-1]:.1f}%（破15%底线）")
+            elif recent_roe[0] - recent_roe[-1] > 5:
+                problems.append(f"ROE连续下滑（从{recent_roe[0]:.1f}%降至{recent_roe[-1]:.1f}%）")
+
+    # 7. 高ROE但现金流远低于净利润（虚假ROE）
+    # 巴菲特：经营现金流应≥净利润
+    if fcf is not None and len(fcf) >= 1:
+        profit_col2 = find_column(df_annual, ["净利润增长率"])
+        # 如果现金流远低于0但ROE还在20%以上，说明ROE是虚的
+        if roe_series is not None and len(roe_series) >= 1:
+            latest_roe = roe_series.iloc[0]
+            latest_fcf = fcf.iloc[0]
+            if latest_roe > 15 and latest_fcf < 0:
+                problems.append(f"ROE={latest_roe:.1f}%但现金流为负（虚假ROE）")
 
     is_healthy = len(problems) == 0
     return is_healthy, problems if problems else healthy
