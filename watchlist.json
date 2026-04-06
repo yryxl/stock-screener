@@ -35,13 +35,6 @@
     "industry_auto": "农化制品"
   },
   {
-    "code": "600111",
-    "name": "北方稀土",
-    "category": "稀土",
-    "note": "轻稀土资源+开采配额双垄断",
-    "industry_auto": "小金属"
-  },
-  {
     "code": "600096",
     "name": "云天化",
     "category": "化工",
