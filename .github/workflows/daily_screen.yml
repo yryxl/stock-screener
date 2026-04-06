@@ -21,6 +21,8 @@ on:
           - full
           - send_ai
           - holiday
+          - reanalyze
+
 
 jobs:
   screen:
