@@ -3,138 +3,161 @@
     "code": "000538",
     "name": "云南白药",
     "category": "中药",
-    "note": "国家绝密配方+百年品牌"
+    "note": "国家绝密配方+百年品牌",
+    "industry_auto": "中药Ⅱ"
   },
   {
     "code": "600085",
     "name": "同仁堂",
     "category": "中药",
-    "note": "350年国药老字号"
+    "note": "350年国药老字号",
+    "industry_auto": "中药Ⅱ"
   },
   {
     "code": "600900",
     "name": "长江电力",
     "category": "电力",
-    "note": "长江6大梯级电站独家运营"
+    "note": "长江6大梯级电站独家运营",
+    "industry_auto": "电力"
   },
   {
     "code": "601088",
     "name": "中国神华",
     "category": "煤炭",
-    "note": "煤电路港一体化"
+    "note": "煤电路港一体化",
+    "industry_auto": "煤炭开采"
   },
   {
     "code": "000792",
     "name": "盐湖股份",
     "category": "化工",
-    "note": "察尔汗盐湖独占"
+    "note": "察尔汗盐湖独占",
+    "industry_auto": "农化制品"
   },
   {
     "code": "600111",
     "name": "北方稀土",
     "category": "稀土",
-    "note": "轻稀土资源+开采配额双垄断"
+    "note": "轻稀土资源+开采配额双垄断",
+    "industry_auto": "小金属"
   },
   {
     "code": "601899",
     "name": "紫金矿业",
     "category": "矿业",
-    "note": "全球金铜锂龙头"
+    "note": "全球金铜锂龙头",
+    "industry_auto": "工业金属"
   },
   {
     "code": "600096",
     "name": "云天化",
     "category": "化工",
-    "note": "磷矿储量全国第一"
+    "note": "磷矿储量全国第一",
+    "industry_auto": "农化制品"
   },
   {
     "code": "601888",
     "name": "中国中免",
     "category": "免税",
-    "note": "国内唯一免税全牌照"
+    "note": "国内唯一免税全牌照",
+    "industry_auto": "旅游零售Ⅱ"
   },
   {
     "code": "600941",
     "name": "中国移动",
     "category": "通信",
-    "note": "9亿用户+通信牌照"
+    "note": "9亿用户+通信牌照",
+    "industry_auto": "通信服务"
   },
   {
     "code": "601006",
     "name": "大秦铁路",
     "category": "铁路",
-    "note": "西煤东运主通道独家"
+    "note": "西煤东运主通道独家",
+    "industry_auto": "铁路公路"
   },
   {
     "code": "601816",
     "name": "京沪高铁",
     "category": "铁路",
-    "note": "最黄金高铁线路独家"
+    "note": "最黄金高铁线路独家",
+    "industry_auto": "铁路公路"
   },
   {
     "code": "601398",
     "name": "工商银行",
     "category": "银行",
-    "note": "国家信用+金融压舱石"
+    "note": "国家信用+金融压舱石",
+    "industry_auto": "银行Ⅱ"
   },
   {
     "code": "300750",
     "name": "宁德时代",
     "category": "锂电",
-    "note": "动力电池全球市占35%+"
+    "note": "动力电池全球市占35%+",
+    "industry_auto": "电池"
   },
   {
     "code": "600309",
     "name": "万华化学",
     "category": "化工",
-    "note": "MDI全球寡头"
+    "note": "MDI全球寡头",
+    "industry_auto": "化学制品"
   },
   {
     "code": "600660",
     "name": "福耀玻璃",
     "category": "家电",
-    "note": "汽车玻璃全球市占30%+"
+    "note": "汽车玻璃全球市占30%+",
+    "industry_auto": "汽车零部件"
   },
   {
     "code": "688012",
     "name": "中微公司",
     "category": "半导体",
-    "note": "半导体刻蚀设备龙头"
+    "note": "半导体刻蚀设备龙头",
+    "industry_auto": "半导体"
   },
   {
     "code": "688008",
     "name": "澜起科技",
     "category": "芯片",
-    "note": "DDR5内存接口芯片全球龙头"
+    "note": "DDR5内存接口芯片全球龙头",
+    "industry_auto": "半导体"
   },
   {
     "code": "601766",
     "name": "中国中车",
     "category": "军工",
-    "note": "高铁装备国内市占90%+"
+    "note": "高铁装备国内市占90%+",
+    "industry_auto": "轨交设备Ⅱ"
   },
   {
     "code": "000661",
     "name": "长春高新",
     "category": "医药",
-    "note": "生长激素国内市占70%+"
+    "note": "生长激素国内市占70%+",
+    "industry_auto": "生物制品"
   },
   {
     "code": "603288",
     "name": "海天味业",
     "category": "调味品",
-    "note": "酱油市占30%+"
+    "note": "酱油市占30%+",
+    "industry_auto": "调味发酵品Ⅱ"
   },
   {
     "code": "600887",
     "name": "伊利股份",
     "category": "乳制品",
-    "note": "乳业双寡头"
+    "note": "乳业双寡头",
+    "industry_auto": "饮料乳品"
   },
   {
     "code": "688981",
     "name": "中芯国际",
     "category": "芯片",
-    "note": "国内唯一先进制程芯片代工"
+    "note": "国内唯一先进制程芯片代工",
+    "industry_auto": "半导体"
   }
 ]
