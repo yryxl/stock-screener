@@ -147,7 +147,10 @@ with tab1:
     if not daily:
         st.info("暂无数据，点击上方按钮触发首次扫描")
     else:
-        st.caption(f"数据更新：{daily.get('date', '未知')}")
+        data_info = f"数据更新：{daily.get('date', '未知')}"
+        if daily.get("data_source"):
+            data_info += f" | {daily['data_source']}"
+        st.caption(data_info)
 
         ai_recs = daily.get("ai_recommendations", [])
         if not ai_recs:
@@ -298,7 +301,10 @@ with tab3:
         watchlist_data[s.get("code", "")] = s
 
     if daily:
-        st.caption(f"数据更新：{daily.get('date', '未知')}")
+        data_info = f"数据更新：{daily.get('date', '未知')}"
+        if daily.get("data_source"):
+            data_info += f" | {daily['data_source']}"
+        st.caption(data_info)
 
     if not watchlist:
         st.info("暂无关注股票")

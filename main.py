@@ -176,22 +176,74 @@ def send_simple_msg(config, text):
         send_msg(access_token, wx["openid"], wx["template_id"], text)
 
 
-def has_today_data():
-    """检查是否已有今天（或最近交易日）的数据"""
+def get_market_date():
+    """获取大盘最新交易日期（判断数据是哪天的）"""
+    try:
+        quotes = get_realtime_quotes()
+        if quotes is not None and not quotes.empty:
+            # 用上证指数或任意一只股票的日期
+            return datetime.now().strftime("%Y-%m-%d")
+    except Exception:
+        pass
+    return None
+
+
+def get_data_info():
+    """获取已有数据的时间信息"""
     results = load_json("daily_results.json")
     if not results or not isinstance(results, dict):
-        return False
+        return None, None, False  # 无数据
     date_str = results.get("date", "")
+    mode_str = results.get("mode", "")
     if not date_str:
+        return None, None, False
+    return date_str, mode_str, True
+
+
+def should_run(mode):
+    """
+    判断是否需要运行：
+    1. 无数据（首次使用）→ 必须跑
+    2. 有数据但不是今天的 → 需要跑
+    3. 有数据且是今天同一模式 → 跳过
+    """
+    date_str, last_mode, has_data = get_data_info()
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    if not has_data:
+        print(f"  首次使用，无历史数据 → 需要运行")
+        return True
+
+    data_date = date_str[:10]  # 取日期部分
+    print(f"  已有数据: {date_str} (模式:{last_mode})")
+
+    if data_date != today:
+        print(f"  数据不是今天的({data_date} vs {today}) → 需要运行")
+        return True
+
+    # 同一天，检查是否同一模式已经跑过
+    # holdings和watchlist允许一天多次（中午+收盘后）
+    if mode in ("holdings", "watchlist"):
+        # 用更精确的时间戳判断：如果上次同模式运行超过3小时，就重新跑
+        try:
+            last_time = datetime.strptime(date_str[:16], "%Y-%m-%d %H:%M")
+            diff_hours = (datetime.now() - last_time).total_seconds() / 3600
+            if diff_hours < 3:
+                print(f"  {mode}模式{diff_hours:.1f}小时前刚跑过 → 跳过")
+                return False
+        except Exception:
+            pass
+        return True
+
+    if mode == "full" and last_mode == "full":
+        print(f"  今天已跑过全盘扫描 → 跳过")
         return False
-    try:
-        data_date = datetime.strptime(date_str[:10], "%Y-%m-%d").date()
-        today = datetime.now().date()
-        # 如果数据日期是今天或昨天（周末看周五的），认为有数据
-        diff = (today - data_date).days
-        return diff <= 2
-    except Exception:
-        return False
+
+    if mode == "send_ai":
+        # send_ai 总是执行（只是发消息）
+        return True
+
+    return True
 
 
 def get_mode():
@@ -249,31 +301,33 @@ def main():
     trading = is_trading_day()
     print(f"交易日: {'是' if trading else '否（休市）'}")
 
-    # 休市日处理（节假日、周末都走这里）
+    # 校验是否需要运行
+    if mode != "all" and not should_run(mode):
+        print("数据已是最新，跳过运行")
+        return
+
+    # 休市日处理
     if not trading and mode != "all":
-        if has_today_data():
-            print("休市日，已有数据，跳过")
-        else:
-            print("休市日，无数据，尝试获取上个交易日数据")
-            # 跑一次获取数据
+        _, _, has_data = get_data_info()
+        if not has_data:
+            # 首次使用，无数据，跑一次获取休市前数据
+            print("首次使用+休市日，获取休市前数据...")
             quotes_df = get_realtime_quotes()
             if quotes_df is not None and not quotes_df.empty:
                 watchlist_signals, _ = check_watchlist(config, quotes_df)
                 holding_signals = run_holdings(config)
+                cache = load_json("market_scan_cache.json")
                 daily_data = {
                     "date": now.strftime("%Y-%m-%d %H:%M"),
+                    "mode": "holiday_init",
+                    "data_source": "休市前最后交易日数据",
                     "watchlist_signals": watchlist_signals,
                     "holding_signals": holding_signals,
-                    "ai_recommendations": load_json("market_scan_cache.json").get("ai_recommendations", []) if isinstance(load_json("market_scan_cache.json"), dict) else [],
+                    "ai_recommendations": cache.get("ai_recommendations", []) if isinstance(cache, dict) else [],
                 }
                 save_json("daily_results.json", daily_data)
         # 发休市消息（保持48小时互动）
         send_simple_msg(config, f"芒格选股 {today}\n\n本日休市\n关注表和持仓数据已同步\n下个交易日自动运行")
-        return
-
-    # 非交易日且不是强制模式，跳过
-    if not trading and "--force" not in sys.argv and mode != "all":
-        print("非交易日，跳过")
         return
 
     # ========================================
@@ -289,6 +343,8 @@ def main():
             daily_data = {}
         daily_data["holding_signals"] = holding_signals
         daily_data["date"] = now.strftime("%Y-%m-%d %H:%M")
+        daily_data["mode"] = "holdings"
+        daily_data["data_source"] = "交易日持仓检查"
         save_json("daily_results.json", daily_data)
         # 推送
         send_daily_report(
@@ -309,6 +365,8 @@ def main():
         daily_data["watchlist_signals"] = watchlist_signals
         daily_data["holding_signals"] = holding_signals
         daily_data["date"] = now.strftime("%Y-%m-%d %H:%M")
+        daily_data["mode"] = "watchlist"
+        daily_data["data_source"] = "交易日关注表+持仓"
         # 保留AI推荐缓存
         cache = load_json("market_scan_cache.json")
         if isinstance(cache, dict):
@@ -331,6 +389,8 @@ def main():
             daily_data = {}
         daily_data["ai_recommendations"] = ai_recs
         daily_data["date"] = now.strftime("%Y-%m-%d %H:%M")
+        daily_data["mode"] = "full"
+        daily_data["data_source"] = "全市场扫描"
         save_json("daily_results.json", daily_data)
         print(f"  已保存，等待9点发送")
 
@@ -361,6 +421,8 @@ def main():
 
         daily_data = {
             "date": now.strftime("%Y-%m-%d %H:%M"),
+            "mode": "all",
+            "data_source": "全量运行（关注表+全市场+持仓）",
             "ai_recommendations": ai_recs,
             "watchlist_signals": watchlist_signals,
             "holding_signals": holding_signals,
