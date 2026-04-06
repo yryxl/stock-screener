@@ -2,8 +2,24 @@ name: 每日选股分析
 
 on:
   schedule:
+    - cron: '30 18 * * 0-4'
+    - cron: '0 1 * * 1-5'
+    - cron: '0 4 * * *'
     - cron: '0 9 * * 1-5'
+    - cron: '0 10 * * 0,6'
   workflow_dispatch:
+    inputs:
+      mode:
+        description: '运行模式'
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - holdings
+          - watchlist
+          - full
+          - send_ai
+          - holiday
 
 jobs:
   screen:
@@ -29,19 +45,37 @@ jobs:
           sed -i "s/YOUR_OPENID/${{ secrets.WX_OPENID }}/" config.yaml
           sed -i "s/YOUR_TEMPLATE_ID/${{ secrets.WX_TEMPLATE_ID }}/" config.yaml
 
+      - name: 判断运行模式
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT
+          else
+            HOUR=$(TZ='Asia/Shanghai' date +%H)
+            DOW=$(TZ='Asia/Shanghai' date +%u)
+            if [ "$DOW" -ge 6 ]; then
+              echo "mode=holiday" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" -le 4 ]; then
+              echo "mode=full" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" -le 9 ]; then
+              echo "mode=send_ai" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" -le 13 ]; then
+              echo "mode=holdings" >> $GITHUB_OUTPUT
+            else
+              echo "mode=watchlist" >> $GITHUB_OUTPUT
+            fi
+          fi
+
       - name: 运行选股分析
-        run: python main.py --force
+        run: python main.py --mode ${{ steps.mode.outputs.mode }} --force
         env:
           PYTHONUNBUFFERED: "1"
 
-        
       - name: 提交每日结果
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add daily_results.json market_scan_cache.json watchlist.json
-          git diff --cached --quiet || git commit -m "更新每日筛选结果 $(date +%Y-%m-%d)"
+          git add daily_results.json market_scan_cache.json watchlist.json 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "更新数据 $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')"
           git pull --rebase || true
           git push
-
-
