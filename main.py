@@ -123,6 +123,11 @@ def check_watchlist(config, quotes_df):
         if pe and ttm_data:
             signal_text = signal_text.replace(f"PE={pe:.1f}", f"PE(TTM)={pe:.1f}")
 
+        # 关注表只有买入方向，PE>=合理区间一律"观望"
+        if signal and ("sell" in signal or signal == "hold"):
+            signal = "hold"
+            signal_text = f"PE(TTM)={pe:.1f}，处于合理或偏高区间→观望" if pe and not pd.isna(pe) else "观望"
+
         # 买入信号：ROE+财务+基本面三重验证
         if signal and "buy" in signal:
             # ROE+杠杆验证
