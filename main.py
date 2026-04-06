@@ -376,6 +376,19 @@ def main():
         watchlist_signals = run_watchlist(config)
         holding_signals = run_holdings(config)
         cache = load_json("market_scan_cache.json")
+        # AI推荐：关注表买入信号 + 缓存的全市场结果
+        ai_recs = []
+        seen_codes = set()
+        for s in watchlist_signals:
+            if s.get("signal") and "buy" in s["signal"]:
+                s["source"] = "关注表"
+                ai_recs.append(s)
+                seen_codes.add(s["code"])
+        if isinstance(cache, dict):
+            for s in cache.get("ai_recommendations", []):
+                if s.get("code") not in seen_codes:
+                    ai_recs.append(s)
+
         new_data = {
             "date": now.strftime("%Y-%m-%d %H:%M"),
             "mode": "watchlist",
@@ -383,7 +396,7 @@ def main():
             "data_source": "关注表+持仓" + ("" if trading else "（休市日，上一交易日数据）"),
             "watchlist_signals": watchlist_signals,
             "holding_signals": holding_signals,
-            "ai_recommendations": cache.get("ai_recommendations", []) if isinstance(cache, dict) else [],
+            "ai_recommendations": ai_recs,
         }
         existing = load_json("daily_results.json")
         merged = merge_daily_data(existing if isinstance(existing, dict) else {}, new_data)
@@ -434,7 +447,20 @@ def main():
         candidates = screen_all_stocks(config)
         holding_signals = run_holdings(config)
 
-        ai_recs = [s for s in candidates if s.get("signal") and s["signal"] not in ("hold", None)]
+        # AI推荐 = 关注表买入信号 + 全市场扫描买入信号
+        ai_recs = []
+        seen_codes = set()
+        # 先加关注表中有买入信号的
+        for s in watchlist_signals:
+            if s.get("signal") and "buy" in s["signal"]:
+                s["source"] = "关注表"
+                ai_recs.append(s)
+                seen_codes.add(s["code"])
+        # 再加全市场扫描中有买入信号的（去重）
+        for s in candidates:
+            if s.get("signal") and "buy" in s["signal"] and s["code"] not in seen_codes:
+                s["source"] = "全市场筛选"
+                ai_recs.append(s)
 
         daily_data = {
             "date": now.strftime("%Y-%m-%d %H:%M"),

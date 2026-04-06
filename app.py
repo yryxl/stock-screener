@@ -62,7 +62,7 @@ SIGNAL_LABELS = {
     "buy_light": "🟡 可以轻仓买入",
     "buy_watch": "⚪ 重点关注买入",
     "hold_keep": "🟢 建议持续持有",
-    "hold": "⚪ 持有观察",
+    "hold": "⚪ 继续观望",
     "sell_watch": "⚪ 重点关注卖出",
     "sell_light": "🟡 可以适当卖出",
     "sell_medium": "🟠 可以中仓卖出",
@@ -71,6 +71,34 @@ SIGNAL_LABELS = {
 }
 
 BUY_SIGNALS = ["buy_heavy", "buy_medium", "buy_light", "buy_watch"]
+
+# 行业PE区间（和screener.py保持一致，用于页面展示）
+INDUSTRY_PE_DISPLAY = {
+    "银行": "6-9", "保险": "8-12", "煤炭": "7-12", "煤炭开采": "7-12",
+    "电力": "10-18", "铁路公路": "10-16", "交通运输": "12-16",
+    "白酒": "20-30", "食品饮料": "20-30", "调味品": "22-35", "调味发酵品": "22-35",
+    "乳制品": "15-25", "饮料乳品": "15-25",
+    "中药": "20-30", "医药": "20-30", "医疗器械": "22-35", "生物制品": "20-30",
+    "半导体": "40-65", "芯片": "40-65", "通信": "20-35", "通信服务": "20-35",
+    "军工": "35-55", "航空航天": "35-55",
+    "锂电": "30-50", "电池": "30-50", "新能源": "30-50",
+    "化工": "12-20", "化学制品": "12-20", "农化制品": "12-20",
+    "有色金属": "12-20", "工业金属": "12-20", "小金属": "15-25",
+    "稀土": "15-25", "矿业": "10-18",
+    "免税": "25-40", "旅游零售": "25-40",
+    "家电": "15-25", "汽车零部件": "14-22",
+    "轨交设备": "13-20", "铁路设备": "13-20", "铁路装备": "13-20",
+    "传媒": "20-30", "机械制造": "15-25",
+}
+
+def get_pe_range(category):
+    """获取行业PE合理区间"""
+    if not category:
+        return ""
+    for key, val in INDUSTRY_PE_DISPLAY.items():
+        if key in category:
+            return val
+    return ""
 
 # ============================================
 # 加载数据
@@ -216,25 +244,37 @@ with tab2:
             code = h["code"]
             sig_data = holding_data.get(code, {})
             signal = sig_data.get("signal", "")
-            signal_label = SIGNAL_LABELS.get(signal, "—")
+            signal_label = SIGNAL_LABELS.get(signal, "暂无数据")
+            signal_text = sig_data.get("signal_text", "等待下次运行更新")
             pe = sig_data.get("pe", 0)
+            price = sig_data.get("price", 0)
+            industry = sig_data.get("industry", "")
+            pe_range = get_pe_range(industry)
 
-            col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 1.2, 2.5, 0.8])
+            col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 1.2, 3, 0.8])
             with col1:
                 st.markdown(f"**{h.get('name', '未知')}**")
-                st.caption(code)
+                cap_text = code
+                if industry:
+                    cap_text += f" [{industry}]"
+                if pe_range:
+                    cap_text += f" PE区间:{pe_range}"
+                st.caption(cap_text)
             with col2:
                 st.metric("股数", f"{h.get('shares', 0):,}")
             with col3:
-                st.metric("成本", f"¥{h.get('cost', 0):.2f}")
+                cost = h.get('cost', 0)
+                st.metric("成本", f"¥{cost:.2f}")
             with col4:
                 if pe and pe > 0:
                     st.metric("PE(TTM)", f"{pe:.1f}")
+                elif price and price > 0:
+                    st.metric("现价", f"¥{price:.2f}")
                 else:
                     st.metric("PE(TTM)", "—")
             with col5:
                 st.markdown(f"{signal_label}")
-                st.caption(sig_data.get("signal_text", "")[:50])
+                st.caption(signal_text[:80])
             with col6:
                 if st.button("🗑️", key=f"del_h_{i}"):
                     holdings.pop(i)
@@ -317,7 +357,9 @@ with tab3:
             categories[cat].append(item)
 
         for cat, items in categories.items():
-            st.subheader(f"🏷️ {cat}")
+            pe_range = get_pe_range(cat)
+            range_text = f"（行业PE合理区间：{pe_range}）" if pe_range else ""
+            st.subheader(f"🏷️ {cat} {range_text}")
             for item in items:
                 code = item["code"]
                 global_idx = watchlist.index(item)
@@ -334,13 +376,14 @@ with tab3:
                     st.markdown(f"**{item['name']}**（{code}）")
                     st.caption(item.get("note", ""))
                 with col2:
-                    st.metric("PE(TTM)", f"{pe:.1f}" if pe and pe > 0 else "—")
+                    pe_display = f"{pe:.1f}" if pe and pe > 0 else "—"
+                    st.metric("PE(TTM)", pe_display)
                 with col3:
                     st.metric("股价", f"¥{price:.2f}" if price and price > 0 else "—")
                 with col4:
                     st.markdown(f"{signal_label}")
                     if signal_text:
-                        st.caption(signal_text[:60])
+                        st.caption(signal_text[:80])
                 with col5:
                     if st.button("🗑️", key=f"del_w_{global_idx}"):
                         watchlist.pop(global_idx)
