@@ -39,7 +39,9 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add daily_results.json
+          git add daily_results.json market_scan_cache.json watchlist.json
           git diff --cached --quiet || git commit -m "更新每日筛选结果 $(date +%Y-%m-%d)"
+          git pull --rebase || true
           git push
+
 
