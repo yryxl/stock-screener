@@ -240,48 +240,71 @@ with tab2:
     if not holdings:
         st.info("暂无持仓")
     else:
+        # 按行业/类型分组
+        category_holdings = {}
         for i, h in enumerate(holdings):
             code = h["code"]
             sig_data = holding_data.get(code, {})
-            signal = sig_data.get("signal", "")
-            signal_label = SIGNAL_LABELS.get(signal, "暂无数据")
-            signal_text = sig_data.get("signal_text", "等待下次运行更新")
-            pe = sig_data.get("pe", 0)
-            price = sig_data.get("price", 0)
-            industry = sig_data.get("industry", "")
-            pe_range = get_pe_range(industry)
-
-            col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 1.2, 3, 0.8])
-            with col1:
-                st.markdown(f"**{h.get('name', '未知')}**")
-                cap_text = code
-                if industry:
-                    cap_text += f" [{industry}]"
-                if pe_range:
-                    cap_text += f" PE区间:{pe_range}"
-                st.caption(cap_text)
-            with col2:
-                st.metric("股数", f"{h.get('shares', 0):,}")
-            with col3:
-                cost = h.get('cost', 0)
-                st.metric("成本", f"¥{cost:.2f}")
-            with col4:
-                if pe and pe > 0:
-                    st.metric("PE(TTM)", f"{pe:.1f}")
-                elif price and price > 0:
-                    st.metric("现价", f"¥{price:.2f}")
+            industry = sig_data.get("industry", "") or h.get("category", "")
+            if not industry:
+                # 根据名称猜测类型
+                name = h.get("name", "")
+                if "etf" in name.lower() or "ETF" in name:
+                    industry = "ETF基金"
                 else:
-                    st.metric("PE(TTM)", "—")
-            with col5:
-                st.markdown(f"{signal_label}")
-                st.caption(signal_text[:80])
-            with col6:
-                if st.button("🗑️", key=f"del_h_{i}"):
-                    holdings.pop(i)
-                    new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
-                    if new_sha:
-                        st.session_state["holdings_sha"] = new_sha
-                        st.rerun()
+                    industry = "其他"
+            if industry not in category_holdings:
+                category_holdings[industry] = []
+            category_holdings[industry].append((i, h))
+
+        # 总计
+        total_cost_all = sum(h.get("shares", 0) * h.get("cost", 0) for h in holdings)
+        st.markdown(f"**持仓总成本：¥{total_cost_all:,.0f}** | 共{len(holdings)}只")
+
+        for cat, items in category_holdings.items():
+            # 分类小计
+            cat_cost = sum(h.get("shares", 0) * h.get("cost", 0) for _, h in items)
+            cat_pct = (cat_cost / total_cost_all * 100) if total_cost_all > 0 else 0
+            pe_range_cat = get_pe_range(cat)
+            range_text = f" | PE区间:{pe_range_cat}" if pe_range_cat else ""
+
+            st.subheader(f"🏷️ {cat}（成本¥{cat_cost:,.0f}，占{cat_pct:.1f}%{range_text}）")
+
+            for i, h in items:
+                code = h["code"]
+                sig_data = holding_data.get(code, {})
+                signal = sig_data.get("signal", "")
+                signal_label = SIGNAL_LABELS.get(signal, "暂无数据")
+                signal_text = sig_data.get("signal_text", "等待下次运行更新")
+                pe = sig_data.get("pe", 0)
+                price = sig_data.get("price", 0)
+                stock_cost = h.get("shares", 0) * h.get("cost", 0)
+
+                col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 1.2, 3, 0.8])
+                with col1:
+                    st.markdown(f"**{h.get('name', '未知')}**")
+                    st.caption(f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.0f}")
+                with col2:
+                    st.metric("股数", f"{h.get('shares', 0):,}")
+                with col3:
+                    st.metric("成本价", f"¥{h.get('cost', 0):.3f}")
+                with col4:
+                    if pe and pe > 0:
+                        st.metric("PE(TTM)", f"{pe:.1f}")
+                    elif price and price > 0:
+                        st.metric("现价", f"¥{price:.2f}")
+                    else:
+                        st.metric("PE(TTM)", "—")
+                with col5:
+                    st.markdown(f"{signal_label}")
+                    st.caption(signal_text[:80])
+                with col6:
+                    if st.button("🗑️", key=f"del_h_{i}"):
+                        holdings.pop(i)
+                        new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
+                        if new_sha:
+                            st.session_state["holdings_sha"] = new_sha
+                            st.rerun()
             st.divider()
 
     st.subheader("➕ 添加持仓")
@@ -292,10 +315,14 @@ with tab2:
             new_shares = st.number_input("股数", min_value=1, value=100, step=100)
         with c2:
             new_name = st.text_input("名称", placeholder="贵州茅台")
-            new_cost = st.number_input("成本价", min_value=0.01, value=10.0, step=0.01, format="%.2f")
+            new_cost = st.number_input("成本价", min_value=0.01, value=10.0, step=0.01, format="%.3f")
+        new_cat = st.text_input("行业/类型（可选）", placeholder="ETF基金、白酒、医药等")
         if st.form_submit_button("添加", use_container_width=True, type="primary"):
             if new_code:
-                holdings.append({"code": new_code.strip(), "name": new_name.strip() or new_code.strip(), "shares": int(new_shares), "cost": float(new_cost)})
+                new_h = {"code": new_code.strip(), "name": new_name.strip() or new_code.strip(), "shares": int(new_shares), "cost": float(new_cost)}
+                if new_cat.strip():
+                    new_h["category"] = new_cat.strip()
+                holdings.append(new_h)
                 new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
                 if new_sha:
                     st.session_state["holdings_sha"] = new_sha
