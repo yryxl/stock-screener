@@ -131,12 +131,5 @@
     "category": "乳制品",
     "note": "乳业双寡头",
     "industry_auto": "饮料乳品"
-  },
-  {
-    "code": "688981",
-    "name": "中芯国际",
-    "category": "芯片",
-    "note": "国内唯一先进制程芯片代工",
-    "industry_auto": "半导体"
   }
 ]
