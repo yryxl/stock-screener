@@ -1,6 +1,6 @@
 """
 Streamlit 管理界面
-Tab1: AI推荐（全市场扫描结果，可一键关注）
+Tab1: 模型推荐（全市场扫描结果，可一键关注）
 Tab2: 持仓管理（含信号状态）
 Tab3: 重点关注表（含信号状态）
 """
@@ -91,14 +91,52 @@ INDUSTRY_PE_DISPLAY = {
     "传媒": "20-30", "机械制造": "15-25",
 }
 
+INDUSTRY_COMPLEXITY = {
+    "白酒": "简单", "食品饮料": "简单", "调味品": "简单", "调味发酵品": "简单",
+    "乳制品": "简单", "饮料乳品": "简单", "中药": "简单", "家电": "简单",
+    "传媒": "简单", "银行": "简单", "保险": "简单", "免税": "简单",
+    "旅游零售": "简单", "医药": "简单", "生物制品": "简单",
+    "电力": "中等", "公用事业": "中等", "交通运输": "中等", "铁路公路": "中等",
+    "通信": "中等", "通信服务": "中等", "医疗器械": "中等", "软件": "中等",
+    "半导体": "复杂", "芯片": "复杂", "军工": "复杂", "航空航天": "复杂",
+    "新能源": "复杂", "锂电": "复杂", "电池": "复杂", "光伏": "复杂",
+    "轨交设备": "复杂", "铁路设备": "复杂", "机械制造": "复杂",
+    "汽车零部件": "复杂", "建筑": "复杂", "钢铁": "复杂",
+    "煤炭": "复杂", "煤炭开采": "复杂", "化工": "复杂", "化学制品": "复杂",
+    "农化制品": "复杂", "有色金属": "复杂", "工业金属": "复杂",
+    "稀土": "复杂", "小金属": "复杂", "矿业": "复杂",
+}
+
 def get_pe_range(category):
-    """获取行业PE合理区间"""
     if not category:
         return ""
     for key, val in INDUSTRY_PE_DISPLAY.items():
         if key in category:
             return val
     return ""
+
+def get_complexity(category):
+    if not category:
+        return ""
+    for key, val in INDUSTRY_COMPLEXITY.items():
+        if key in category:
+            return val
+    return ""
+
+def format_industry_tag(category):
+    """格式化行业标签：行业名+PE区间+复杂度"""
+    pe_range = get_pe_range(category)
+    complexity = get_complexity(category)
+    tag = f"🏷️ {category}"
+    if pe_range:
+        tag += f"（PE区间:{pe_range}"
+    if complexity:
+        tag += f" | {complexity}生意"
+    if pe_range:
+        tag += "）"
+    elif complexity:
+        tag += "）"
+    return tag
 
 # ============================================
 # 加载数据
@@ -118,13 +156,13 @@ load_all_data()
 # ============================================
 
 st.title("📊 芒格选股系统")
-tab1, tab2, tab3 = st.tabs(["🤖 AI推荐", "📋 持仓管理", "⭐ 重点关注表"])
+tab1, tab2, tab3 = st.tabs(["🎯 模型推荐", "📋 持仓管理", "⭐ 重点关注表"])
 
 # ============================================
-# Tab1: AI推荐（只来自全市场扫描）
+# Tab1: 模型推荐（只来自全市场扫描）
 # ============================================
 with tab1:
-    st.header("🤖 AI推荐")
+    st.header("🎯 模型推荐")
     st.caption("来自全市场扫描，每周一自动更新 | 也可手动触发")
 
     # 检查是否有正在运行的workflow
@@ -182,8 +220,9 @@ with tab1:
 
         ai_recs = daily.get("ai_recommendations", [])
         if not ai_recs:
-            st.info("暂无AI推荐，点击上方按钮触发全盘扫描")
+            st.info("暂无模型推荐，点击上方按钮触发全盘扫描")
         else:
+            # 先按信号等级分，再按行业分
             for signal_key in BUY_SIGNALS:
                 signal_label = SIGNAL_LABELS.get(signal_key, signal_key)
                 group = [s for s in ai_recs if s.get("signal") == signal_key]
@@ -191,34 +230,45 @@ with tab1:
                     continue
 
                 st.subheader(signal_label)
+
+                # 按行业分组
+                cat_groups = {}
                 for s in group:
-                    code = s.get("code", "")
-                    col1, col2, col3, col4, col5 = st.columns([2.5, 1.5, 1.5, 3, 1.5])
-                    with col1:
-                        st.markdown(f"**{s.get('name', '')}**（{code}）")
-                    with col2:
-                        pe = s.get("pe", 0)
-                        st.metric("PE(TTM)", f"{pe:.1f}" if pe else "—")
-                    with col3:
-                        price = s.get("price", 0)
-                        st.metric("股价", f"¥{price:.2f}" if price else "—")
-                    with col4:
-                        st.caption(s.get("signal_text", ""))
-                    with col5:
-                        if code in watchlist_codes:
-                            st.button("已关注", key=f"ai_{code}", disabled=True)
-                        else:
-                            if st.button("➕关注", key=f"ai_{code}"):
-                                watchlist.append({
-                                    "code": code,
-                                    "name": s.get("name", ""),
-                                    "category": s.get("category", ""),
-                                    "note": s.get("signal_text", "")[:30],
-                                })
-                                new_sha = save_to_github("watchlist.json", watchlist, st.session_state["watchlist_sha"])
-                                if new_sha:
-                                    st.session_state["watchlist_sha"] = new_sha
-                                    st.session_state["watchlist"] = watchlist
+                    cat = s.get("category", "") or "其他"
+                    if cat not in cat_groups:
+                        cat_groups[cat] = []
+                    cat_groups[cat].append(s)
+
+                for cat, stocks in cat_groups.items():
+                    st.markdown(f"{format_industry_tag(cat)}")
+                    for s in stocks:
+                        code = s.get("code", "")
+                        col1, col2, col3, col4, col5 = st.columns([2.5, 1.5, 1.5, 3, 1.5])
+                        with col1:
+                            st.markdown(f"**{s.get('name', '')}**（{code}）")
+                        with col2:
+                            pe = s.get("pe", 0)
+                            st.metric("PE(TTM)", f"{pe:.1f}" if pe else "—")
+                        with col3:
+                            price = s.get("price", 0)
+                            st.metric("股价", f"¥{price:.2f}" if price else "—")
+                        with col4:
+                            st.caption(s.get("signal_text", ""))
+                        with col5:
+                            if code in watchlist_codes:
+                                st.button("已关注", key=f"ai_{code}", disabled=True)
+                            else:
+                                if st.button("➕关注", key=f"ai_{code}"):
+                                    watchlist.append({
+                                        "code": code,
+                                        "name": s.get("name", ""),
+                                        "category": cat,
+                                        "note": s.get("signal_text", "")[:30],
+                                    })
+                                    new_sha = save_to_github("watchlist.json", watchlist, st.session_state["watchlist_sha"])
+                                    if new_sha:
+                                        st.session_state["watchlist_sha"] = new_sha
+                                        st.session_state["watchlist"] = watchlist
                                     st.success(f"已添加 {s.get('name','')} 到关注表")
                                     st.rerun()
                 st.divider()
@@ -384,9 +434,7 @@ with tab3:
             categories[cat].append(item)
 
         for cat, items in categories.items():
-            pe_range = get_pe_range(cat)
-            range_text = f"（行业PE合理区间：{pe_range}）" if pe_range else ""
-            st.subheader(f"🏷️ {cat} {range_text}")
+            st.subheader(format_industry_tag(cat))
             for item in items:
                 code = item["code"]
                 global_idx = watchlist.index(item)
@@ -438,4 +486,4 @@ with tab3:
                     st.rerun()
 
 st.divider()
-st.caption("💡 AI推荐来自全市场扫描(每周一) | 关注表和持仓每日更新PE和信号 | 系统每交易日下午5点自动运行")
+st.caption("💡 模型推荐来自全市场扫描 | 关注表和持仓每日更新PE和信号 | 系统每交易日下午5点自动运行")
