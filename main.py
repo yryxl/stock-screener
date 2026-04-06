@@ -131,7 +131,7 @@ def check_watchlist(config, quotes_df):
 
         # 买入信号验证
         if signal and "buy" in signal:
-            health_ok, health_warning, roe_level = check_watchlist_financial_health(code)
+            health_ok, health_warning, roe_level = check_watchlist_financial_health(code, industry=category)
             signal_cap = {"heavy": "buy_heavy", "light": "buy_light", "watch": "buy_watch", "none": "hold"}
             max_signal = signal_cap.get(roe_level, "buy_light")
             signal_rank = {"buy_heavy": 0, "buy_medium": 1, "buy_light": 2, "buy_watch": 3, "hold": 4}

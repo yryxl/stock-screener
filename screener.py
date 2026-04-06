@@ -31,57 +31,86 @@ def load_config():
 # 行业PE估值区间（A股参考）
 # ============================================
 INDUSTRY_PE = {
-    # 成熟低增长行业
-    "银行": {"low": 5, "fair_low": 6, "fair_high": 9, "high": 12, "type": "mature"},
-    "保险": {"low": 6, "fair_low": 8, "fair_high": 12, "high": 16, "type": "mature"},
-    "建筑": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 16, "type": "cycle"},
-    "钢铁": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 16, "type": "cycle"},
-    "煤炭": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 16, "type": "cycle"},
-    "电力": {"low": 8, "fair_low": 10, "fair_high": 18, "high": 22, "type": "utility"},
-    "公用事业": {"low": 8, "fair_low": 10, "fair_high": 18, "high": 22, "type": "utility"},
-    "交通运输": {"low": 8, "fair_low": 12, "fair_high": 16, "high": 22, "type": "utility"},
-    "铁路": {"low": 8, "fair_low": 10, "fair_high": 16, "high": 20, "type": "utility"},
-    "高速": {"low": 8, "fair_low": 10, "fair_high": 16, "high": 20, "type": "utility"},
+    # =============================================
+    # 简单生意（simple）：一看就懂、涨价换标签、低资本开支
+    # 巴菲特最爱：可口可乐、喜诗糖果类
+    # =============================================
+    "白酒": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer", "complexity": "simple"},
+    "食品饮料": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer", "complexity": "simple"},
+    "调味品": {"low": 18, "fair_low": 22, "fair_high": 35, "high": 45, "type": "consumer", "complexity": "simple"},
+    "调味发酵品": {"low": 18, "fair_low": 22, "fair_high": 35, "high": 45, "type": "consumer", "complexity": "simple"},
+    "乳制品": {"low": 12, "fair_low": 15, "fair_high": 25, "high": 30, "type": "consumer", "complexity": "simple"},
+    "饮料乳品": {"low": 12, "fair_low": 15, "fair_high": 25, "high": 30, "type": "consumer", "complexity": "simple"},
+    "中药": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer", "complexity": "simple"},
+    "家电": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 30, "type": "consumer", "complexity": "simple"},
+    "传媒": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer", "complexity": "simple"},
+    "银行": {"low": 5, "fair_low": 6, "fair_high": 9, "high": 12, "type": "mature", "complexity": "simple"},
+    "保险": {"low": 6, "fair_low": 8, "fair_high": 12, "high": 16, "type": "mature", "complexity": "simple"},
+    "免税": {"low": 18, "fair_low": 25, "fair_high": 40, "high": 50, "type": "consumer", "complexity": "simple"},
+    "旅游零售": {"low": 18, "fair_low": 25, "fair_high": 40, "high": 50, "type": "consumer", "complexity": "simple"},
+    "医药": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "growth", "complexity": "simple"},
+    "生物制品": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "growth", "complexity": "simple"},
 
-    # 消费/稳健成长
-    "白酒": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer"},
-    "食品饮料": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer"},
-    "调味品": {"low": 18, "fair_low": 22, "fair_high": 35, "high": 45, "type": "consumer"},
-    "乳制品": {"low": 12, "fair_low": 15, "fair_high": 25, "high": 30, "type": "consumer"},
-    "医药": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "growth"},
-    "医疗器械": {"low": 18, "fair_low": 22, "fair_high": 35, "high": 50, "type": "growth"},
-    "中药": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer"},
-    "家电": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 30, "type": "consumer"},
-    "传媒": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer"},
+    # =============================================
+    # 中等复杂（medium）：能理解但有门槛、资本开支中等
+    # =============================================
+    "电力": {"low": 8, "fair_low": 10, "fair_high": 18, "high": 22, "type": "utility", "complexity": "medium"},
+    "公用事业": {"low": 8, "fair_low": 10, "fair_high": 18, "high": 22, "type": "utility", "complexity": "medium"},
+    "交通运输": {"low": 8, "fair_low": 12, "fair_high": 16, "high": 22, "type": "utility", "complexity": "medium"},
+    "铁路": {"low": 8, "fair_low": 10, "fair_high": 16, "high": 20, "type": "utility", "complexity": "medium"},
+    "铁路公路": {"low": 8, "fair_low": 10, "fair_high": 16, "high": 20, "type": "utility", "complexity": "medium"},
+    "高速": {"low": 8, "fair_low": 10, "fair_high": 16, "high": 20, "type": "utility", "complexity": "medium"},
+    "通信": {"low": 15, "fair_low": 20, "fair_high": 35, "high": 50, "type": "tech", "complexity": "medium"},
+    "通信服务": {"low": 15, "fair_low": 20, "fair_high": 35, "high": 50, "type": "tech", "complexity": "medium"},
+    "医疗器械": {"low": 18, "fair_low": 22, "fair_high": 35, "high": 50, "type": "growth", "complexity": "medium"},
 
-    # 科技/高成长
-    "半导体": {"low": 30, "fair_low": 40, "fair_high": 65, "high": 80, "type": "tech"},
-    "芯片": {"low": 30, "fair_low": 40, "fair_high": 65, "high": 80, "type": "tech"},
-    "软件": {"low": 30, "fair_low": 40, "fair_high": 60, "high": 80, "type": "tech"},
-    "通信": {"low": 15, "fair_low": 20, "fair_high": 35, "high": 50, "type": "tech"},
-    "军工": {"low": 25, "fair_low": 35, "fair_high": 55, "high": 70, "type": "tech"},
-    "航空航天": {"low": 25, "fair_low": 35, "fair_high": 55, "high": 70, "type": "tech"},
-    "新能源": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "tech"},
-    "锂电": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "tech"},
-    "光伏": {"low": 15, "fair_low": 25, "fair_high": 45, "high": 55, "type": "tech"},
-
-    # 制造业/装备
-    "轨道交通": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle"},
-    "铁路装备": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle"},
-    "铁路设备": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle"},
-    "机械制造": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle"},
-    "汽车玻璃": {"low": 10, "fair_low": 14, "fair_high": 22, "high": 30, "type": "cycle"},
-
-    # 化工/资源（周期）
-    "化工": {"low": 8, "fair_low": 12, "fair_high": 20, "high": 30, "type": "cycle"},
-    "有色金属": {"low": 8, "fair_low": 12, "fair_high": 20, "high": 30, "type": "cycle"},
-    "稀土": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle"},
-    "矿业": {"low": 8, "fair_low": 10, "fair_high": 18, "high": 25, "type": "cycle"},
-    "免税": {"low": 18, "fair_low": 25, "fair_high": 40, "high": 50, "type": "consumer"},
+    # =============================================
+    # 复杂生意（complex）：重资产、技术变化快、需持续大额投入
+    # 巴菲特不爱：需要不断烧钱、买设备、盖工厂
+    # 买入信号自动降一级
+    # =============================================
+    "半导体": {"low": 30, "fair_low": 40, "fair_high": 65, "high": 80, "type": "tech", "complexity": "complex"},
+    "芯片": {"low": 30, "fair_low": 40, "fair_high": 65, "high": 80, "type": "tech", "complexity": "complex"},
+    "软件": {"low": 30, "fair_low": 40, "fair_high": 60, "high": 80, "type": "tech", "complexity": "medium"},
+    "军工": {"low": 25, "fair_low": 35, "fair_high": 55, "high": 70, "type": "tech", "complexity": "complex"},
+    "航空航天": {"low": 25, "fair_low": 35, "fair_high": 55, "high": 70, "type": "tech", "complexity": "complex"},
+    "新能源": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "tech", "complexity": "complex"},
+    "锂电": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "tech", "complexity": "complex"},
+    "电池": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "tech", "complexity": "complex"},
+    "光伏": {"low": 15, "fair_low": 25, "fair_high": 45, "high": 55, "type": "tech", "complexity": "complex"},
+    "轨道交通": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle", "complexity": "complex"},
+    "轨交设备": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle", "complexity": "complex"},
+    "铁路装备": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle", "complexity": "complex"},
+    "铁路设备": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle", "complexity": "complex"},
+    "机械制造": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle", "complexity": "complex"},
+    "汽车玻璃": {"low": 10, "fair_low": 14, "fair_high": 22, "high": 30, "type": "cycle", "complexity": "complex"},
+    "汽车零部件": {"low": 10, "fair_low": 14, "fair_high": 22, "high": 30, "type": "cycle", "complexity": "complex"},
+    "建筑": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 16, "type": "cycle", "complexity": "complex"},
+    "钢铁": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 16, "type": "cycle", "complexity": "complex"},
+    "煤炭": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 16, "type": "cycle", "complexity": "complex"},
+    "煤炭开采": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 16, "type": "cycle", "complexity": "complex"},
+    "化工": {"low": 8, "fair_low": 12, "fair_high": 20, "high": 30, "type": "cycle", "complexity": "complex"},
+    "化学制品": {"low": 8, "fair_low": 12, "fair_high": 20, "high": 30, "type": "cycle", "complexity": "complex"},
+    "农化制品": {"low": 8, "fair_low": 12, "fair_high": 20, "high": 30, "type": "cycle", "complexity": "complex"},
+    "有色金属": {"low": 8, "fair_low": 12, "fair_high": 20, "high": 30, "type": "cycle", "complexity": "complex"},
+    "工业金属": {"low": 8, "fair_low": 12, "fair_high": 20, "high": 30, "type": "cycle", "complexity": "complex"},
+    "稀土": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle", "complexity": "complex"},
+    "小金属": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle", "complexity": "complex"},
+    "矿业": {"low": 8, "fair_low": 10, "fair_high": 18, "high": 25, "type": "cycle", "complexity": "complex"},
 }
 
 # 默认PE区间（找不到行业时用）
-DEFAULT_PE = {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "default"}
+DEFAULT_PE = {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "default", "complexity": "medium"}
+
+# 复杂度对ROE门槛的影响（和screener的check_watchlist_financial_health配合）
+# 简单生意：ROE要求宽松（低杠杆12%就够，巴菲特最爱）
+# 中等复杂：ROE要求正常
+# 复杂生意：ROE要求严格（必须赚够多才值得投入重资产）
+COMPLEXITY_ROE_ADJUST = {
+    "simple": {"heavy": 12, "light": 10, "watch": 8},    # 宽松
+    "medium": {"heavy": 15, "light": 12, "watch": 10},   # 正常
+    "complex": {"heavy": 20, "light": 15, "watch": 12},  # 严格
+}
 
 
 def match_industry_pe(industry_str):
@@ -428,47 +457,56 @@ def check_holdings_sell_signals(holdings, config):
 # 关注表财务健康验证（买入前必须过关）
 # ============================================
 
-def check_watchlist_financial_health(code):
+def check_watchlist_financial_health(code, industry=""):
     """
     对关注表股票做财务健康检查+ROE等级判定
-    返回 (通过?, 警告信息, ROE等级)
-    ROE等级决定最高允许的买入信号：
-      "heavy"  ROE>=20% → 允许重仓
-      "light"  ROE 15-20% → 最高轻仓
-      "watch"  ROE 10-15% → 最高关注
-      "none"   ROE<10% → 不给买入信号
+    根据行业复杂度+杠杆率动态调整ROE门槛：
+    - 简单生意+低杠杆：ROE 12%可重仓（巴菲特最爱）
+    - 复杂生意+高杠杆：ROE 25%才可重仓（必须赚够多）
     """
     df = get_financial_indicator(code)
     if df is None:
-        return True, "", "light"  # 数据不足时默认轻仓
+        return True, "", "light"
 
     df_annual = extract_annual_data(df, years=5)
     if df_annual.empty:
         return True, "", "light"
 
     warnings = []
-    roe_level = "heavy"  # 默认允许重仓
+    roe_level = "heavy"
 
-    # 0. ROE检查（考虑杠杆率调整）
-    # 低负债公司ROE门槛放宽（零杠杆13%比高杠杆20%更有价值）
+    # 获取行业复杂度
+    pe_range = match_industry_pe(industry)
+    complexity = pe_range.get("complexity", "medium")
+
+    # 基础ROE门槛（按行业复杂度）
+    base_thresholds = COMPLEXITY_ROE_ADJUST.get(complexity, COMPLEXITY_ROE_ADJUST["medium"])
+
+    # 再根据杠杆率微调
     roe_series = get_roe_series(df_annual)
     debt_info_for_roe = get_debt_info(df_annual)
-    debt_ratio_val = 50  # 默认
+    debt_ratio_val = 50
     if debt_info_for_roe and debt_info_for_roe.get("debt_ratio"):
         dr = debt_info_for_roe["debt_ratio"]
         if not np.isnan(dr):
             debt_ratio_val = dr
 
-    # 根据负债率确定ROE门槛
+    # 杠杆调整：低杠杆降2%门槛，高杠杆加5%门槛
+    leverage_adj = 0
     if debt_ratio_val < 30:
-        # 低杠杆：赚钱全靠真本事，放宽要求
-        roe_thresholds = {"heavy": 12, "light": 10, "watch": 8}
-    elif debt_ratio_val < 50:
-        # 中杠杆：正常要求
-        roe_thresholds = {"heavy": 15, "light": 12, "watch": 10}
-    else:
-        # 高杠杆：严格要求（杠杆推高的ROE不算）
-        roe_thresholds = {"heavy": 20, "light": 15, "watch": 12}
+        leverage_adj = -2  # 低杠杆，放宽
+    elif debt_ratio_val > 50:
+        leverage_adj = 5   # 高杠杆，加严
+
+    roe_thresholds = {
+        "heavy": base_thresholds["heavy"] + leverage_adj,
+        "light": base_thresholds["light"] + leverage_adj,
+        "watch": base_thresholds["watch"] + leverage_adj,
+    }
+
+    complexity_label = {"simple": "简单生意", "medium": "中等复杂", "complex": "复杂生意"}.get(complexity, "")
+    if complexity == "complex":
+        warnings.append(f"复杂生意(重仓需ROE≥{roe_thresholds['heavy']}%)")
 
     if roe_series is not None and len(roe_series) >= 2:
         avg_roe = roe_series.mean()
