@@ -1,4 +1,60 @@
 {
   "date": "2026-04-06",
-  "ai_recommendations": []
+  "ai_recommendations": [
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "category": "中药Ⅱ",
+      "note": "国家绝密配方+百年品牌",
+      "price": 56.46,
+      "pe": 19.55,
+      "signal": "buy_light",
+      "signal_text": "PE(TTM)=19.6，低于行业合理区间20-30→可以轻仓买入",
+      "source": "关注表"
+    },
+    {
+      "code": "601899",
+      "name": "紫金矿业",
+      "category": "工业金属",
+      "note": "全球金铜锂龙头",
+      "price": 32.91,
+      "pe": 16.9,
+      "signal": "buy_watch",
+      "signal_text": "PE(TTM)=16.9，合理偏低→重点关注买入",
+      "source": "关注表"
+    },
+    {
+      "code": "600096",
+      "name": "云天化",
+      "category": "农化制品",
+      "note": "磷矿储量全国第一",
+      "price": 31.44,
+      "pe": 11.12,
+      "signal": "buy_light",
+      "signal_text": "PE偏低，ROE限制最高轻仓",
+      "source": "关注表"
+    },
+    {
+      "code": "600941",
+      "name": "中国移动",
+      "category": "通信服务",
+      "note": "9亿用户+通信牌照",
+      "price": 93.02,
+      "pe": 14.69,
+      "signal": "buy_light",
+      "signal_text": "PE偏低，ROE限制最高轻仓",
+      "source": "关注表"
+    },
+    {
+      "code": "601766",
+      "name": "中国中车",
+      "category": "轨交设备Ⅱ",
+      "note": "高铁装备国内市占90%+",
+      "price": 6.21,
+      "pe": 13.52,
+      "signal": "buy_light",
+      "signal_text": "PE(TTM)=13.5，低于行业合理区间15-25→可以轻仓买入",
+      "source": "关注表"
+    }
+  ]
 }
