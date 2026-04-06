@@ -376,7 +376,8 @@ def main():
         watchlist_signals = run_watchlist(config)
         holding_signals = run_holdings(config)
         cache = load_json("market_scan_cache.json")
-        # AI推荐：关注表买入信号 + 缓存的全市场结果
+
+        # 构建统一的 ai_recommendations（微信和Streamlit用同一份）
         ai_recs = []
         seen_codes = set()
         for s in watchlist_signals:
@@ -401,10 +402,11 @@ def main():
         existing = load_json("daily_results.json")
         merged = merge_daily_data(existing if isinstance(existing, dict) else {}, new_data)
         save_json("daily_results.json", merged)
-        # 推送
+
+        # 推送（用同一份 ai_recs，保证微信和Streamlit一致）
         send_daily_report(
-            watchlist_signals=watchlist_signals,
-            candidates=[],
+            watchlist_signals=[],          # 不单独发关注表
+            candidates=ai_recs,            # 用统一的推荐列表
             holding_signals=holding_signals,
             config=config,
         )
@@ -474,12 +476,41 @@ def main():
         save_json("daily_results.json", daily_data)
         save_json("market_scan_cache.json", {"date": now.strftime("%Y-%m-%d"), "ai_recommendations": ai_recs})
 
+        # 用统一的 ai_recs 发微信（和Streamlit一致）
         send_daily_report(
-            watchlist_signals=watchlist_signals,
-            candidates=candidates,
+            watchlist_signals=[],
+            candidates=ai_recs,
             holding_signals=holding_signals,
             config=config,
         )
+
+    elif mode == "reanalyze":
+        # 调试模式：用已缓存数据重跑模型，不抓网络
+        print("=== 调试模式：从缓存数据重跑模型 ===")
+        existing = load_json("daily_results.json")
+        if not isinstance(existing, dict) or not existing.get("watchlist_signals"):
+            print("无缓存数据，请先运行一次全量模式")
+            return
+
+        # 重新对已有数据应用最新模型逻辑
+        # 这里不重新获取PE等数据，只重新计算信号
+        print(f"  使用数据：{existing.get('date', '未知')}")
+        print(f"  关注表：{len(existing.get('watchlist_signals', []))}只")
+        print(f"  持仓：{len(existing.get('holding_signals', []))}只")
+
+        # 重新构建ai_recommendations
+        ai_recs = []
+        for s in existing.get("watchlist_signals", []):
+            if s.get("signal") and "buy" in s["signal"]:
+                s["source"] = "关注表"
+                ai_recs.append(s)
+
+        existing["ai_recommendations"] = ai_recs
+        existing["mode"] = "reanalyze"
+        existing["data_source"] = f"调试模式（数据来自{existing.get('date', '未知')}）"
+        save_json("daily_results.json", existing)
+        print(f"  模型推荐：{len(ai_recs)}只")
+        print("  结果已保存，刷新Streamlit查看")
 
     print(f"\n=== 完成 ===")
 

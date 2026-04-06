@@ -188,10 +188,14 @@ with tab1:
 
     is_running, run_time = check_running_workflow()
 
+    # 获取缓存数据日期
+    daily = st.session_state.get("daily", {})
+    cache_date = daily.get("date", "无") if daily else "无"
+
     if is_running:
-        st.warning("⏳ 全盘扫描正在运行中...请稍候，完成后刷新页面查看结果")
+        st.warning("⏳ 扫描正在运行中...请稍候，完成后刷新页面查看结果")
     else:
-        col_btn1, col_btn2 = st.columns([1, 4])
+        col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 3])
         with col_btn1:
             if st.button("🔄 立即全盘扫描", type="primary"):
                 try:
@@ -205,6 +209,20 @@ with tab1:
                         st.error(f"触发失败: {resp.status_code}")
                 except Exception as e:
                     st.error(f"触发失败: {e}")
+        with col_btn2:
+            if st.button("🔧 用缓存调试模型"):
+                try:
+                    cfg = get_github_config()
+                    url = f"https://api.github.com/repos/{cfg['repo']}/actions/workflows/daily_screen.yml/dispatches"
+                    resp = requests.post(url, json={"ref": "main", "inputs": {"mode": "reanalyze"}}, headers=github_headers(cfg["token"]), timeout=10)
+                    if resp.status_code == 204:
+                        st.success("✅ 已触发调试！约1分钟完成，刷新查看。")
+                        st.rerun()
+                    else:
+                        st.error(f"触发失败: {resp.status_code}")
+                except Exception as e:
+                    st.error(f"触发失败: {e}")
+            st.caption(f"缓存数据：{cache_date}")
 
     daily = st.session_state.get("daily", {})
     watchlist = st.session_state.get("watchlist", [])
