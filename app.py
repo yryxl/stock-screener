@@ -97,20 +97,35 @@ tab1, tab2, tab3 = st.tabs(["🤖 AI推荐", "📋 持仓管理", "⭐ 重点关
 # ============================================
 with tab1:
     st.header("🤖 AI推荐")
-    st.caption("来自全市场扫描，每周一自动更新")
+    st.caption("来自全市场扫描，每周一自动更新 | 也可手动触发")
+
+    # 手动触发全盘扫描按钮
+    col_btn1, col_btn2 = st.columns([1, 4])
+    with col_btn1:
+        if st.button("🔄 立即全盘扫描", type="primary"):
+            try:
+                cfg = get_github_config()
+                url = f"https://api.github.com/repos/{cfg['repo']}/actions/workflows/daily_screen.yml/dispatches"
+                resp = requests.post(url, json={"ref": "main"}, headers=github_headers(cfg["token"]), timeout=10)
+                if resp.status_code == 204:
+                    st.success("已触发全盘扫描！大约需要10-30分钟，完成后本页自动更新数据。")
+                else:
+                    st.error(f"触发失败: {resp.status_code} {resp.text}")
+            except Exception as e:
+                st.error(f"触发失败: {e}")
 
     daily = st.session_state.get("daily", {})
     watchlist = st.session_state.get("watchlist", [])
     watchlist_codes = set(w["code"] for w in watchlist)
 
     if not daily:
-        st.info("暂无数据，等待首次运行")
+        st.info("暂无数据，点击上方按钮触发首次扫描")
     else:
         st.caption(f"数据更新：{daily.get('date', '未知')}")
 
         ai_recs = daily.get("ai_recommendations", [])
         if not ai_recs:
-            st.info("暂无AI推荐，等待周一全市场扫描")
+            st.info("暂无AI推荐，点击上方按钮触发全盘扫描")
         else:
             for signal_key in BUY_SIGNALS:
                 signal_label = SIGNAL_LABELS.get(signal_key, signal_key)
