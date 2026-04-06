@@ -50,6 +50,17 @@ def save_json(filename, data):
 
 
 def is_trading_day():
+    """通过AKShare交易日历判断今天是否交易日（考虑节假日）"""
+    today_str = datetime.now().strftime("%Y%m%d")
+    try:
+        # 获取交易日历
+        df = safe_fetch(ak.tool_trade_date_hist_sina)
+        if df is not None and not df.empty:
+            trade_dates = set(df["trade_date"].astype(str).str.replace("-", ""))
+            return today_str in trade_dates
+    except Exception as e:
+        print(f"  获取交易日历失败: {e}")
+    # 失败时回退到简单判断（排除周末）
     return datetime.now().weekday() < 5
 
 
@@ -236,9 +247,10 @@ def main():
     config = load_config()
     today = now.strftime("%m-%d")
     trading = is_trading_day()
+    print(f"交易日: {'是' if trading else '否（休市）'}")
 
-    # 休市日处理
-    if mode == "holiday" or (not trading and mode != "all"):
+    # 休市日处理（节假日、周末都走这里）
+    if not trading and mode != "all":
         if has_today_data():
             print("休市日，已有数据，跳过")
         else:
