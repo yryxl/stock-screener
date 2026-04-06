@@ -1,6 +1,229 @@
 {
-  "date": "2026-04-06 01:22",
+  "date": "2026-04-06 03:12",
+  "mode": "all",
+  "data_source": "全量运行（关注表+全市场+持仓）",
   "ai_recommendations": [],
-  "watchlist_signals": [],
+  "watchlist_signals": [
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "category": "中药Ⅱ",
+      "note": "国家绝密配方+百年品牌",
+      "price": 56.46,
+      "pe": 19.55,
+      "signal": "buy_light",
+      "signal_text": "PE(TTM)=19.6，低于行业合理区间20-30→可以轻仓买入"
+    },
+    {
+      "code": "600085",
+      "name": "同仁堂",
+      "category": "中药Ⅱ",
+      "note": "350年国药老字号",
+      "price": 27.83,
+      "pe": 32.09,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=32.1，观望"
+    },
+    {
+      "code": "600900",
+      "name": "长江电力",
+      "category": "电力",
+      "note": "长江6大梯级电站独家运营",
+      "price": 26.7,
+      "pe": 19.12,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=19.1，观望"
+    },
+    {
+      "code": "601088",
+      "name": "中国神华",
+      "category": "煤炭开采",
+      "note": "煤电路港一体化",
+      "price": 47.58,
+      "pe": 19.11,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=19.1，观望"
+    },
+    {
+      "code": "000792",
+      "name": "盐湖股份",
+      "category": "农化制品",
+      "note": "察尔汗盐湖独占",
+      "price": 36.25,
+      "pe": 22.63,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=22.6，观望"
+    },
+    {
+      "code": "600111",
+      "name": "北方稀土",
+      "category": "小金属",
+      "note": "轻稀土资源+开采配额双垄断",
+      "price": 47.61,
+      "pe": 80.42,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=80.4，观望"
+    },
+    {
+      "code": "601899",
+      "name": "紫金矿业",
+      "category": "工业金属",
+      "note": "全球金铜锂龙头",
+      "price": 32.91,
+      "pe": 16.9,
+      "signal": "buy_watch",
+      "signal_text": "PE(TTM)=16.9，合理偏低→重点关注买入"
+    },
+    {
+      "code": "600096",
+      "name": "云天化",
+      "category": "农化制品",
+      "note": "磷矿储量全国第一",
+      "price": 31.44,
+      "pe": 11.12,
+      "signal": "buy_light",
+      "signal_text": "PE偏低，ROE限制最高轻仓"
+    },
+    {
+      "code": "601888",
+      "name": "中国中免",
+      "category": "旅游零售Ⅱ",
+      "note": "国内唯一免税全牌照",
+      "price": 68.92,
+      "pe": 39.93,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=39.9，观望"
+    },
+    {
+      "code": "600941",
+      "name": "中国移动",
+      "category": "通信服务",
+      "note": "9亿用户+通信牌照",
+      "price": 93.02,
+      "pe": 14.69,
+      "signal": "buy_light",
+      "signal_text": "PE偏低，ROE限制最高轻仓"
+    },
+    {
+      "code": "601006",
+      "name": "大秦铁路",
+      "category": "铁路公路",
+      "note": "西煤东运主通道独家",
+      "price": 5.2,
+      "pe": 15.73,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=15.7，观望"
+    },
+    {
+      "code": "601816",
+      "name": "京沪高铁",
+      "category": "铁路公路",
+      "note": "最黄金高铁线路独家",
+      "price": 5.05,
+      "pe": 18.93,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=18.9，观望"
+    },
+    {
+      "code": "601398",
+      "name": "工商银行",
+      "category": "银行Ⅱ",
+      "note": "国家信用+金融压舱石",
+      "price": 7.5,
+      "pe": 7.49,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=7.5，观望"
+    },
+    {
+      "code": "300750",
+      "name": "宁德时代",
+      "category": "电池",
+      "note": "动力电池全球市占35%+",
+      "price": 386.46,
+      "pe": 24.43,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=24.4，观望"
+    },
+    {
+      "code": "600309",
+      "name": "万华化学",
+      "category": "化学制品",
+      "note": "MDI全球寡头",
+      "price": 82.38,
+      "pe": 20.59,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=20.6，观望"
+    },
+    {
+      "code": "688012",
+      "name": "中微公司",
+      "category": "半导体",
+      "note": "半导体刻蚀设备龙头",
+      "price": 293.5,
+      "pe": 87.04,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=87.0，观望"
+    },
+    {
+      "code": "688008",
+      "name": "澜起科技",
+      "category": "半导体",
+      "note": "DDR5内存接口芯片全球龙头",
+      "price": 127.26,
+      "pe": 69.57,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=69.6，观望"
+    },
+    {
+      "code": "601766",
+      "name": "中国中车",
+      "category": "轨交设备Ⅱ",
+      "note": "高铁装备国内市占90%+",
+      "price": 6.21,
+      "pe": 13.52,
+      "signal": "buy_light",
+      "signal_text": "PE(TTM)=13.5，低于行业合理区间15-25→可以轻仓买入"
+    },
+    {
+      "code": "000661",
+      "name": "长春高新",
+      "category": "生物制品",
+      "note": "生长激素国内市占70%+",
+      "price": 84.68,
+      "pe": 36.02,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=36.0，观望"
+    },
+    {
+      "code": "603288",
+      "name": "海天味业",
+      "category": "调味发酵品Ⅱ",
+      "note": "酱油市占30%+",
+      "price": 41.69,
+      "pe": 34.66,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=34.7，观望"
+    },
+    {
+      "code": "600887",
+      "name": "伊利股份",
+      "category": "饮料乳品",
+      "note": "乳业双寡头",
+      "price": 26.31,
+      "pe": 20.78,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=20.8，观望"
+    },
+    {
+      "code": "688981",
+      "name": "中芯国际",
+      "category": "半导体",
+      "note": "国内唯一先进制程芯片代工",
+      "price": 91.78,
+      "pe": 145.69,
+      "signal": "hold",
+      "signal_text": "PE(TTM)=145.7，观望"
+    }
+  ],
   "holding_signals": []
 }
