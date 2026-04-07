@@ -181,6 +181,41 @@ def get_fcf_series(df_annual):
     return pd.to_numeric(df_annual[col], errors="coerce").dropna()
 
 
+def get_dividend_yield(stock_code, price, industry=""):
+    """
+    计算股息率：最新2次分红加总（含预案）
+    银行/铁路/电力等高频分红行业取3次
+    多数据源：stock_history_dividend_detail
+    """
+    if not price or price <= 0:
+        return 0
+    try:
+        df = safe_fetch(ak.stock_history_dividend_detail, symbol=stock_code, indicator="分红")
+        if df is None or df.empty:
+            return 0
+        cols = list(df.columns)
+        df[cols[0]] = pd.to_datetime(df[cols[0]], errors="coerce")
+        df = df.sort_values(cols[0], ascending=False)
+        df[cols[3]] = pd.to_numeric(df[cols[3]], errors="coerce")
+
+        # 银行/铁路/电力等一年分3次的行业，取3次
+        high_freq_industries = ["银行", "铁路", "电力", "高速", "公路"]
+        take_n = 2
+        for kw in high_freq_industries:
+            if kw in str(industry):
+                take_n = 3
+                break
+
+        top = df.head(take_n)
+        total_per_10 = top[cols[3]].sum()
+        div_per_share = total_per_10 / 10
+        if div_per_share <= 0:
+            return 0
+        return round((div_per_share / price) * 100, 2)
+    except Exception:
+        return 0
+
+
 def get_pe_ttm(stock_code):
     """获取准确的PE(TTM)，数据来源：百度股市通"""
     try:

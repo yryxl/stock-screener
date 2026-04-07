@@ -25,7 +25,7 @@ from screener import (
     check_position_sizes, compare_opportunity_cost,
 )
 from notifier import send_daily_report, send_msg, get_access_token
-from data_fetcher import get_realtime_quotes, get_pe_ttm, safe_fetch, get_financial_indicator, extract_annual_data
+from data_fetcher import get_realtime_quotes, get_pe_ttm, get_dividend_yield, safe_fetch, get_financial_indicator, extract_annual_data
 import akshare as ak
 
 
@@ -124,6 +124,9 @@ def check_watchlist(config, quotes_df):
             pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
         pe_val = pe if (pe and not pd.isna(pe)) else 0
 
+        # 获取股息率
+        div_yield = get_dividend_yield(code, price_val, industry=category)
+
         # ============================================
         # 第一步：清单筛选（决定买不买）
         # ============================================
@@ -166,10 +169,10 @@ def check_watchlist(config, quotes_df):
         # ============================================
         # 第二步：打分（仅展示+排序，不改变信号）
         # ============================================
+        # 打分（仅展示+排序）
         from data_fetcher import get_financial_indicator
         df_indicator = get_financial_indicator(code)
         score_data = {}
-        div_yield = 0
         total_score = 0
 
         if df_indicator is not None:
@@ -178,7 +181,6 @@ def check_watchlist(config, quotes_df):
                 from scorer import score_stock_for_display
                 score_data = score_stock_for_display(code, df_annual, pe=pe_val, price=price_val, industry=category)
                 total_score = score_data.get("total_score", 0)
-                div_yield = score_data.get("dividend_yield", 0)
 
         signals.append({
             "code": code, "name": name, "category": category,
