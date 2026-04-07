@@ -28,5 +28,12 @@
     "name": "红利etf华泰",
     "shares": 400,
     "cost": 3.353
+  },
+  {
+    "code": "000538",
+    "name": "云南白药",
+    "shares": 100,
+    "cost": 56.4,
+    "category": "医药"
   }
 ]
