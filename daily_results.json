@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-07 10:09",
-  "mode": "watchlist",
+  "date": "2026-04-07 11:52",
+  "mode": "all",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "全量运行（交易日实时数据）",
   "ai_recommendations": [],
   "watchlist_signals": [
     {
@@ -15,7 +15,7 @@
       "signal": "hold",
       "signal_text": "PE(TTM)=34.5，继续观望",
       "total_score": 27,
-      "dividend_yield": 0,
+      "dividend_yield": 2.65,
       "dimensions": {
         "ROE质量": {
           "score": 8,
@@ -54,7 +54,7 @@
       "signal": "hold",
       "signal_text": "PE(TTM)=36.1，继续观望",
       "total_score": 26,
-      "dividend_yield": 0,
+      "dividend_yield": 8.37,
       "dimensions": {
         "ROE质量": {
           "score": 7,
@@ -93,7 +93,7 @@
       "signal": "hold",
       "signal_text": "财务风险(仅5年数据、ROE=10.2% 负债率26%)，继续观望",
       "total_score": 24,
-      "dividend_yield": 0,
+      "dividend_yield": 4.65,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -132,7 +132,7 @@
       "signal": "hold",
       "signal_text": "PE偏低但ROE不达标，继续观望",
       "total_score": 22,
-      "dividend_yield": 0,
+      "dividend_yield": 5.12,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -171,7 +171,7 @@
       "signal": "hold",
       "signal_text": "PE(TTM)=31.8，继续观望",
       "total_score": 21,
-      "dividend_yield": 0,
+      "dividend_yield": 3.63,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -210,7 +210,7 @@
       "signal": "hold",
       "signal_text": "PE(TTM)=39.4，继续观望",
       "total_score": 21,
-      "dividend_yield": 0,
+      "dividend_yield": 1.03,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -249,7 +249,7 @@
       "signal": "hold",
       "signal_text": "PE(TTM)=15.6，继续观望",
       "total_score": 19,
-      "dividend_yield": 0,
+      "dividend_yield": 6.76,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -288,7 +288,7 @@
       "signal": "hold",
       "signal_text": "PE(TTM)=20.8，继续观望",
       "total_score": 19,
-      "dividend_yield": 0,
+      "dividend_yield": 6.46,
       "dimensions": {
         "ROE质量": {
           "score": 6,
@@ -327,7 +327,7 @@
       "signal": "hold",
       "signal_text": "PE(TTM)=19.0，继续观望",
       "total_score": 18,
-      "dividend_yield": 0,
+      "dividend_yield": 4.35,
       "dimensions": {
         "ROE质量": {
           "score": 5,
@@ -366,7 +366,7 @@
       "signal": "hold",
       "signal_text": "PE(TTM)=18.8，继续观望",
       "total_score": 0,
-      "dividend_yield": 0,
+      "dividend_yield": 5.34,
       "dimensions": {}
     },
     {
@@ -379,7 +379,7 @@
       "signal": "hold",
       "signal_text": "PE(TTM)=7.4，继续观望",
       "total_score": 0,
-      "dividend_yield": 0,
+      "dividend_yield": 6.42,
       "dimensions": {}
     }
   ],
@@ -394,15 +394,6 @@
       "signal": "hold_keep",
       "signal_text": "PE=19.4，处于合理区间15-25 →建议持续持有",
       "industry": ""
-    }
-  ],
-  "position_warnings": [
-    {
-      "code": "512890",
-      "name": "红利低波etf华泰",
-      "pct": 51.07690841513389,
-      "level": "danger",
-      "text": "仓位51.1%≥40%，严重偏重！建议分散"
     }
   ]
 }
