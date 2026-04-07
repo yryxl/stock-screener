@@ -100,12 +100,18 @@ def format_stock_line(s):
     price = s.get("price", 0)
     category = s.get("category", "")
     signal_text = s.get("signal_text", "")
+    total_score = s.get("total_score", 0)
+    div_yield = s.get("dividend_yield", 0)
 
     line = f"{name}({code})"
     if pe and pe > 0:
         line += f" PE={pe:.1f}"
+    if div_yield and div_yield > 0:
+        line += f" 股息{div_yield:.1f}%"
     if price and price > 0:
         line += f" {price:.2f}元"
+    if total_score > 0:
+        line += f" [{total_score}分]"
     if category:
         line += f"\n  [{category}]"
     if signal_text:

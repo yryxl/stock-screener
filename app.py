@@ -463,20 +463,28 @@ with tab3:
                 signal = data.get("signal", "")
                 signal_text = data.get("signal_text", "")
                 signal_label = SIGNAL_LABELS.get(signal, "—")
+                total_score = data.get("total_score", 0)
+                div_yield = data.get("dividend_yield", 0)
+                dims = data.get("dimensions", {})
 
-                col1, col2, col3, col4, col5 = st.columns([2.5, 1.3, 1.3, 3, 0.8])
+                col1, col2, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 3, 0.8])
                 with col1:
                     st.markdown(f"**{item['name']}**（{code}）")
                     st.caption(item.get("note", ""))
                 with col2:
-                    pe_display = f"{pe:.1f}" if pe and pe > 0 else "—"
-                    st.metric("PE(TTM)", pe_display)
+                    st.metric("PE(TTM)", f"{pe:.1f}" if pe and pe > 0 else "—")
                 with col3:
-                    st.metric("股价", f"¥{price:.2f}" if price and price > 0 else "—")
+                    st.metric("股息率", f"{div_yield:.1f}%" if div_yield > 0 else "—")
                 with col4:
+                    st.metric("评分", f"{total_score}/50" if total_score > 0 else "—")
+                with col5:
                     st.markdown(f"{signal_label}")
                     if signal_text:
                         st.caption(signal_text[:80])
+                    # 展开显示各维度得分
+                    if dims:
+                        dim_str = " | ".join(f"{k}:{v['score']}" for k, v in dims.items())
+                        st.caption(f"📊 {dim_str}")
                 with col5:
                     if st.button("🗑️", key=f"del_w_{global_idx}"):
                         watchlist.pop(global_idx)

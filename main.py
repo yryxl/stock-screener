@@ -23,6 +23,7 @@ from screener import (
     get_pe_signal, check_decline_signals,
     check_watchlist_financial_health, check_fundamental_health,
 )
+from scorer import score_stock
 from notifier import send_daily_report, send_msg, get_access_token
 from data_fetcher import get_realtime_quotes, get_pe_ttm, safe_fetch
 import akshare as ak
@@ -112,25 +113,30 @@ def check_watchlist(config, quotes_df):
             continue
         row = row.iloc[0]
         price = pd.to_numeric(row.get("最新价"), errors="coerce")
+        price_val = price if not pd.isna(price) else 0
 
+        # 获取PE(TTM)
         pe = None
         ttm_data = get_pe_ttm(code)
         if ttm_data and ttm_data.get("pe_ttm"):
             pe = ttm_data["pe_ttm"]
         else:
             pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
+        pe_val = pe if (pe and not pd.isna(pe)) else 0
 
-        signal, signal_text = get_pe_signal(pe, category)
-        if pe and ttm_data:
-            signal_text = signal_text.replace(f"PE={pe:.1f}", f"PE(TTM)={pe:.1f}")
+        # ============================================
+        # 第一步：清单筛选（决定买不买）
+        # ============================================
+        signal, signal_text = get_pe_signal(pe_val, category)
 
         # 关注表：PE>=合理区间一律"观望"
         if signal and ("sell" in signal or signal == "hold"):
             signal = "hold"
-            signal_text = f"PE(TTM)={pe:.1f}，观望" if pe and not pd.isna(pe) else "观望"
+            signal_text = f"PE(TTM)={pe_val:.1f}，继续观望"
 
-        # 买入信号验证
+        # 买入信号需过清单：ROE+财务+基本面
         if signal and "buy" in signal:
+            # 清单1：ROE+杠杆
             health_ok, health_warning, roe_level = check_watchlist_financial_health(code, industry=category)
             signal_cap = {"heavy": "buy_heavy", "light": "buy_light", "watch": "buy_watch", "none": "hold"}
             max_signal = signal_cap.get(roe_level, "buy_light")
@@ -138,30 +144,54 @@ def check_watchlist(config, quotes_df):
 
             if signal_rank.get(signal, 4) < signal_rank.get(max_signal, 4):
                 signal = max_signal
-                if roe_level == "none":
-                    signal_text = f"PE偏低但ROE过低，不建议买入"
-                else:
-                    level_names = {"buy_light": "轻仓", "buy_watch": "关注", "buy_medium": "中仓"}
-                    signal_text = f"PE偏低，ROE限制最高{level_names.get(max_signal, '轻仓')}"
+                level_names = {"buy_light": "轻仓", "buy_watch": "关注", "buy_medium": "中仓", "hold": "观望"}
+                signal_text = f"PE偏低，ROE限制最高{level_names.get(max_signal, '轻仓')}"
 
-            if not health_ok:
+            if roe_level == "none":
                 signal = "hold"
-                signal_text = f"财务风险({health_warning})，暂不建议买入"
+                signal_text = "PE偏低但ROE不达标，继续观望"
 
+            # 清单2：财务风险
+            if signal and "buy" in signal and not health_ok:
+                signal = "hold"
+                signal_text = f"财务风险({health_warning})，继续观望"
+
+            # 清单3：基本面恶化
             if signal and "buy" in signal:
                 is_healthy, problems = check_fundamental_health(code)
                 if is_healthy is not None and not is_healthy:
                     signal = "hold"
-                    signal_text = f"基本面恶化({','.join(problems[:2])})，不推荐买入"
+                    signal_text = f"基本面恶化({','.join(problems[:2])})，继续观望"
+
+        # ============================================
+        # 第二步：打分（仅展示+排序，不改变信号）
+        # ============================================
+        from data_fetcher import get_financial_indicator
+        df_indicator = get_financial_indicator(code)
+        score_data = {}
+        div_yield = 0
+        total_score = 0
+
+        if df_indicator is not None:
+            df_annual = extract_annual_data(df_indicator, years=10)
+            if not df_annual.empty:
+                from scorer import score_stock_for_display
+                score_data = score_stock_for_display(code, df_annual, pe=pe_val, price=price_val, industry=category)
+                total_score = score_data.get("total_score", 0)
+                div_yield = score_data.get("dividend_yield", 0)
 
         signals.append({
             "code": code, "name": name, "category": category,
             "note": stock.get("note", ""),
-            "price": price if not pd.isna(price) else 0,
-            "pe": pe if (pe and not pd.isna(pe)) else 0,
+            "price": price_val, "pe": pe_val,
             "signal": signal, "signal_text": signal_text,
+            "total_score": total_score,
+            "dividend_yield": div_yield,
+            "dimensions": score_data.get("dimensions", {}),
         })
 
+    # 通过清单的股票按总分排序（分高的排前面）
+    signals.sort(key=lambda x: x.get("total_score", 0), reverse=True)
     return signals, watchlist
 
 
