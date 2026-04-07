@@ -76,7 +76,7 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add daily_results.json market_scan_cache.json watchlist.json 2>/dev/null || true
+          git add daily_results.json market_scan_cache.json watchlist.json snapshots/ 2>/dev/null || true
           git diff --cached --quiet || git commit -m "更新数据 $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')"
           git pull --rebase || true
           git push
