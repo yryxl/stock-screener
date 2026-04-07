@@ -329,6 +329,27 @@ with tab2:
         total_cost_all = sum(h.get("shares", 0) * h.get("cost", 0) for h in holdings)
         st.markdown(f"**持仓总成本：¥{total_cost_all:,.0f}** | 共{len(holdings)}只")
 
+        # 仓位警告
+        pos_warnings = daily.get("position_warnings", []) if isinstance(daily, dict) else []
+        for w in pos_warnings:
+            if w.get("level") == "danger":
+                st.error(f"⚠️ {w.get('name','')}（{w.get('code','')}）{w.get('text','')}")
+            else:
+                st.warning(f"⚠️ {w.get('name','')}（{w.get('code','')}）{w.get('text','')}")
+
+        # 换仓建议
+        swap_sug = daily.get("swap_suggestions", []) if isinstance(daily, dict) else []
+        if swap_sug:
+            st.subheader("💡 换仓建议（机会成本）")
+            st.caption("持仓中有卖出信号的股票 vs 关注表中有买入信号的股票")
+            for s in swap_sug:
+                st.info(
+                    f"建议卖出 **{s.get('sell_name','')}** {s.get('sell_ratio','')} "
+                    f"→ 买入 **{s.get('buy_name','')}**\n\n"
+                    f"卖出原因：{SIGNAL_LABELS.get(s.get('sell_signal',''), '')} | "
+                    f"买入原因：{SIGNAL_LABELS.get(s.get('buy_signal',''), '')}"
+                )
+
         for cat, items in category_holdings.items():
             # 分类小计
             cat_cost = sum(h.get("shares", 0) * h.get("cost", 0) for _, h in items)

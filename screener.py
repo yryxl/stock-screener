@@ -753,3 +753,109 @@ def check_decline_signals(stock_list, quotes_df):
         time.sleep(0.5)
 
     return false_declines, true_declines
+
+
+# ============================================
+# 仓位控制（巴菲特：单只不超40%，我们用30%更保守）
+# ============================================
+
+def check_position_sizes(holdings):
+    """
+    检查仓位是否过大
+    返回：需要提醒的持仓列表
+    """
+    if not holdings or len(holdings) < 2:
+        return []
+
+    warnings = []
+    total_cost = sum(h.get("shares", 0) * h.get("cost", 0) for h in holdings)
+    if total_cost <= 0:
+        return []
+
+    for h in holdings:
+        cost = h.get("shares", 0) * h.get("cost", 0)
+        pct = (cost / total_cost) * 100
+        if pct >= 40:
+            warnings.append({
+                "code": h["code"],
+                "name": h.get("name", ""),
+                "pct": pct,
+                "level": "danger",
+                "text": f"仓位{pct:.1f}%≥40%，严重偏重！建议分散",
+            })
+        elif pct >= 30:
+            warnings.append({
+                "code": h["code"],
+                "name": h.get("name", ""),
+                "pct": pct,
+                "level": "warning",
+                "text": f"仓位{pct:.1f}%≥30%，偏重，注意分散",
+            })
+
+    return warnings
+
+
+# ============================================
+# 机会成本比较（巴菲特：卖掉便宜的买更便宜的）
+# ============================================
+
+def compare_opportunity_cost(holding_signals, watchlist_buy_signals):
+    """
+    比较持仓 vs 关注表买入机会
+    如果关注表有明显更优的买入机会，建议换仓
+    返回：换仓建议列表
+    """
+    if not holding_signals or not watchlist_buy_signals:
+        return []
+
+    suggestions = []
+
+    # 找到关注表中最强的买入信号
+    buy_rank = {"buy_heavy": 0, "buy_medium": 1, "buy_light": 2, "buy_watch": 3}
+    best_buys = sorted(
+        [s for s in watchlist_buy_signals if s.get("signal") in buy_rank],
+        key=lambda x: buy_rank.get(x.get("signal", ""), 99)
+    )
+
+    if not best_buys:
+        return []
+
+    # 找持仓中表现最差的（PE偏高或信号为卖出的）
+    sell_rank = {"sell_heavy": 0, "sell_medium": 1, "sell_light": 2, "sell_watch": 3, "hold_keep": 4}
+    worst_holds = sorted(
+        [s for s in holding_signals if s.get("signal") in sell_rank],
+        key=lambda x: sell_rank.get(x.get("signal", ""), 99)
+    )
+
+    for sell_stock in worst_holds:
+        sell_signal = sell_stock.get("signal", "")
+        if sell_signal not in ("sell_heavy", "sell_medium", "sell_light", "sell_watch"):
+            continue
+
+        for buy_stock in best_buys[:2]:  # 最多推荐2只
+            buy_signal = buy_stock.get("signal", "")
+
+            # 只有买入信号比卖出信号更强时才建议换仓
+            if buy_rank.get(buy_signal, 99) >= 3:  # buy_watch太弱不建议换
+                continue
+
+            # 计算建议卖出比例
+            if sell_signal in ("sell_heavy", "sell_medium"):
+                sell_ratio = "全部"
+            elif sell_signal == "sell_light":
+                sell_ratio = "1/2"
+            else:
+                sell_ratio = "1/3"
+
+            suggestions.append({
+                "sell_code": sell_stock["code"],
+                "sell_name": sell_stock.get("name", ""),
+                "sell_signal": sell_signal,
+                "sell_ratio": sell_ratio,
+                "buy_code": buy_stock["code"],
+                "buy_name": buy_stock.get("name", ""),
+                "buy_signal": buy_signal,
+                "text": f"建议卖出{sell_stock.get('name','')}{sell_ratio}→买入{buy_stock.get('name','')}",
+            })
+
+    return suggestions

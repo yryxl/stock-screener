@@ -22,6 +22,7 @@ from screener import (
     screen_all_stocks, check_holdings_sell_signals,
     get_pe_signal, check_decline_signals,
     check_watchlist_financial_health, check_fundamental_health,
+    check_position_sizes, compare_opportunity_cost,
 )
 from notifier import send_daily_report, send_msg, get_access_token
 from data_fetcher import get_realtime_quotes, get_pe_ttm, safe_fetch
@@ -277,7 +278,8 @@ def merge_daily_data(existing, new_data):
         return new_data
 
     # 新数据的各字段：只有非空才覆盖
-    for key in ["watchlist_signals", "holding_signals", "ai_recommendations"]:
+    for key in ["watchlist_signals", "holding_signals", "ai_recommendations",
+                "position_warnings", "swap_suggestions"]:
         if key in new_data and new_data[key]:
             existing[key] = new_data[key]
 
@@ -383,17 +385,24 @@ def main():
 
     if mode == "holdings":
         holding_signals = run_holdings(config)
+        holdings = load_json("holdings.json")
+
+        # 仓位控制检查
+        position_warnings = check_position_sizes(holdings)
+        for w in position_warnings:
+            print(f"  仓位提醒: {w['text']}")
+
         new_data = {
             "date": now.strftime("%Y-%m-%d %H:%M"),
             "mode": "holdings",
             "is_trading_day": trading,
             "data_source": "持仓检查" + ("" if trading else "（休市日，上一交易日数据）"),
             "holding_signals": holding_signals,
+            "position_warnings": position_warnings,
         }
         existing = load_json("daily_results.json")
         merged = merge_daily_data(existing if isinstance(existing, dict) else {}, new_data)
         save_json("daily_results.json", merged)
-        # 推送
         send_daily_report(
             watchlist_signals=[],
             candidates=[],
@@ -404,9 +413,10 @@ def main():
     elif mode == "watchlist":
         watchlist_signals = run_watchlist(config)
         holding_signals = run_holdings(config)
+        holdings = load_json("holdings.json")
         cache = load_json("market_scan_cache.json")
 
-        # 构建统一的 ai_recommendations（微信和Streamlit用同一份）
+        # 构建统一的 ai_recommendations
         ai_recs = []
         seen_codes = set()
         for s in watchlist_signals:
@@ -419,6 +429,16 @@ def main():
                 if s.get("code") not in seen_codes:
                     ai_recs.append(s)
 
+        # 仓位控制检查
+        position_warnings = check_position_sizes(holdings)
+        for w in position_warnings:
+            print(f"  仓位提醒: {w['text']}")
+
+        # 机会成本比较（持仓卖出信号 vs 关注表买入信号）
+        swap_suggestions = compare_opportunity_cost(holding_signals, ai_recs)
+        for s in swap_suggestions:
+            print(f"  换仓建议: {s['text']}")
+
         new_data = {
             "date": now.strftime("%Y-%m-%d %H:%M"),
             "mode": "watchlist",
@@ -427,6 +447,8 @@ def main():
             "watchlist_signals": watchlist_signals,
             "holding_signals": holding_signals,
             "ai_recommendations": ai_recs,
+            "position_warnings": position_warnings,
+            "swap_suggestions": swap_suggestions,
         }
         existing = load_json("daily_results.json")
         merged = merge_daily_data(existing if isinstance(existing, dict) else {}, new_data)
@@ -434,9 +456,11 @@ def main():
 
         # 推送（用同一份 ai_recs，保证微信和Streamlit一致）
         send_daily_report(
-            watchlist_signals=[],          # 不单独发关注表
-            candidates=ai_recs,            # 用统一的推荐列表
+            watchlist_signals=[],
+            candidates=ai_recs,
             holding_signals=holding_signals,
+            position_warnings=position_warnings,
+            swap_suggestions=swap_suggestions,
             config=config,
         )
 

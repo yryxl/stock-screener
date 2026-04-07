@@ -119,8 +119,9 @@ def format_stock_line(s):
     return line
 
 
-def send_daily_report(watchlist_signals, candidates, holding_signals, config=None):
-    """每天发送消息，按信号分组"""
+def send_daily_report(watchlist_signals, candidates, holding_signals,
+                      position_warnings=None, swap_suggestions=None, config=None):
+    """每天发送消息，按信号分组+仓位警告+换仓建议"""
     if config is None:
         config = load_config()
     wx = config["wechat"]
@@ -159,6 +160,22 @@ def send_daily_report(watchlist_signals, candidates, holding_signals, config=Non
         for s in group:
             lines.append(format_stock_line(s))
         send_msg(access_token, openid, template_id, "\n".join(lines))
+
+    # 仓位警告
+    if position_warnings:
+        lines = [f"【仓位警告】 {today}", ""]
+        for w in position_warnings:
+            lines.append(f"{w.get('name','')}({w.get('code','')}) {w.get('text','')}")
+        send_msg(access_token, openid, template_id, "\n".join(lines))
+        sent_any = True
+
+    # 换仓建议
+    if swap_suggestions:
+        lines = [f"【换仓建议】 {today}", ""]
+        for s in swap_suggestions:
+            lines.append(s.get("text", ""))
+        send_msg(access_token, openid, template_id, "\n".join(lines))
+        sent_any = True
 
     if not sent_any:
         send_msg(access_token, openid, template_id,
