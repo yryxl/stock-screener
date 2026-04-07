@@ -201,7 +201,7 @@ with tab1:
                 try:
                     cfg = get_github_config()
                     url = f"https://api.github.com/repos/{cfg['repo']}/actions/workflows/daily_screen.yml/dispatches"
-                    resp = requests.post(url, json={"ref": "main"}, headers=github_headers(cfg["token"]), timeout=10)
+                    resp = requests.post(url, json={"ref": "main", "inputs": {"mode": "all"}}, headers=github_headers(cfg["token"]), timeout=10)
                     if resp.status_code == 204:
                         st.success("✅ 已触发！大约需要10-30分钟，完成后刷新页面查看结果。")
                         st.rerun()

@@ -74,21 +74,21 @@ def send_msg(access_token, openid, template_id, text):
         send_template_msg(access_token, openid, template_id, title, text)
 
 
-# 信号分组
+# 信号分组（用emoji区分紧急程度，从安全→危险）
 SIGNAL_GROUPS = [
-    # 买入信号（关注表+全市场，从强到弱）
-    ("buy_heavy", "【可以重仓买入】"),
-    ("buy_medium", "【可以中仓买入】"),
-    ("buy_light", "【可以轻仓买入】"),
-    ("buy_watch", "【重点关注买入】"),
-    # 持仓信号
-    ("hold_keep", "【建议持续持有】"),
-    # 卖出信号（只针对持仓，从轻到重）
-    ("sell_watch", "【重点关注卖出】"),
-    ("sell_light", "【可以适当卖出】"),
-    ("sell_medium", "【可以中仓卖出】"),
-    ("sell_heavy", "【可以大量卖出】"),
-    ("true_decline", "【基本面恶化警告】"),
+    # 买入信号（绿色系，从深到浅）
+    ("buy_heavy", "🟢🟢🟢【可以重仓买入】"),
+    ("buy_medium", "🟢🟢【可以中仓买入】"),
+    ("buy_light", "🟢【可以轻仓买入】"),
+    ("buy_watch", "👀【重点关注买入】"),
+    # 持仓信号（蓝色）
+    ("hold_keep", "🔵【建议持续持有】"),
+    # 卖出信号（从黄到红，越来越紧急）
+    ("sell_watch", "🟡【重点关注卖出】"),
+    ("sell_light", "🟠【可以适当卖出】"),
+    ("sell_medium", "🔴【可以中仓卖出】"),
+    ("sell_heavy", "🔴🔴【可以大量卖出】"),
+    ("true_decline", "🚨🚨🚨【基本面恶化！】"),
 ]
 
 
@@ -159,21 +159,27 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
         lines = [f"{signal_title} {today}", ""]
         for s in group:
             lines.append(format_stock_line(s))
+            lines.append("")  # 每只股票之间空一行
         send_msg(access_token, openid, template_id, "\n".join(lines))
 
     # 仓位警告
     if position_warnings:
-        lines = [f"【仓位警告】 {today}", ""]
+        lines = [f"⚠️⚠️【仓位警告】 {today}", ""]
         for w in position_warnings:
-            lines.append(f"{w.get('name','')}({w.get('code','')}) {w.get('text','')}")
+            emoji = "🚨" if w.get("level") == "danger" else "⚠️"
+            lines.append(f"{emoji} {w.get('name','')}({w.get('code','')})")
+            lines.append(f"  {w.get('text','')}")
+            lines.append("")
         send_msg(access_token, openid, template_id, "\n".join(lines))
         sent_any = True
 
     # 换仓建议
     if swap_suggestions:
-        lines = [f"【换仓建议】 {today}", ""]
+        lines = [f"💡💡【换仓建议】 {today}", ""]
         for s in swap_suggestions:
-            lines.append(s.get("text", ""))
+            lines.append(f"📤 卖出 {s.get('sell_name','')} {s.get('sell_ratio','')}")
+            lines.append(f"📥 买入 {s.get('buy_name','')}")
+            lines.append("")
         send_msg(access_token, openid, template_id, "\n".join(lines))
         sent_any = True
 
