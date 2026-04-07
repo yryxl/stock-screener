@@ -1,9 +1,289 @@
 {
-  "date": "2026-04-07 08:45",
-  "mode": "all",
-  "is_trading_day": true,
-  "data_source": "全量运行（交易日实时数据）",
-  "ai_recommendations": [],
+  "snapshot_date": "2026-04-07 09:24",
+  "week_id": "2026-W14",
+  "data_source_date": "2026-04-07 08:45",
+  "model_params": {
+    "industry_pe_ranges": {
+      "白酒": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "食品饮料": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "调味品": {
+        "fair_low": 22,
+        "fair_high": 35,
+        "complexity": "simple"
+      },
+      "调味发酵品": {
+        "fair_low": 22,
+        "fair_high": 35,
+        "complexity": "simple"
+      },
+      "乳制品": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "simple"
+      },
+      "饮料乳品": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "simple"
+      },
+      "中药": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "家电": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "simple"
+      },
+      "传媒": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "银行": {
+        "fair_low": 6,
+        "fair_high": 9,
+        "complexity": "simple"
+      },
+      "保险": {
+        "fair_low": 8,
+        "fair_high": 12,
+        "complexity": "simple"
+      },
+      "免税": {
+        "fair_low": 25,
+        "fair_high": 40,
+        "complexity": "simple"
+      },
+      "旅游零售": {
+        "fair_low": 25,
+        "fair_high": 40,
+        "complexity": "simple"
+      },
+      "医药": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "生物制品": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "电力": {
+        "fair_low": 10,
+        "fair_high": 18,
+        "complexity": "medium"
+      },
+      "公用事业": {
+        "fair_low": 10,
+        "fair_high": 18,
+        "complexity": "medium"
+      },
+      "交通运输": {
+        "fair_low": 12,
+        "fair_high": 16,
+        "complexity": "medium"
+      },
+      "铁路": {
+        "fair_low": 10,
+        "fair_high": 16,
+        "complexity": "medium"
+      },
+      "铁路公路": {
+        "fair_low": 10,
+        "fair_high": 16,
+        "complexity": "medium"
+      },
+      "高速": {
+        "fair_low": 10,
+        "fair_high": 16,
+        "complexity": "medium"
+      },
+      "通信": {
+        "fair_low": 20,
+        "fair_high": 35,
+        "complexity": "medium"
+      },
+      "通信服务": {
+        "fair_low": 20,
+        "fair_high": 35,
+        "complexity": "medium"
+      },
+      "医疗器械": {
+        "fair_low": 22,
+        "fair_high": 35,
+        "complexity": "medium"
+      },
+      "半导体": {
+        "fair_low": 40,
+        "fair_high": 65,
+        "complexity": "complex"
+      },
+      "芯片": {
+        "fair_low": 40,
+        "fair_high": 65,
+        "complexity": "complex"
+      },
+      "软件": {
+        "fair_low": 40,
+        "fair_high": 60,
+        "complexity": "medium"
+      },
+      "军工": {
+        "fair_low": 35,
+        "fair_high": 55,
+        "complexity": "complex"
+      },
+      "航空航天": {
+        "fair_low": 35,
+        "fair_high": 55,
+        "complexity": "complex"
+      },
+      "新能源": {
+        "fair_low": 30,
+        "fair_high": 50,
+        "complexity": "complex"
+      },
+      "锂电": {
+        "fair_low": 30,
+        "fair_high": 50,
+        "complexity": "complex"
+      },
+      "电池": {
+        "fair_low": 30,
+        "fair_high": 50,
+        "complexity": "complex"
+      },
+      "光伏": {
+        "fair_low": 25,
+        "fair_high": 45,
+        "complexity": "complex"
+      },
+      "轨道交通": {
+        "fair_low": 13,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "轨交设备": {
+        "fair_low": 13,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "铁路装备": {
+        "fair_low": 13,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "铁路设备": {
+        "fair_low": 13,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "机械制造": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "complex"
+      },
+      "汽车玻璃": {
+        "fair_low": 14,
+        "fair_high": 22,
+        "complexity": "complex"
+      },
+      "汽车零部件": {
+        "fair_low": 14,
+        "fair_high": 22,
+        "complexity": "complex"
+      },
+      "建筑": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "complex"
+      },
+      "钢铁": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "complex"
+      },
+      "煤炭": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "complex"
+      },
+      "煤炭开采": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "complex"
+      },
+      "化工": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "化学制品": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "农化制品": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "有色金属": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "工业金属": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "稀土": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "complex"
+      },
+      "小金属": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "complex"
+      },
+      "矿业": {
+        "fair_low": 10,
+        "fair_high": 18,
+        "complexity": "complex"
+      }
+    },
+    "roe_thresholds_by_complexity": {
+      "simple": {
+        "heavy": 20,
+        "light": 15,
+        "watch": 12
+      },
+      "medium": {
+        "heavy": 22,
+        "light": 17,
+        "watch": 14
+      },
+      "complex": {
+        "heavy": 25,
+        "light": 20,
+        "watch": 15
+      }
+    }
+  },
+  "recommendations": [],
   "watchlist_signals": [
     {
       "code": "603288",
@@ -383,6 +663,45 @@
       "dimensions": {}
     }
   ],
+  "holdings": [
+    {
+      "code": "159326",
+      "name": "电网设备etf华夏",
+      "shares": 500,
+      "cost": 2.097
+    },
+    {
+      "code": "510330",
+      "name": "沪深300etf",
+      "shares": 700,
+      "cost": 4.915
+    },
+    {
+      "code": "512890",
+      "name": "红利低波etf华泰",
+      "shares": 10800,
+      "cost": 1.191
+    },
+    {
+      "code": "510550",
+      "name": "中证500etf",
+      "shares": 100,
+      "cost": 8.502
+    },
+    {
+      "code": "510880",
+      "name": "红利etf华泰",
+      "shares": 400,
+      "cost": 3.353
+    },
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "shares": 100,
+      "cost": 56.4,
+      "category": "医药"
+    }
+  ],
   "holding_signals": [
     {
       "code": "000538",
@@ -394,6 +713,85 @@
       "signal": "hold_keep",
       "signal_text": "PE=19.4，处于合理区间15-25 →建议持续持有",
       "industry": ""
+    }
+  ],
+  "watchlist_config": [
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "category": "中药",
+      "note": "国家绝密配方+百年品牌",
+      "industry_auto": "中药Ⅱ"
+    },
+    {
+      "code": "600085",
+      "name": "同仁堂",
+      "category": "中药",
+      "note": "350年国药老字号",
+      "industry_auto": "中药Ⅱ"
+    },
+    {
+      "code": "600900",
+      "name": "长江电力",
+      "category": "电力",
+      "note": "长江6大梯级电站独家运营",
+      "industry_auto": "电力"
+    },
+    {
+      "code": "601888",
+      "name": "中国中免",
+      "category": "免税",
+      "note": "国内唯一免税全牌照",
+      "industry_auto": "旅游零售Ⅱ"
+    },
+    {
+      "code": "600941",
+      "name": "中国移动",
+      "category": "通信",
+      "note": "9亿用户+通信牌照",
+      "industry_auto": "通信服务"
+    },
+    {
+      "code": "601006",
+      "name": "大秦铁路",
+      "category": "铁路",
+      "note": "西煤东运主通道独家",
+      "industry_auto": "铁路公路"
+    },
+    {
+      "code": "601816",
+      "name": "京沪高铁",
+      "category": "铁路",
+      "note": "最黄金高铁线路独家",
+      "industry_auto": "铁路公路"
+    },
+    {
+      "code": "601398",
+      "name": "工商银行",
+      "category": "银行",
+      "note": "国家信用+金融压舱石",
+      "industry_auto": "银行Ⅱ"
+    },
+    {
+      "code": "000661",
+      "name": "长春高新",
+      "category": "医药",
+      "note": "生长激素国内市占70%+",
+      "industry_auto": "生物制品"
+    },
+    {
+      "code": "603288",
+      "name": "海天味业",
+      "category": "调味品",
+      "note": "酱油市占30%+",
+      "industry_auto": "调味发酵品Ⅱ"
+    },
+    {
+      "code": "600887",
+      "name": "伊利股份",
+      "category": "乳制品",
+      "note": "乳业双寡头",
+      "industry_auto": "饮料乳品"
     }
   ]
 }
