@@ -25,7 +25,7 @@ from screener import (
     check_position_sizes, compare_opportunity_cost,
 )
 from notifier import send_daily_report, send_msg, get_access_token
-from data_fetcher import get_realtime_quotes, get_pe_ttm, safe_fetch
+from data_fetcher import get_realtime_quotes, get_pe_ttm, safe_fetch, get_financial_indicator, extract_annual_data
 import akshare as ak
 
 
