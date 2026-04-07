@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-07 04:27",
-  "mode": "reanalyze",
+  "date": "2026-04-07 05:46",
+  "mode": "holdings",
   "is_trading_day": true,
-  "data_source": "调试模式（数据来自2026-04-07 04:27）",
+  "data_source": "持仓检查",
   "ai_recommendations": [
     {
       "code": "000538",
@@ -186,7 +186,7 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 55.99,
+      "price": 55.78,
       "pe": 19.55,
       "signal": "hold_keep",
       "signal_text": "PE=19.6，处于合理区间15-25 →建议持续持有",
