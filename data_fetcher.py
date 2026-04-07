@@ -64,13 +64,61 @@ def get_batch_dividend_data():
 
 
 def get_financial_indicator(stock_code):
-    """获取单只股票的财务分析指标（含ROE、负债率、利润率、现金流等）"""
+    """
+    获取单只股票的财务分析指标
+    多数据源自动切换，确保拿到数据：
+    源1: stock_financial_analysis_indicator（新浪）
+    源2: stock_financial_abstract_ths（同花顺）
+    源3: stock_financial_benefit_ths（同花顺利润表）
+    """
+    # 源1: 新浪财务指标（最全，但部分股票返回空）
     df = safe_fetch(ak.stock_financial_analysis_indicator, symbol=stock_code)
-    if df is None or df.empty:
-        return None
-    df["日期"] = pd.to_datetime(df["日期"], errors="coerce")
-    df = df.dropna(subset=["日期"])
-    return df
+    if df is not None and not df.empty:
+        df["日期"] = pd.to_datetime(df["日期"], errors="coerce")
+        df = df.dropna(subset=["日期"])
+        if not df.empty:
+            return df
+
+    # 源2: 同花顺财务摘要（覆盖面更广）
+    try:
+        df_ths = safe_fetch(ak.stock_financial_abstract_ths, symbol=stock_code)
+        if df_ths is not None and not df_ths.empty:
+            # 同花顺列名可能是乱码，按位置映射为标准列名
+            cols = list(df_ths.columns)
+            col_map = {}
+            if len(cols) >= 25:
+                col_map = {
+                    cols[0]: "日期",
+                    cols[12]: "销售净利率(%)",
+                    cols[13]: "销售毛利率(%)",
+                    cols[14]: "净资产收益率(%)",
+                    cols[15]: "净资产收益率(扣非)(%)",
+                    cols[7]: "每股收益(元)",
+                    cols[8]: "每股净资产(元)",
+                    cols[11]: "每股经营性现金流(元)",
+                    cols[20]: "流动比率",
+                    cols[24]: "资产负债率(%)",
+                    cols[5]: "营业总收入(元)",
+                    cols[6]: "营业总收入同比增长率(%)",
+                }
+            df_ths = df_ths.rename(columns=col_map)
+
+            # 处理日期
+            df_ths["日期"] = pd.to_datetime(df_ths["日期"], errors="coerce")
+            df_ths = df_ths.dropna(subset=["日期"])
+
+            # 清洗百分比字段（去掉%号转数字）
+            for col in df_ths.columns:
+                if "%" in col or "率" in col or "比率" in col:
+                    df_ths[col] = df_ths[col].astype(str).str.replace("%", "").str.replace("False", "")
+                    df_ths[col] = pd.to_numeric(df_ths[col], errors="coerce")
+
+            if not df_ths.empty:
+                return df_ths
+    except Exception as e:
+        pass
+
+    return None
 
 
 def extract_annual_data(df, years=10):

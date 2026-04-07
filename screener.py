@@ -467,11 +467,11 @@ def check_watchlist_financial_health(code, industry=""):
     """
     df = get_financial_indicator(code)
     if df is None:
-        return True, "", "light"
+        return True, "财务数据不可用", "watch"  # 保守：最高关注
 
     df_annual = extract_annual_data(df, years=5)
     if df_annual.empty:
-        return True, "", "light"
+        return True, "无年报数据", "watch"  # 保守：最高关注
 
     warnings = []
     roe_level = "heavy"
