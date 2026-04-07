@@ -23,7 +23,6 @@ from screener import (
     get_pe_signal, check_decline_signals,
     check_watchlist_financial_health, check_fundamental_health,
 )
-from scorer import score_stock
 from notifier import send_daily_report, send_msg, get_access_token
 from data_fetcher import get_realtime_quotes, get_pe_ttm, safe_fetch
 import akshare as ak
