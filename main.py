@@ -512,6 +512,14 @@ def main():
         print(f"  模型推荐：{len(ai_recs)}只")
         print("  结果已保存，刷新Streamlit查看")
 
+    # 自动保存每周快照
+    if mode in ("watchlist", "all", "full"):
+        try:
+            from snapshot import save_snapshot
+            save_snapshot()
+        except Exception as e:
+            print(f"快照保存失败（不影响运行）: {e}")
+
     print(f"\n=== 完成 ===")
 
 
