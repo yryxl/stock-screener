@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-06 08:36",
-  "mode": "all",
-  "is_trading_day": false,
-  "data_source": "全量运行（休市日，数据来自休市前最后交易日）",
+  "date": "2026-04-07 03:48",
+  "mode": "holdings",
+  "is_trading_day": true,
+  "data_source": "持仓检查",
   "ai_recommendations": [
     {
       "code": "000538",
@@ -287,5 +287,17 @@
       "signal_text": "PE(TTM)=145.7，观望"
     }
   ],
-  "holding_signals": []
+  "holding_signals": [
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "shares": 100,
+      "cost": 56.4,
+      "price": 55.99,
+      "pe": 19.55,
+      "signal": "hold_keep",
+      "signal_text": "PE=19.6，处于合理区间15-25 →建议持续持有",
+      "industry": ""
+    }
+  ]
 }
