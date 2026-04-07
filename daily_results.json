@@ -1,8 +1,8 @@
 {
   "date": "2026-04-07 04:27",
-  "mode": "all",
+  "mode": "reanalyze",
   "is_trading_day": true,
-  "data_source": "全量运行（交易日实时数据）",
+  "data_source": "调试模式（数据来自2026-04-07 04:27）",
   "ai_recommendations": [
     {
       "code": "000538",
