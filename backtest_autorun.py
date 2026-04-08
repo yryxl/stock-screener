@@ -19,9 +19,12 @@ sys.stdout.reconfigure(encoding='utf-8')
 from backtest_engine import get_month_signals, generate_anonymous_map, load_stock_list
 
 INITIAL_CAPITAL = 10000
-MAX_POSITION_PCT = 0.30   # 单只最多占30%
-MAX_TOTAL_INVESTED = 0.80 # 总持仓不超过80%（留20%现金应对机会）
-MIN_HOLD_MONTHS = 12      # 最少持有12个月才考虑卖出（巴菲特：不愿持有10年就别持有10分钟）
+MAX_POSITION_PCT = 0.35   # 单只最多占35%
+MAX_TOTAL_INVESTED = 0.85 # 总持仓不超过85%
+MIN_HOLD_MONTHS = 12      # 最少持有12个月才考虑卖出
+MAX_HOLDINGS = 5          # 打卡选股：最多同时持有5只（巴菲特：集中投资少数好公司）
+LOSS_STOP_PCT = -30       # 持有超3年且亏损超30%触发护城河消失警告
+LOSS_STOP_MONTHS = 36     # 3年
 
 # A股真实交易费用
 COMMISSION_RATE = 0.00025
@@ -92,11 +95,11 @@ def run_backtest(start_year, start_month):
         monthly_values.append({"date": f"{year}-{month:02d}", "total": total})
 
         # =============================================
-        # 卖出逻辑（巴菲特式：极少卖出）
-        # 只在以下情况卖：
-        # 1. 严重高估（sell_heavy）且持有超1年
-        # 2. 退市/基本面恶化
-        # 不因为轻微高估就卖（巴菲特从不因PE偏高卖可口可乐）
+        # 卖出逻辑（巴菲特式）
+        # 1. 退市→必须卖
+        # 2. 严重高估+持有超1年+近6个月没加仓→减仓1/2
+        # 3. 持有超3年+亏损超30%→护城河可能消失，清仓
+        # 不因轻微高估卖出（巴菲特从不因PE偏高卖可口可乐）
         # =============================================
         sids_to_sell = []
         for sid, h in list(holdings.items()):
@@ -104,15 +107,22 @@ def run_backtest(start_year, start_month):
                 if sdata.get("sid") == sid:
                     sig = sdata.get("signal", "")
                     hold_months = months_between(h["buy_year"], h["buy_month"], year, month)
+                    months_since_add = hold_months - h.get("last_add_month", 0)
+                    price = sdata.get("price", h["cost"])
+                    pnl_pct = (price / h["cost"] - 1) * 100 if h["cost"] > 0 else 0
 
                     if sig == "delisted":
-                        # 退市必须卖（不得不）
-                        sids_to_sell.append((sid, sdata, "delisted", h["shares"]))
-                    elif sig == "sell_heavy" and hold_months >= MIN_HOLD_MONTHS:
-                        # 严重高估+持有超1年→减仓1/2（不全卖，留底仓）
+                        sids_to_sell.append((sid, sdata, "退市清仓", h["shares"]))
+
+                    elif sig == "sell_heavy" and hold_months >= MIN_HOLD_MONTHS and months_since_add >= 6:
+                        # 严重高估+持有超1年+近6月没加仓→减半
                         sell_n = max(h["shares"] // 2, 100) if h["shares"] > 100 else h["shares"]
-                        sids_to_sell.append((sid, sdata, sig, sell_n))
-                    # sell_medium/sell_light/sell_watch → 不卖！巴菲特不因小波动卖出
+                        sids_to_sell.append((sid, sdata, "严重高估减仓", sell_n))
+
+                    elif hold_months >= LOSS_STOP_MONTHS and pnl_pct <= LOSS_STOP_PCT:
+                        # 持有超3年且亏损超30%→护城河可能消失
+                        sids_to_sell.append((sid, sdata, "护城河消失止损", h["shares"]))
+
                     break
 
         for sid, sdata, sig, sell_shares in sids_to_sell:
@@ -129,11 +139,10 @@ def run_backtest(start_year, start_month):
                 del holdings[sid]
 
         # =============================================
-        # 买入逻辑（巴菲特式：耐心等待好价格）
-        # 1. 只买buy_heavy和buy_medium（极度/明显低估才动手）
-        # 2. 分批建仓，不一次all in
-        # 3. 已持有的不加仓（避免频繁交易）
-        # 4. 留至少20%现金
+        # 买入逻辑（巴菲特式：分批建仓）
+        # 首次买入：重仓买入/中仓买入时建底仓
+        # 加仓：已持有+信号仍是buy+持有超3个月+仓位未满
+        # 轻仓买入：只用于加仓已持有的好股票，不首次买入
         # =============================================
         investable_cash = cash - total * (1 - MAX_TOTAL_INVESTED)
         if investable_cash < 0:
@@ -141,49 +150,98 @@ def run_backtest(start_year, start_month):
 
         for anon_id, sdata in signals.items():
             sig = sdata.get("signal", "")
-            if sig not in ("buy_heavy", "buy_medium"):
-                continue  # 轻仓/关注不买，等更好价格
-
             sid = sdata["sid"]
             price = sdata.get("price", 0)
             if price <= 0:
                 continue
 
-            # 已持有的不重复买（减少交易次数）
-            if sid in holdings:
+            already_held = sid in holdings
+            is_buy_signal = sig in ("buy_heavy", "buy_medium", "buy_light")
+
+            if not is_buy_signal:
                 continue
 
-            # 资金检查
-            if investable_cash < price * 100 + COMMISSION_MIN:
-                continue
+            # ---- 首次买入：只在极度/明显低估时 ----
+            if not already_held:
+                if sig not in ("buy_heavy", "buy_medium"):
+                    continue  # 轻仓买入不首次买入，等更好价格
 
-            # 仓位控制
-            if price * 100 / max(total, 1) > MAX_POSITION_PCT:
-                continue
+                # 打卡选股：最多同时持有MAX_HOLDINGS只
+                if len(holdings) >= MAX_HOLDINGS:
+                    continue
 
-            # 计算买入股数
-            if sig == "buy_heavy":
-                budget = investable_cash * 0.30  # 极度低估用30%可投资金
+                if investable_cash < price * 100 + COMMISSION_MIN:
+                    continue
+                if price * 100 / max(total, 1) > MAX_POSITION_PCT:
+                    continue
+
+                if sig == "buy_heavy":
+                    budget = investable_cash * 0.25
+                else:
+                    budget = investable_cash * 0.12
+
+                shares = int(budget / price // 100) * 100
+                if shares < 100:
+                    continue
+
+                buy_cost, fee = calc_buy_cost(price, shares)
+                if buy_cost > cash:
+                    continue
+
+                cash -= buy_cost
+                total_fees += fee
+                investable_cash -= buy_cost
+
+                holdings[sid] = {
+                    "shares": shares, "cost": price, "anon": anon_id,
+                    "buy_year": year, "buy_month": month,
+                    "last_add_month": 0,
+                }
+                trade_log.append(f"{year}-{month:02d} 首次买入 {anon_id} {shares}股 @¥{price:.2f} 花费¥{buy_cost:.0f} 手续费¥{fee:.1f} ({sig})")
+
+            # ---- 加仓：已持有+信号仍是buy+间隔≥3个月+仓位未满 ----
             else:
-                budget = investable_cash * 0.15  # 明显低估用15%
+                h = holdings[sid]
+                hold_months = months_between(h["buy_year"], h["buy_month"], year, month)
+                months_since_last_add = hold_months - h.get("last_add_month", 0)
 
-            shares = int(budget / price // 100) * 100
-            if shares < 100:
-                continue
+                # 加仓条件：持有>3个月 + 上次加仓间隔>3个月 + 仓位未超限
+                if hold_months < 3 or months_since_last_add < 3:
+                    continue
 
-            buy_cost, fee = calc_buy_cost(price, shares)
-            if buy_cost > cash:
-                continue
+                current_value = h["shares"] * price
+                if current_value / max(total, 1) >= MAX_POSITION_PCT:
+                    continue  # 仓位已满，不加
 
-            cash -= buy_cost
-            total_fees += fee
-            investable_cash -= buy_cost
+                if investable_cash < price * 100 + COMMISSION_MIN:
+                    continue
 
-            holdings[sid] = {
-                "shares": shares, "cost": price, "anon": anon_id,
-                "buy_year": year, "buy_month": month,
-            }
-            trade_log.append(f"{year}-{month:02d} 买入 {anon_id} {shares}股 @¥{price:.2f} 花费¥{buy_cost:.0f} 手续费¥{fee:.1f} ({sig})")
+                # 加仓力度：当前信号越强加越多
+                if sig == "buy_heavy":
+                    budget = investable_cash * 0.15
+                elif sig == "buy_medium":
+                    budget = investable_cash * 0.08
+                else:  # 轻仓买入
+                    budget = investable_cash * 0.05
+
+                shares = int(budget / price // 100) * 100
+                if shares < 100:
+                    continue
+
+                buy_cost, fee = calc_buy_cost(price, shares)
+                if buy_cost > cash:
+                    continue
+
+                cash -= buy_cost
+                total_fees += fee
+                investable_cash -= buy_cost
+
+                old_total = h["shares"] * h["cost"]
+                h["shares"] += shares
+                h["cost"] = (old_total + price * shares) / h["shares"]
+                h["last_add_month"] = hold_months
+
+                trade_log.append(f"{year}-{month:02d} 加仓 {anon_id} +{shares}股 @¥{price:.2f} 累计{h['shares']}股 手续费¥{fee:.1f} ({sig})")
 
         # 前进
         if month >= 12: month = 1; year += 1
