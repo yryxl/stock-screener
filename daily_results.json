@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-07 11:52",
-  "mode": "all",
+  "date": "2026-04-08 03:51",
+  "mode": "holdings",
   "is_trading_day": true,
-  "data_source": "全量运行（交易日实时数据）",
+  "data_source": "持仓检查",
   "ai_recommendations": [],
   "watchlist_signals": [
     {
@@ -389,11 +389,20 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 55.91,
+      "price": 55.88,
       "pe": 19.36,
       "signal": "hold_keep",
       "signal_text": "PE=19.4，处于合理区间15-25 →建议持续持有",
       "industry": ""
+    }
+  ],
+  "position_warnings": [
+    {
+      "code": "512890",
+      "name": "红利低波etf华泰",
+      "pct": 51.07690841513389,
+      "level": "danger",
+      "text": "仓位51.1%≥40%，严重偏重！建议分散"
     }
   ]
 }
