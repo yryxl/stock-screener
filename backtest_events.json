@@ -1,0 +1,80 @@
+{
+  "description": "回测用脱敏新闻事件（不含公司名/品牌名/行业特征）",
+  "events": {
+    "S01": [
+      {"date": "2012-09", "type": "negative", "text": "行业遭遇政策限制，高端消费受压，股价回调30%"},
+      {"date": "2013-03", "type": "negative", "text": "政策持续打压行业，营收增速放缓"},
+      {"date": "2014-01", "type": "neutral", "text": "行业触底，公司业绩企稳"},
+      {"date": "2015-06", "type": "positive", "text": "牛市推动估值修复，股价创新高"},
+      {"date": "2015-09", "type": "negative", "text": "大盘暴跌，股价跟随下挫40%"},
+      {"date": "2016-06", "type": "positive", "text": "业绩恢复增长，营收同比增14%"},
+      {"date": "2017-10", "type": "positive", "text": "消费升级推动，净利润大增60%，股价突破历史新高"},
+      {"date": "2018-10", "type": "negative", "text": "大盘熊市拖累，股价从高点回调35%"},
+      {"date": "2019-04", "type": "positive", "text": "业绩持续高增，ROE超30%"},
+      {"date": "2020-03", "type": "negative", "text": "疫情冲击短期销售，但线上渠道增长"},
+      {"date": "2020-07", "type": "positive", "text": "疫情后报复性消费，股价创历史新高"},
+      {"date": "2021-02", "type": "negative", "text": "估值泡沫开始破裂，PE超70倍后回调"},
+      {"date": "2023-06", "type": "negative", "text": "行业景气下行，增速放缓至个位数"},
+      {"date": "2024-09", "type": "neutral", "text": "管理层换届，公布提价计划"},
+      {"date": "2025-01", "type": "positive", "text": "加大分红力度，股息率提升至3%+"}
+    ],
+    "S06": [
+      {"date": "2010-01", "type": "neutral", "text": "全球最大同类企业之一，市值过万亿"},
+      {"date": "2011-04", "type": "negative", "text": "国际原料价格大跌，利润承压"},
+      {"date": "2013-06", "type": "negative", "text": "股价持续阴跌，从发行价跌去80%"},
+      {"date": "2014-12", "type": "positive", "text": "原料价格反弹+改革预期，股价短期翻倍"},
+      {"date": "2015-06", "type": "positive", "text": "牛市推动，股价再次翻倍"},
+      {"date": "2015-09", "type": "negative", "text": "泡沫破裂，股价暴跌50%"},
+      {"date": "2016-01", "type": "negative", "text": "原料价格再次暴跌，全年亏损"},
+      {"date": "2018-10", "type": "negative", "text": "股价跌至历史最低"},
+      {"date": "2020-03", "type": "negative", "text": "疫情导致需求暴跌"},
+      {"date": "2021-10", "type": "positive", "text": "原料价格暴涨，净利润创历史新高"},
+      {"date": "2022-06", "type": "positive", "text": "高额分红，股息率超10%"},
+      {"date": "2024-01", "type": "neutral", "text": "原料价格回落，利润回归正常"}
+    ],
+    "S11": [
+      {"date": "2010-06", "type": "positive", "text": "公司综合金融布局加速，市值突破3000亿"},
+      {"date": "2013-06", "type": "negative", "text": "钱荒冲击金融板块，股价跌30%"},
+      {"date": "2014-11", "type": "positive", "text": "降息利好金融，股价2个月翻倍"},
+      {"date": "2015-06", "type": "positive", "text": "牛市顶部，估值创历史新高"},
+      {"date": "2015-09", "type": "negative", "text": "暴跌，股价从高点腰斩"},
+      {"date": "2017-11", "type": "positive", "text": "科技转型成效显现，ROE提升"},
+      {"date": "2018-10", "type": "negative", "text": "贸易战恐慌+房地产暴雷传闻"},
+      {"date": "2019-12", "type": "positive", "text": "年度业绩超预期，利润增长40%"},
+      {"date": "2020-03", "type": "negative", "text": "疫情冲击，全球金融市场暴跌"},
+      {"date": "2020-07", "type": "positive", "text": "V型反弹，科技子公司上市预期"},
+      {"date": "2021-02", "type": "positive", "text": "股价创历史新高"},
+      {"date": "2022-03", "type": "negative", "text": "地产风险暴露，投资亏损巨大"},
+      {"date": "2023-01", "type": "negative", "text": "年报利润大降，地产减值拖累"},
+      {"date": "2024-09", "type": "neutral", "text": "地产风险出清，估值处历史低位"},
+      {"date": "2025-03", "type": "positive", "text": "分红提升，股息率超6%"}
+    ],
+    "S21": [
+      {"date": "2010-08", "type": "positive", "text": "公司在创业板上市，互联网概念受追捧"},
+      {"date": "2013-09", "type": "positive", "text": "转型内容平台，获大量用户增长"},
+      {"date": "2015-05", "type": "positive", "text": "股价从发行价涨20倍，市值破1700亿，宣布宏大生态战略"},
+      {"date": "2015-11", "type": "positive", "text": "多元化扩张：手机、电视、体育、汽车全面布局"},
+      {"date": "2016-10", "type": "negative", "text": "资金链危机爆发！供应商讨债，高管辞职"},
+      {"date": "2017-04", "type": "negative", "text": "实控人出走海外，公司陷入经营困境"},
+      {"date": "2017-11", "type": "negative", "text": "年报巨亏138亿，被交易所警示"},
+      {"date": "2018-06", "type": "negative", "text": "继续巨亏，负债超200亿"},
+      {"date": "2019-04", "type": "negative", "text": "连续亏损被暂停上市"},
+      {"date": "2020-05", "type": "negative", "text": "终止上市，被摘牌退市，市值从1700亿跌至7亿"}
+    ],
+    "S16": [
+      {"date": "2010-03", "type": "neutral", "text": "创业板上市，互联网金融信息服务"},
+      {"date": "2012-12", "type": "negative", "text": "股价跌至发行价附近，市值不足50亿"},
+      {"date": "2014-07", "type": "positive", "text": "获得证券业务牌照，商业模式根本性转变"},
+      {"date": "2015-04", "type": "positive", "text": "牛市带动用户暴增，营收增长10倍，股价半年涨8倍"},
+      {"date": "2015-09", "type": "negative", "text": "股灾暴跌60%，但业务基本面未受损"},
+      {"date": "2017-06", "type": "positive", "text": "基金销售爆发，利润持续高增"},
+      {"date": "2018-10", "type": "negative", "text": "熊市交易量萎缩，股价跌60%"},
+      {"date": "2019-02", "type": "positive", "text": "市场回暖，日活创新高"},
+      {"date": "2020-07", "type": "positive", "text": "牛市行情，用户和收入再创新高，市值突破3000亿"},
+      {"date": "2021-09", "type": "positive", "text": "公募基金销售井喷，利润翻倍"},
+      {"date": "2022-04", "type": "negative", "text": "市场持续下跌，交易量萎缩，利润下降40%"},
+      {"date": "2024-09", "type": "positive", "text": "政策利好推动市场活跃，单日成交额创纪录"},
+      {"date": "2025-01", "type": "neutral", "text": "市场震荡，公司估值回到合理区间"}
+    ]
+  }
+}
