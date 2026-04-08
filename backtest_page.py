@@ -117,7 +117,8 @@ def render_backtest_page():
     with st.sidebar:
         st.markdown("---")
         st.subheader("🧪 回测控制")
-        cap = st.number_input("💰 起始资金", 10000, 1000000, st.session_state.get("bt_initial_capital", 100000), 10000, key="bt_cap_s")
+        default_cap = max(10000, min(1000000, st.session_state.get("bt_initial_capital", 100000)))
+        cap = st.number_input("💰 起始资金", min_value=10000, max_value=1000000, value=default_cap, step=10000, key="bt_cap_s")
         st.session_state["bt_capital_setting"] = cap
 
         if st.button("🔄 重置（新一局）", use_container_width=True, type="primary"):
