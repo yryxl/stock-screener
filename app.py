@@ -13,6 +13,18 @@ import base64
 st.set_page_config(page_title="芒格选股系统", page_icon="📊", layout="wide")
 
 # ============================================
+# 侧边栏导航
+# ============================================
+page = st.sidebar.radio("导航", ["📊 正式版", "🧪 历史回测"], index=0)
+
+if page == "🧪 历史回测":
+    from backtest_page import render_backtest_page
+    render_backtest_page()
+    st.stop()
+
+# ============================================
+# 以下是正式版内容
+# ============================================
 # GitHub API
 # ============================================
 
