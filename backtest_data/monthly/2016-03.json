@@ -1,0 +1,192 @@
+{
+  "date": "2016-03-15",
+  "stocks": {
+    "S01": {
+      "price": 231.92,
+      "change_pct": 14.67,
+      "pe_ttm": 20.15,
+      "roe": 54.27,
+      "gross_margin": 87.79,
+      "debt_ratio": 68.44,
+      "current_ratio": 1.16,
+      "revenue_growth": null,
+      "dividend_yield": 3.77
+    },
+    "S02": {
+      "price": 25.52,
+      "change_pct": 24.66,
+      "pe_ttm": 17.29,
+      "roe": null,
+      "gross_margin": 57.18,
+      "debt_ratio": 70.2,
+      "current_ratio": 1.35,
+      "revenue_growth": null,
+      "dividend_yield": 5.09
+    },
+    "S03": {
+      "price": 59.56,
+      "change_pct": 11.29,
+      "pe_ttm": 22.93,
+      "roe": null,
+      "gross_margin": 64.65,
+      "debt_ratio": 60.77,
+      "current_ratio": 0.89,
+      "revenue_growth": null,
+      "dividend_yield": 1.68
+    },
+    "S04": {
+      "price": 47.94,
+      "change_pct": 5.68,
+      "pe_ttm": 46.98,
+      "roe": null,
+      "gross_margin": 40.58,
+      "debt_ratio": 66.93,
+      "current_ratio": 0.86,
+      "revenue_growth": null,
+      "dividend_yield": 0.4
+    },
+    "S06": {
+      "price": 7.79,
+      "change_pct": 5.26,
+      "pe_ttm": 39.17,
+      "roe": null,
+      "gross_margin": 49.69,
+      "debt_ratio": 38.49,
+      "current_ratio": 0.74,
+      "revenue_growth": null,
+      "dividend_yield": 2.03
+    },
+    "S08": {
+      "price": 2.49,
+      "change_pct": 7.14,
+      "pe_ttm": 33.46,
+      "roe": null,
+      "gross_margin": 28.51,
+      "debt_ratio": 39.62,
+      "current_ratio": 1.3,
+      "revenue_growth": null,
+      "dividend_yield": 0.4
+    },
+    "S11": {
+      "price": 31.36,
+      "change_pct": 10.07,
+      "pe_ttm": 10.81,
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null,
+      "current_ratio": null,
+      "revenue_growth": null,
+      "dividend_yield": 2.17
+    },
+    "S12": {
+      "price": 15.37,
+      "change_pct": 9.75,
+      "pe_ttm": 5.86,
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null,
+      "current_ratio": null,
+      "revenue_growth": null,
+      "dividend_yield": 6.7
+    },
+    "S14": {
+      "price": 44.07,
+      "change_pct": 9.26,
+      "pe_ttm": 27.15,
+      "roe": 48.39,
+      "gross_margin": 18.77,
+      "debt_ratio": 76.11,
+      "current_ratio": 1.03,
+      "revenue_growth": null,
+      "dividend_yield": 1.95
+    },
+    "S15": {
+      "price": 15.86,
+      "change_pct": 10.51,
+      "pe_ttm": 7.08,
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null,
+      "current_ratio": null,
+      "revenue_growth": null,
+      "dividend_yield": 8.13
+    },
+    "S16": {
+      "price": 35.76,
+      "change_pct": 33.51,
+      "pe_ttm": 43.89,
+      "roe": 35.89,
+      "gross_margin": 84.44,
+      "debt_ratio": 24.84,
+      "current_ratio": 3.47,
+      "revenue_growth": null,
+      "dividend_yield": 0.22
+    },
+    "S18": {
+      "price": 30.43,
+      "change_pct": 6.71,
+      "pe_ttm": 35.25,
+      "roe": 25.33,
+      "gross_margin": 19.18,
+      "debt_ratio": 40.07,
+      "current_ratio": 1.61,
+      "revenue_growth": null,
+      "dividend_yield": 0.49
+    },
+    "S19": {
+      "price": 12.67,
+      "change_pct": 13.42,
+      "pe_ttm": 85.11,
+      "roe": null,
+      "gross_margin": 20.65,
+      "debt_ratio": 76.71,
+      "current_ratio": 0.35,
+      "revenue_growth": null,
+      "dividend_yield": 2.57
+    },
+    "S20": {
+      "price": 54.44,
+      "change_pct": 16.36,
+      "pe_ttm": 49.85,
+      "roe": 9.29,
+      "gross_margin": 20.54,
+      "debt_ratio": 59.0,
+      "current_ratio": 1.03,
+      "revenue_growth": null,
+      "dividend_yield": 0.0
+    },
+    "S23": {
+      "price": 22.25,
+      "change_pct": 34.11,
+      "pe_ttm": 52.76,
+      "roe": 24.57,
+      "gross_margin": 33.28,
+      "debt_ratio": 35.92,
+      "current_ratio": 2.19,
+      "revenue_growth": null,
+      "dividend_yield": 1.28
+    },
+    "S24": {
+      "price": 16.05,
+      "change_pct": 19.92,
+      "pe_ttm": 23.74,
+      "roe": null,
+      "gross_margin": 17.9,
+      "debt_ratio": 64.13,
+      "current_ratio": 0.54,
+      "revenue_growth": null,
+      "dividend_yield": 3.61
+    },
+    "S26": {
+      "price": 30.82,
+      "change_pct": 17.62,
+      "pe_ttm": 33.07,
+      "roe": 33.0,
+      "gross_margin": 38.44,
+      "debt_ratio": 35.65,
+      "current_ratio": 1.97,
+      "revenue_growth": null,
+      "dividend_yield": 4.38
+    }
+  }
+}

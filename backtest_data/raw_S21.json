@@ -1,0 +1,794 @@
+{
+  "id": "S21",
+  "code": "300104",
+  "collected_at": "2026-04-08 15:41",
+  "monthly_prices": {},
+  "pe_history": {
+    "2010-08": 68.8,
+    "2010-09": 58.02,
+    "2010-10": 62.21,
+    "2010-11": 77.69,
+    "2010-12": 99.52,
+    "2011-01": 72.32,
+    "2011-02": 83.87,
+    "2011-03": 82.43,
+    "2011-04": 71.62,
+    "2011-05": 59.21,
+    "2011-06": 55.96,
+    "2011-07": 53.45,
+    "2011-08": 58.94,
+    "2011-09": 49.4,
+    "2011-10": 62.44,
+    "2011-11": 63.61,
+    "2011-12": 58.34,
+    "2012-01": 50.0,
+    "2012-02": 85.33,
+    "2012-03": 59.98,
+    "2012-04": 48.52,
+    "2012-05": 51.87,
+    "2012-06": 63.64,
+    "2012-07": 73.16,
+    "2012-08": 53.9,
+    "2012-09": 49.83,
+    "2012-10": 45.58,
+    "2012-11": 33.38,
+    "2012-12": 44.17,
+    "2013-01": 49.55,
+    "2013-02": 55.88,
+    "2013-03": 56.7,
+    "2013-04": 69.05,
+    "2013-05": 90.5,
+    "2013-06": 98.29,
+    "2013-07": 111.9,
+    "2013-08": 115.45,
+    "2013-09": 115.45,
+    "2013-10": 133.03,
+    "2013-11": 140.31,
+    "2013-12": 130.71,
+    "2014-01": 166.94,
+    "2014-02": 161.39,
+    "2014-03": 115.23,
+    "2014-04": 103.48,
+    "2014-05": 129.98,
+    "2014-06": 135.88,
+    "2014-07": 114.79,
+    "2014-08": 107.68,
+    "2014-09": 108.38,
+    "2014-10": 97.59,
+    "2014-11": 97.59,
+    "2014-12": 88.06,
+    "2015-01": 151.26,
+    "2015-02": 232.68,
+    "2015-03": 236.63,
+    "2015-04": 274.62,
+    "2015-05": 320.3,
+    "2015-06": 231.71,
+    "2015-07": 223.59,
+    "2015-08": 134.43,
+    "2015-09": 162.44,
+    "2015-10": 169.76,
+    "2015-11": 177.42,
+    "2015-12": 208.6,
+    "2016-01": 208.6,
+    "2016-02": 208.6,
+    "2016-03": 190.45,
+    "2016-04": 184.23,
+    "2016-05": 184.13,
+    "2016-06": 144.75,
+    "2016-07": 149.24,
+    "2016-08": 150.6,
+    "2016-09": 145.4,
+    "2016-10": 126.99,
+    "2016-11": 108.78,
+    "2016-12": 102.97,
+    "2017-01": 105.27,
+    "2017-02": 104.98,
+    "2017-03": 82.73,
+    "2017-04": 108.35,
+    "2017-05": 108.35,
+    "2017-06": 108.35,
+    "2017-07": 108.35,
+    "2017-08": -166.92,
+    "2017-09": -166.92,
+    "2017-10": -38.47,
+    "2017-11": -38.47,
+    "2017-12": -38.47,
+    "2018-01": -28.05,
+    "2018-02": -13.25,
+    "2018-03": -1.76,
+    "2018-04": -1.28,
+    "2018-05": -1.13,
+    "2018-06": -1.03,
+    "2018-07": -0.76,
+    "2018-08": -0.8,
+    "2018-09": -1.09,
+    "2018-10": -0.82,
+    "2018-11": -0.88,
+    "2018-12": -0.72,
+    "2019-01": -0.76,
+    "2019-02": -0.83,
+    "2019-03": -5.47,
+    "2019-04": -1.65,
+    "2019-05": -1.7,
+    "2019-06": -1.7,
+    "2019-07": -1.7,
+    "2019-08": -0.52,
+    "2019-09": -0.52,
+    "2019-10": -0.53,
+    "2019-11": -0.53,
+    "2019-12": -0.53,
+    "2020-01": -0.53,
+    "2020-02": -0.53,
+    "2020-03": -0.6,
+    "2020-04": -0.6,
+    "2020-05": -0.6,
+    "2020-06": -0.11,
+    "2020-07": -0.06
+  },
+  "financial_data": [
+    {
+      "date": "2007-12",
+      "roe": 28.18,
+      "gross_margin": 67.98,
+      "debt_ratio": 7.34,
+      "current_ratio": 2.4,
+      "eps": 0.29,
+      "revenue_growth": null
+    },
+    {
+      "date": "2008-12",
+      "roe": 32.81,
+      "gross_margin": 79.83,
+      "debt_ratio": 3.71,
+      "current_ratio": 15.57,
+      "eps": 0.57,
+      "revenue_growth": 99.39
+    },
+    {
+      "date": "2009-06",
+      "roe": 11.84,
+      "gross_margin": 64.65,
+      "debt_ratio": null,
+      "current_ratio": null,
+      "eps": 0.24,
+      "revenue_growth": null
+    },
+    {
+      "date": "2009-09",
+      "roe": null,
+      "gross_margin": 67.84,
+      "debt_ratio": null,
+      "current_ratio": null,
+      "eps": 0.45,
+      "revenue_growth": null
+    },
+    {
+      "date": "2009-12",
+      "roe": 26.99,
+      "gross_margin": 66.0,
+      "debt_ratio": 20.93,
+      "current_ratio": 1.35,
+      "eps": 0.59,
+      "revenue_growth": 97.99
+    },
+    {
+      "date": "2010-03",
+      "roe": 8.12,
+      "gross_margin": 65.07,
+      "debt_ratio": null,
+      "current_ratio": null,
+      "eps": 0.21,
+      "revenue_growth": null
+    },
+    {
+      "date": "2010-06",
+      "roe": 15.39,
+      "gross_margin": 65.68,
+      "debt_ratio": 33.69,
+      "current_ratio": 0.92,
+      "eps": 0.19,
+      "revenue_growth": 70.55
+    },
+    {
+      "date": "2010-09",
+      "roe": null,
+      "gross_margin": 65.98,
+      "debt_ratio": 4.77,
+      "current_ratio": 15.12,
+      "eps": 0.3,
+      "revenue_growth": 66.96
+    },
+    {
+      "date": "2010-12",
+      "roe": 15.6,
+      "gross_margin": 66.33,
+      "debt_ratio": 9.01,
+      "current_ratio": 7.25,
+      "eps": 0.38,
+      "revenue_growth": 63.49
+    },
+    {
+      "date": "2011-03",
+      "roe": 3.05,
+      "gross_margin": 63.64,
+      "debt_ratio": 10.96,
+      "current_ratio": 5.72,
+      "eps": 0.13,
+      "revenue_growth": 131.99
+    },
+    {
+      "date": "2011-06",
+      "roe": 6.05,
+      "gross_margin": 61.37,
+      "debt_ratio": 21.75,
+      "current_ratio": 2.79,
+      "eps": 0.14,
+      "revenue_growth": 118.79
+    },
+    {
+      "date": "2011-09",
+      "roe": 8.96,
+      "gross_margin": 60.89,
+      "debt_ratio": 29.01,
+      "current_ratio": 1.8,
+      "eps": 0.21,
+      "revenue_growth": 105.66
+    },
+    {
+      "date": "2011-12",
+      "roe": 13.06,
+      "gross_margin": 54.04,
+      "debt_ratio": 40.42,
+      "current_ratio": 1.02,
+      "eps": 0.31,
+      "revenue_growth": 151.22
+    },
+    {
+      "date": "2012-03",
+      "roe": 4.73,
+      "gross_margin": 44.42,
+      "debt_ratio": 45.04,
+      "current_ratio": 0.78,
+      "eps": 0.12,
+      "revenue_growth": 163.3
+    },
+    {
+      "date": "2012-06",
+      "roe": 8.23,
+      "gross_margin": 41.98,
+      "debt_ratio": 51.8,
+      "current_ratio": 0.82,
+      "eps": 0.11,
+      "revenue_growth": 147.86
+    },
+    {
+      "date": "2012-09",
+      "roe": 11.99,
+      "gross_margin": 39.11,
+      "debt_ratio": 55.01,
+      "current_ratio": 0.98,
+      "eps": 0.32,
+      "revenue_growth": 132.86
+    },
+    {
+      "date": "2012-12",
+      "roe": 16.9,
+      "gross_margin": 41.38,
+      "debt_ratio": 56.11,
+      "current_ratio": 0.8,
+      "eps": 0.24,
+      "revenue_growth": 95.02
+    },
+    {
+      "date": "2013-03",
+      "roe": 5.56,
+      "gross_margin": 45.32,
+      "debt_ratio": 60.58,
+      "current_ratio": 0.91,
+      "eps": 0.0895,
+      "revenue_growth": 23.96
+    },
+    {
+      "date": "2013-06",
+      "roe": 8.96,
+      "gross_margin": 39.66,
+      "debt_ratio": 56.04,
+      "current_ratio": 0.85,
+      "eps": 0.1469,
+      "revenue_growth": 35.98
+    },
+    {
+      "date": "2013-09",
+      "roe": 11.35,
+      "gross_margin": 33.28,
+      "debt_ratio": 53.85,
+      "current_ratio": 0.94,
+      "eps": 0.23,
+      "revenue_growth": 64.74
+    },
+    {
+      "date": "2013-12",
+      "roe": 18.19,
+      "gross_margin": 29.33,
+      "debt_ratio": 58.58,
+      "current_ratio": 0.83,
+      "eps": 0.32,
+      "revenue_growth": 102.28
+    },
+    {
+      "date": "2014-03",
+      "roe": 5.22,
+      "gross_margin": 21.78,
+      "debt_ratio": 63.76,
+      "current_ratio": 0.85,
+      "eps": 0.11,
+      "revenue_growth": 200.38
+    },
+    {
+      "date": "2014-06",
+      "roe": 8.07,
+      "gross_margin": 15.34,
+      "debt_ratio": 60.99,
+      "current_ratio": 0.81,
+      "eps": 0.08,
+      "revenue_growth": 290.84
+    },
+    {
+      "date": "2014-09",
+      "roe": 9.54,
+      "gross_margin": 13.98,
+      "debt_ratio": 60.54,
+      "current_ratio": 0.72,
+      "eps": 0.12,
+      "revenue_growth": 247.56
+    },
+    {
+      "date": "2014-12",
+      "roe": 13.83,
+      "gross_margin": 14.53,
+      "debt_ratio": 62.23,
+      "current_ratio": 0.81,
+      "eps": 0.2,
+      "revenue_growth": 188.79
+    },
+    {
+      "date": "2015-03",
+      "roe": 2.97,
+      "gross_margin": 12.51,
+      "debt_ratio": 66.16,
+      "current_ratio": 1.1,
+      "eps": 0.05,
+      "revenue_growth": 107.75
+    },
+    {
+      "date": "2015-06",
+      "roe": 7.75,
+      "gross_margin": 15.08,
+      "debt_ratio": 68.91,
+      "current_ratio": 1.17,
+      "eps": 0.14,
+      "revenue_growth": 51.79
+    },
+    {
+      "date": "2015-09",
+      "roe": 11.24,
+      "gross_margin": 11.99,
+      "debt_ratio": 75.72,
+      "current_ratio": 1.49,
+      "eps": 0.2,
+      "revenue_growth": 76.5
+    },
+    {
+      "date": "2015-12",
+      "roe": 16.17,
+      "gross_margin": 14.63,
+      "debt_ratio": 77.53,
+      "current_ratio": 1.22,
+      "eps": 0.31,
+      "revenue_growth": 90.89
+    },
+    {
+      "date": "2016-03",
+      "roe": null,
+      "gross_margin": 15.65,
+      "debt_ratio": 72.34,
+      "current_ratio": 1.25,
+      "eps": 0.06,
+      "revenue_growth": 117.23
+    },
+    {
+      "date": "2016-06",
+      "roe": 6.74,
+      "gross_margin": 14.9,
+      "debt_ratio": 79.67,
+      "current_ratio": 1.5,
+      "eps": 0.15,
+      "revenue_growth": 125.59
+    },
+    {
+      "date": "2016-09",
+      "roe": 10.97,
+      "gross_margin": 15.07,
+      "debt_ratio": 65.72,
+      "current_ratio": 1.38,
+      "eps": 0.127,
+      "revenue_growth": 100.54
+    },
+    {
+      "date": "2016-12",
+      "roe": 8.2,
+      "gross_margin": 16.95,
+      "debt_ratio": 67.48,
+      "current_ratio": 1.27,
+      "eps": 0.1421,
+      "revenue_growth": 68.91
+    },
+    {
+      "date": "2017-03",
+      "roe": 1.21,
+      "gross_margin": 21.24,
+      "debt_ratio": 55.94,
+      "current_ratio": 1.39,
+      "eps": 0.03,
+      "revenue_growth": -10.83
+    },
+    {
+      "date": "2017-06",
+      "roe": -5.35,
+      "gross_margin": -1.33,
+      "debt_ratio": 54.14,
+      "current_ratio": 1.42,
+      "eps": -0.1599,
+      "revenue_growth": -44.56
+    },
+    {
+      "date": "2017-09",
+      "roe": -13.74,
+      "gross_margin": -16.19,
+      "debt_ratio": 53.93,
+      "current_ratio": 1.11,
+      "eps": -0.4144,
+      "revenue_growth": -63.37
+    },
+    {
+      "date": "2017-12",
+      "roe": -211.4,
+      "gross_margin": -38.17,
+      "debt_ratio": 103.72,
+      "current_ratio": 0.55,
+      "eps": -3.4815,
+      "revenue_growth": -67.73
+    },
+    {
+      "date": "2018-03",
+      "roe": -63.52,
+      "gross_margin": -23.79,
+      "debt_ratio": 106.89,
+      "current_ratio": 0.53,
+      "eps": -0.077,
+      "revenue_growth": -89.41
+    },
+    {
+      "date": "2018-06",
+      "roe": null,
+      "gross_margin": -49.67,
+      "debt_ratio": 112.08,
+      "current_ratio": 0.58,
+      "eps": -0.2767,
+      "revenue_growth": -82.0
+    },
+    {
+      "date": "2018-09",
+      "roe": null,
+      "gross_margin": -39.42,
+      "debt_ratio": 105.72,
+      "current_ratio": 0.56,
+      "eps": -0.3734,
+      "revenue_growth": -77.72
+    },
+    {
+      "date": "2018-12",
+      "roe": null,
+      "gross_margin": -40.76,
+      "debt_ratio": 141.25,
+      "current_ratio": 0.36,
+      "eps": -1.0266,
+      "revenue_growth": -77.72
+    },
+    {
+      "date": "2019-03",
+      "roe": null,
+      "gross_margin": 24.54,
+      "debt_ratio": 144.97,
+      "current_ratio": 0.35,
+      "eps": -0.0445,
+      "revenue_growth": -70.54
+    },
+    {
+      "date": "2019-06",
+      "roe": null,
+      "gross_margin": 27.91,
+      "debt_ratio": 268.01,
+      "current_ratio": 0.28,
+      "eps": -2.5183,
+      "revenue_growth": -74.75
+    },
+    {
+      "date": "2019-09",
+      "roe": null,
+      "gross_margin": 28.36,
+      "debt_ratio": 273.24,
+      "current_ratio": 0.26,
+      "eps": -2.5551,
+      "revenue_growth": -71.36
+    },
+    {
+      "date": "2019-12",
+      "roe": null,
+      "gross_margin": 24.08,
+      "debt_ratio": 351.3,
+      "current_ratio": 0.15,
+      "eps": -2.8272,
+      "revenue_growth": -68.47
+    },
+    {
+      "date": "2020-03",
+      "roe": null,
+      "gross_margin": 35.69,
+      "debt_ratio": 357.98,
+      "current_ratio": 0.15,
+      "eps": -0.0376,
+      "revenue_growth": -30.98
+    },
+    {
+      "date": "2020-06",
+      "roe": null,
+      "gross_margin": 33.51,
+      "debt_ratio": 366.54,
+      "current_ratio": 0.14,
+      "eps": -0.0674,
+      "revenue_growth": -44.09
+    },
+    {
+      "date": "2020-09",
+      "roe": null,
+      "gross_margin": 28.79,
+      "debt_ratio": 411.54,
+      "current_ratio": 0.14,
+      "eps": -0.2336,
+      "revenue_growth": -43.24
+    },
+    {
+      "date": "2020-12",
+      "roe": null,
+      "gross_margin": 33.8,
+      "debt_ratio": 541.79,
+      "current_ratio": 0.09,
+      "eps": -0.6255,
+      "revenue_growth": -6.15
+    },
+    {
+      "date": "2021-03",
+      "roe": null,
+      "gross_margin": 23.86,
+      "debt_ratio": 541.86,
+      "current_ratio": 0.09,
+      "eps": -0.0328,
+      "revenue_growth": -39.5
+    },
+    {
+      "date": "2021-06",
+      "roe": null,
+      "gross_margin": 59.31,
+      "debt_ratio": 538.13,
+      "current_ratio": 0.09,
+      "eps": -0.0468,
+      "revenue_growth": 38.55
+    },
+    {
+      "date": "2021-09",
+      "roe": null,
+      "gross_margin": 49.86,
+      "debt_ratio": 535.33,
+      "current_ratio": 0.1,
+      "eps": -0.0405,
+      "revenue_growth": 33.0
+    },
+    {
+      "date": "2021-12",
+      "roe": null,
+      "gross_margin": -7.53,
+      "debt_ratio": 849.42,
+      "current_ratio": 0.06,
+      "eps": -0.51,
+      "revenue_growth": -10.73
+    },
+    {
+      "date": "2022-03",
+      "roe": null,
+      "gross_margin": 29.07,
+      "debt_ratio": 884.45,
+      "current_ratio": 0.05,
+      "eps": -0.0301,
+      "revenue_growth": 182.12
+    },
+    {
+      "date": "2022-06",
+      "roe": null,
+      "gross_margin": 30.79,
+      "debt_ratio": 889.75,
+      "current_ratio": 0.05,
+      "eps": -0.0628,
+      "revenue_growth": 9.88
+    },
+    {
+      "date": "2022-09",
+      "roe": null,
+      "gross_margin": 30.95,
+      "debt_ratio": 902.76,
+      "current_ratio": 0.05,
+      "eps": -0.0884,
+      "revenue_growth": -10.04
+    },
+    {
+      "date": "2022-12",
+      "roe": null,
+      "gross_margin": 38.94,
+      "debt_ratio": 1007.54,
+      "current_ratio": 0.05,
+      "eps": -0.08,
+      "revenue_growth": -6.04
+    },
+    {
+      "date": "2023-03",
+      "roe": null,
+      "gross_margin": 26.58,
+      "debt_ratio": 1040.94,
+      "current_ratio": 0.05,
+      "eps": -0.0273,
+      "revenue_growth": -71.68
+    },
+    {
+      "date": "2023-06",
+      "roe": null,
+      "gross_margin": 29.07,
+      "debt_ratio": 1044.3,
+      "current_ratio": 0.05,
+      "eps": -0.0495,
+      "revenue_growth": -54.51
+    },
+    {
+      "date": "2023-09",
+      "roe": null,
+      "gross_margin": 35.79,
+      "debt_ratio": 1116.52,
+      "current_ratio": 0.04,
+      "eps": -0.3998,
+      "revenue_growth": -46.92
+    },
+    {
+      "date": "2023-12",
+      "roe": null,
+      "gross_margin": 45.25,
+      "debt_ratio": 1294.63,
+      "current_ratio": 0.04,
+      "eps": -0.5478,
+      "revenue_growth": -37.52
+    },
+    {
+      "date": "2024-03",
+      "roe": null,
+      "gross_margin": 25.47,
+      "debt_ratio": 1352.53,
+      "current_ratio": 0.04,
+      "eps": -0.019,
+      "revenue_growth": -15.96
+    },
+    {
+      "date": "2024-06",
+      "roe": null,
+      "gross_margin": 32.29,
+      "debt_ratio": 1358.31,
+      "current_ratio": 0.03,
+      "eps": -0.0373,
+      "revenue_growth": -19.9
+    },
+    {
+      "date": "2024-09",
+      "roe": null,
+      "gross_margin": 29.35,
+      "debt_ratio": 1360.06,
+      "current_ratio": 0.03,
+      "eps": -0.0435,
+      "revenue_growth": -16.5
+    },
+    {
+      "date": "2024-12",
+      "roe": null,
+      "gross_margin": 39.55,
+      "debt_ratio": 1280.86,
+      "current_ratio": 0.04,
+      "eps": -0.02,
+      "revenue_growth": -23.47
+    },
+    {
+      "date": "2025-03",
+      "roe": null,
+      "gross_margin": 19.64,
+      "debt_ratio": 1291.57,
+      "current_ratio": 0.04,
+      "eps": -0.0212,
+      "revenue_growth": -19.24
+    },
+    {
+      "date": "2025-06",
+      "roe": null,
+      "gross_margin": 31.15,
+      "debt_ratio": 2661.44,
+      "current_ratio": 0.04,
+      "eps": -0.0434,
+      "revenue_growth": -7.36
+    },
+    {
+      "date": "2025-09",
+      "roe": null,
+      "gross_margin": 30.68,
+      "debt_ratio": 2667.83,
+      "current_ratio": 0.04,
+      "eps": -0.0606,
+      "revenue_growth": -2.88
+    }
+  ],
+  "dividends": [
+    {
+      "date": "2020-04",
+      "div_per_10": 0.0,
+      "status": "不分配"
+    },
+    {
+      "date": "2019-04",
+      "div_per_10": 0.0,
+      "status": "不分配"
+    },
+    {
+      "date": "2018-04",
+      "div_per_10": 0.0,
+      "status": "不分配"
+    },
+    {
+      "date": "2017-08",
+      "div_per_10": 0.28,
+      "status": "实施"
+    },
+    {
+      "date": "2016-04",
+      "div_per_10": 0.31,
+      "status": "实施"
+    },
+    {
+      "date": "2015-05",
+      "div_per_10": 0.46,
+      "status": "实施"
+    },
+    {
+      "date": "2014-05",
+      "div_per_10": 0.314745,
+      "status": "实施"
+    },
+    {
+      "date": "2013-05",
+      "div_per_10": 0.5,
+      "status": "实施"
+    },
+    {
+      "date": "2012-06",
+      "div_per_10": 0.73,
+      "status": "实施"
+    },
+    {
+      "date": "2011-05",
+      "div_per_10": 1.5,
+      "status": "实施"
+    }
+  ]
+}

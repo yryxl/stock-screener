@@ -38,26 +38,49 @@ def load_stock_list():
 
 
 def collect_monthly_prices(code, start="20100101", end="20251231"):
-    """采集月K线（不复权），取每月15日附近的收盘价"""
-    try:
-        df = ak.stock_zh_a_hist(symbol=code, period="monthly", start_date=start, end_date=end, adjust="")
-        if df is None or df.empty:
-            return {}
-        prices = {}
-        for _, row in df.iterrows():
-            date = str(row["日期"])[:7]  # YYYY-MM
-            prices[date] = {
-                "price": float(row["收盘"]),
-                "open": float(row["开盘"]),
-                "high": float(row["最高"]),
-                "low": float(row["最低"]),
-                "volume": int(row["成交量"]),
-                "change_pct": float(row["涨跌幅"]),
-            }
-        return prices
-    except Exception as e:
-        print(f"  价格采集失败 {code}: {e}")
-        return {}
+    """采集月度价格（从新浪日K线中提取每月15日附近的数据）"""
+    for attempt in range(3):
+        try:
+            time.sleep(2)
+            # 新浪格式：sh开头上证，sz开头深证
+            prefix = "sh" if code.startswith("6") else "sz"
+            df = ak.stock_zh_a_daily(symbol=f"{prefix}{code}", start_date=start, end_date=end, adjust="")
+            if df is None or df.empty:
+                return {}
+
+            df["date"] = pd.to_datetime(df["date"])
+            df["month"] = df["date"].dt.strftime("%Y-%m")
+
+            # 每月取15日或之后最近的一个交易日
+            prices = {}
+            for month_key, group in df.groupby("month"):
+                # 找15日或之后最近的
+                target_day = 15
+                candidates = group[group["date"].dt.day >= target_day]
+                if candidates.empty:
+                    candidates = group  # 如果15日之后没有，取最后一天
+                row = candidates.iloc[0]
+
+                prev_month = group.iloc[0]
+                last_month = group.iloc[-1]
+                change_pct = 0
+                if prev_month["open"] > 0:
+                    change_pct = round((last_month["close"] / prev_month["open"] - 1) * 100, 2)
+
+                prices[month_key] = {
+                    "price": float(row["close"]),
+                    "open": float(row["open"]),
+                    "high": float(group["high"].max()),
+                    "low": float(group["low"].min()),
+                    "volume": int(group["volume"].sum()),
+                    "change_pct": change_pct,
+                    "date": str(row["date"])[:10],
+                }
+            return prices
+        except Exception as e:
+            print(f"  价格采集重试{attempt+1}/3: {e}")
+            time.sleep(5)
+    return {}
 
 
 def collect_pe_history(code):
