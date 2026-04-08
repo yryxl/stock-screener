@@ -73,6 +73,7 @@ SIGNAL_LABELS = {
     "buy_medium": "🟠 可以中仓买入",
     "buy_light": "🟡 可以轻仓买入",
     "buy_watch": "⚪ 重点关注买入",
+    "buy_add": "🟢📈 持仓可加仓",
     "hold_keep": "🟢 建议持续持有",
     "hold": "⚪ 继续观望",
     "sell_watch": "⚪ 重点关注卖出",

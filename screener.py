@@ -436,7 +436,24 @@ def check_holdings_sell_signals(holdings, config):
                             signal_text += "（同行业普跌，市场因素）"
                 print(f"  {name} PE卖出信号: {signal}")
 
-        # 5. 持仓股：hold变成"建议持续持有"
+        # 5. 护城河消失止损（芒格：宁可错过也不犯错）
+        # 持有后亏损超30%且基本面也在恶化 → 护城河可能消失
+        cost_price = h.get("cost", 0)
+        if cost_price > 0 and not pd.isna(price) and price > 0:
+            holding_pnl = (price / cost_price - 1) * 100
+            if holding_pnl <= -30:
+                # 亏损超30%，检查基本面
+                is_healthy, problems = check_fundamental_health(code)
+                if is_healthy is not None and not is_healthy:
+                    signal = "true_decline"
+                    signal_text = f"亏损{holding_pnl:.0f}%+基本面恶化({','.join(problems[:2])})→护城河可能消失，建议止损"
+
+        # 6. 加仓信号：持仓股PE处于低位且基本面健康 → 提示加仓
+        if signal and "buy" in signal:
+            signal = "buy_add"  # 特殊信号：加仓
+            signal_text = f"持仓股PE偏低→可考虑加仓 | {signal_text}"
+
+        # 7. 持仓股：hold变成"建议持续持有"
         if signal == "hold":
             signal = "hold_keep"
             signal_text += " →建议持续持有"
@@ -448,6 +465,7 @@ def check_holdings_sell_signals(holdings, config):
             "pe": pe if not pd.isna(pe) else 0,
             "signal": signal, "signal_text": signal_text,
             "industry": industry,
+            "holding_pnl": holding_pnl if cost_price > 0 and not pd.isna(price) else 0,
         })
         time.sleep(0.3)
 
