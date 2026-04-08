@@ -256,7 +256,8 @@ def render_backtest_page():
                         if sdata.get("signal") != "hold":
                             continue
                         pe = sdata.get("pe_ttm")
-                        st.caption(f"{anon_id} | PE={pe:.1f if pe else '—'} | ¥{sdata.get('price',0):.2f} | {sdata.get('signal_text','')}")
+                        pe_str = f"{pe:.1f}" if pe else "—"
+                        st.caption(f"{anon_id} | PE={pe_str} | ¥{sdata.get('price',0):.2f} | {sdata.get('signal_text','')}")
 
     # ========================================
     # Tab2: 模拟持仓
