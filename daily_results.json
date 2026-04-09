@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-08 10:10",
-  "mode": "watchlist",
+  "date": "2026-04-09 03:47",
+  "mode": "holdings",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "持仓检查",
   "ai_recommendations": [],
   "watchlist_signals": [
     {
@@ -389,11 +389,12 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 55.94,
+      "price": 55.29,
       "pe": 19.37,
       "signal": "hold_keep",
       "signal_text": "PE=19.4，处于合理区间15-25 →建议持续持有",
-      "industry": ""
+      "industry": "",
+      "holding_pnl": -1.9680851063829774
     }
   ],
   "position_warnings": [
