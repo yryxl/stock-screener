@@ -71,6 +71,7 @@ def run_backtest(start_year, start_month):
     holdings = {}  # {sid: {"shares", "cost", "anon", "buy_year", "buy_month"}}
     trade_log = []
     total_fees = 0
+    total_dividends = 0
     monthly_values = []
 
     year, month = start_year, start_month
@@ -81,6 +82,26 @@ def run_backtest(start_year, start_month):
             if month >= 12: month = 1; year += 1
             else: month += 1
             continue
+
+        # 分红复利：检查当月是否有分红，有则现金入账
+        month_str = f"{year}-{month:02d}"
+        for sid, h in list(holdings.items()):
+            # 从raw数据读取分红记录
+            raw_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backtest_data", f"raw_{sid}.json")
+            if os.path.exists(raw_path):
+                with open(raw_path, "r", encoding="utf-8") as f:
+                    raw = json.load(f)
+                for div in raw.get("dividends", []):
+                    div_date = str(div.get("date", ""))[:7]
+                    if div_date == month_str and div.get("status") != "预案":
+                        div_per_10 = div.get("div_per_10", 0) or 0
+                        if div_per_10 > 0:
+                            dividend_cash = (div_per_10 / 10) * h["shares"]
+                            # 扣20%个人所得税（持有<1年）
+                            dividend_cash *= 0.8
+                            cash += dividend_cash
+                            total_dividends += dividend_cash
+                            trade_log.append(f"{month_str} 分红 {h['anon']} 每股{div_per_10/10:.3f}元 到手¥{dividend_cash:.0f}（税后）")
 
         # 当前总资产
         portfolio_value = 0
@@ -139,10 +160,9 @@ def run_backtest(start_year, start_month):
                 del holdings[sid]
 
         # =============================================
-        # 买入逻辑（巴菲特式：分批建仓）
-        # 首次买入：重仓买入/中仓买入时建底仓
-        # 加仓：已持有+信号仍是buy+持有超3个月+仓位未满
-        # 轻仓买入：只用于加仓已持有的好股票，不首次买入
+        # 买入逻辑（不犯错前提下尽可能高收益）
+        # 首次买入：重仓/中仓/轻仓都可以建仓
+        # 加仓：已持有+信号仍是买入+持有超3个月+仓位未满
         # =============================================
         investable_cash = cash - total * (1 - MAX_TOTAL_INVESTED)
         if investable_cash < 0:
@@ -161,11 +181,8 @@ def run_backtest(start_year, start_month):
             if not is_buy_signal:
                 continue
 
-            # ---- 首次买入：只在极度/明显低估时 ----
+            # ---- 首次买入：重仓/中仓/轻仓都可建仓 ----
             if not already_held:
-                if sig not in ("buy_heavy", "buy_medium"):
-                    continue  # 轻仓买入不首次买入，等更好价格
-
                 # 打卡选股：最多同时持有MAX_HOLDINGS只
                 if len(holdings) >= MAX_HOLDINGS:
                     continue
@@ -175,10 +192,13 @@ def run_backtest(start_year, start_month):
                 if price * 100 / max(total, 1) > MAX_POSITION_PCT:
                     continue
 
+                # 不同信号，首次建仓比例不同
                 if sig == "buy_heavy":
-                    budget = investable_cash * 0.25
-                else:
-                    budget = investable_cash * 0.12
+                    budget = investable_cash * 0.25  # 极度低估，大仓
+                elif sig == "buy_medium":
+                    budget = investable_cash * 0.12  # 明显低估，中仓
+                else:  # buy_light
+                    budget = investable_cash * 0.06  # 轻度低估，小仓试探
 
                 shares = int(budget / price // 100) * 100
                 if shares < 100:
@@ -276,6 +296,7 @@ def run_backtest(start_year, start_month):
     print(f"  持仓市值:   ¥{final_portfolio:,.0f}")
     print(f"  总资产:     ¥{final_total:,.0f}")
     print(f"  总收益:     {final_pnl:+.1f}%")
+    print(f"  累计分红:   ¥{total_dividends:,.0f}（税后）")
     print(f"  累计手续费: ¥{total_fees:,.1f}")
     print(f"  交易笔数:   {len(trade_log)}")
     print(f"  持仓只数:   {len(holdings)}")
