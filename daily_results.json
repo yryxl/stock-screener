@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-09 03:47",
-  "mode": "holdings",
+  "date": "2026-04-09 10:15",
+  "mode": "watchlist",
   "is_trading_day": true,
-  "data_source": "持仓检查",
+  "data_source": "关注表+持仓",
   "ai_recommendations": [],
   "watchlist_signals": [
     {
@@ -49,12 +49,12 @@
       "name": "长春高新",
       "category": "生物制品",
       "note": "生长激素国内市占70%+",
-      "price": 86.8,
-      "pe": 36.92,
+      "price": 85.14,
+      "pe": 36.21,
       "signal": "hold",
-      "signal_text": "PE(TTM)=36.9，继续观望",
+      "signal_text": "PE(TTM)=36.2，继续观望",
       "total_score": 26,
-      "dividend_yield": 8.18,
+      "dividend_yield": 8.34,
       "dimensions": {
         "ROE质量": {
           "score": 7,
@@ -79,7 +79,7 @@
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=36.9偏高 | 简单生意"
+          "detail": "PE=36.2偏高 | 简单生意"
         }
       }
     },
@@ -88,12 +88,12 @@
       "name": "云南白药",
       "category": "中药Ⅱ",
       "note": "国家绝密配方+百年品牌",
-      "price": 55.94,
-      "pe": 19.37,
+      "price": 55.1,
+      "pe": 19.08,
       "signal": "hold",
       "signal_text": "财务风险(仅5年数据、ROE=10.2% 负债率26%)，继续观望",
       "total_score": 24,
-      "dividend_yield": 4.65,
+      "dividend_yield": 4.72,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -118,7 +118,7 @@
         "估值": {
           "score": 8,
           "max": 10,
-          "detail": "PE=19.4低估 | 简单生意"
+          "detail": "PE=19.1低估 | 简单生意"
         }
       }
     },
@@ -127,12 +127,12 @@
       "name": "中国移动",
       "category": "通信服务",
       "note": "9亿用户+通信牌照",
-      "price": 93.99,
-      "pe": 14.85,
+      "price": 93.64,
+      "pe": 14.79,
       "signal": "hold",
       "signal_text": "PE偏低但ROE不达标，继续观望",
       "total_score": 22,
-      "dividend_yield": 5.08,
+      "dividend_yield": 5.1,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -166,12 +166,12 @@
       "name": "同仁堂",
       "category": "中药Ⅱ",
       "note": "350年国药老字号",
-      "price": 28.08,
-      "pe": 32.38,
+      "price": 27.63,
+      "pe": 31.86,
       "signal": "hold",
-      "signal_text": "PE(TTM)=32.4，继续观望",
+      "signal_text": "PE(TTM)=31.9，继续观望",
       "total_score": 21,
-      "dividend_yield": 3.56,
+      "dividend_yield": 3.62,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -196,7 +196,7 @@
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=32.4偏高 | 简单生意"
+          "detail": "PE=31.9偏高 | 简单生意"
         }
       }
     },
@@ -205,12 +205,12 @@
       "name": "中国中免",
       "category": "旅游零售Ⅱ",
       "note": "国内唯一免税全牌照",
-      "price": 69.99,
-      "pe": 40.55,
+      "price": 67.89,
+      "pe": 39.33,
       "signal": "hold",
-      "signal_text": "PE(TTM)=40.5，继续观望",
-      "total_score": 20,
-      "dividend_yield": 1.0,
+      "signal_text": "PE(TTM)=39.3，继续观望",
+      "total_score": 21,
+      "dividend_yield": 1.03,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -233,9 +233,9 @@
           "detail": "无股息数据"
         },
         "估值": {
-          "score": 4,
+          "score": 5,
           "max": 10,
-          "detail": "PE=40.5偏高 | 简单生意"
+          "detail": "PE=39.3合理偏高 | 简单生意"
         }
       }
     },
@@ -244,12 +244,12 @@
       "name": "大秦铁路",
       "category": "铁路公路",
       "note": "西煤东运主通道独家",
-      "price": 5.22,
-      "pe": 15.79,
+      "price": 5.17,
+      "pe": 15.64,
       "signal": "hold",
-      "signal_text": "PE(TTM)=15.8，继续观望",
+      "signal_text": "PE(TTM)=15.6，继续观望",
       "total_score": 19,
-      "dividend_yield": 6.69,
+      "dividend_yield": 6.76,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -274,7 +274,7 @@
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=15.8合理偏高 | 中等复杂"
+          "detail": "PE=15.6合理偏高 | 中等复杂"
         }
       }
     },
@@ -283,12 +283,12 @@
       "name": "伊利股份",
       "category": "饮料乳品",
       "note": "乳业双寡头",
-      "price": 26.44,
-      "pe": 20.88,
+      "price": 26.12,
+      "pe": 20.63,
       "signal": "hold",
-      "signal_text": "PE(TTM)=20.9，继续观望",
+      "signal_text": "PE(TTM)=20.6，继续观望",
       "total_score": 19,
-      "dividend_yield": 6.43,
+      "dividend_yield": 6.51,
       "dimensions": {
         "ROE质量": {
           "score": 6,
@@ -313,7 +313,7 @@
         "估值": {
           "score": 5,
           "max": 10,
-          "detail": "PE=20.9合理偏高 | 简单生意"
+          "detail": "PE=20.6合理偏高 | 简单生意"
         }
       }
     },
@@ -322,12 +322,12 @@
       "name": "长江电力",
       "category": "电力",
       "note": "长江6大梯级电站独家运营",
-      "price": 26.58,
-      "pe": 19.03,
+      "price": 26.39,
+      "pe": 18.9,
       "signal": "hold",
-      "signal_text": "PE(TTM)=19.0，继续观望",
+      "signal_text": "PE(TTM)=18.9，继续观望",
       "total_score": 18,
-      "dividend_yield": 4.34,
+      "dividend_yield": 4.37,
       "dimensions": {
         "ROE质量": {
           "score": 5,
@@ -352,7 +352,7 @@
         "估值": {
           "score": 3,
           "max": 10,
-          "detail": "PE=19.0偏高 | 中等复杂"
+          "detail": "PE=18.9偏高 | 中等复杂"
         }
       }
     },
@@ -361,12 +361,12 @@
       "name": "京沪高铁",
       "category": "铁路公路",
       "note": "最黄金高铁线路独家",
-      "price": 5.08,
-      "pe": 19.04,
+      "price": 4.99,
+      "pe": 18.7,
       "signal": "hold",
-      "signal_text": "PE(TTM)=19.0，继续观望",
+      "signal_text": "PE(TTM)=18.7，继续观望",
       "total_score": 0,
-      "dividend_yield": 5.28,
+      "dividend_yield": 5.38,
       "dimensions": {}
     },
     {
@@ -374,12 +374,12 @@
       "name": "工商银行",
       "category": "银行Ⅱ",
       "note": "国家信用+金融压舱石",
-      "price": 7.32,
-      "pe": 7.31,
+      "price": 7.33,
+      "pe": 7.32,
       "signal": "hold",
       "signal_text": "PE(TTM)=7.3，继续观望",
       "total_score": 0,
-      "dividend_yield": 6.49,
+      "dividend_yield": 6.48,
       "dimensions": {}
     }
   ],
@@ -389,12 +389,12 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 55.29,
-      "pe": 19.37,
+      "price": 55.1,
+      "pe": 19.08,
       "signal": "hold_keep",
-      "signal_text": "PE=19.4，处于合理区间15-25 →建议持续持有",
+      "signal_text": "PE=19.1，处于合理区间15-25 →建议持续持有",
       "industry": "",
-      "holding_pnl": -1.9680851063829774
+      "holding_pnl": -2.3049645390070927
     }
   ],
   "position_warnings": [
