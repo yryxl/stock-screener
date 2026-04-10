@@ -489,30 +489,41 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
     }
 
 
-def _print_capital_summary(time_label, results):
-    print(f"\n{'='*80}")
-    print(f"  {time_label} 横向对比")
-    print(f"{'='*80}")
-    print(f"{'本金':>12} | {'总资产':>14} | {'收益率':>8} | {'分红':>10} | {'手续费':>8} | {'换股':>10}")
-    print(f"{'-'*80}")
+def _years_between(start_y, start_m, end_y=2025, end_m=12):
+    """计算两个年月之间的年数（带小数）"""
+    return round(((end_y - start_y) * 12 + (end_m - start_m)) / 12, 1)
+
+
+def _print_capital_summary(time_label, results, years):
+    print(f"\n{'='*95}")
+    print(f"  {time_label} 横向对比（测试 {years} 年）")
+    print(f"{'='*95}")
+    print(f"{'本金':>12} | {'总资产':>14} | {'收益率':>8} | {'年化':>7} | {'分红':>10} | {'手续费':>8} | {'换股':>10}")
+    print(f"{'-'*95}")
     for r in results:
         swaps = r.get("swap_events", [])
         right = sum(1 for e in swaps if "换对" in e["verdict"])
         wrong = sum(1 for e in swaps if "换错" in e["verdict"])
         flat = sum(1 for e in swaps if "持平" in e["verdict"])
         swap_stat = f"{right}对{wrong}错{flat}平" if swaps else "-"
+        # 年化收益率：(1+总收益)^(1/年数) - 1
+        if years > 0 and r['final_total'] > 0:
+            annual = ((r['final_total'] / r['initial_capital']) ** (1 / years) - 1) * 100
+        else:
+            annual = 0
         print(f"¥{r['initial_capital']:>11,} | ¥{r['final_total']:>13,.0f} | "
-              f"{r['final_pnl']:>+7.1f}% | ¥{r['total_dividends']:>9,.0f} | "
+              f"{r['final_pnl']:>+7.1f}% | {annual:>+6.1f}% | ¥{r['total_dividends']:>9,.0f} | "
               f"¥{r['total_fees']:>7,.0f} | {swap_stat:>10}")
 
 
 def run_suite(time_points, capitals, verbose_first=True):
     """跑多个起始时间 × 多档本金的完整套件"""
-    all_runs = {}  # {(year, month): [results...]}
+    all_runs = {}  # {(year, month): (years, [results...])}
     for idx, (sy, sm) in enumerate(time_points):
-        print(f"\n\n{'█'*80}")
-        print(f"█  起始时间 {sy}-{sm:02d}")
-        print(f"{'█'*80}")
+        years = _years_between(sy, sm)
+        print(f"\n\n{'█'*95}")
+        print(f"█  起始时间 {sy}-{sm:02d}（测试 {years} 年）")
+        print(f"{'█'*95}")
         results = []
         for cap in capitals:
             print(f"\n{'─'*60}")
@@ -527,44 +538,66 @@ def run_suite(time_points, capitals, verbose_first=True):
                       f"交易 {r['trade_count']} 笔 | "
                       f"分红 ¥{r['total_dividends']:,.0f} | "
                       f"手续费 ¥{r['total_fees']:,.0f}")
-        _print_capital_summary(f"起始 {sy}-{sm:02d}", results)
-        all_runs[(sy, sm)] = results
+        _print_capital_summary(f"起始 {sy}-{sm:02d}", results, years)
+        all_runs[(sy, sm)] = (years, results)
 
     # 总览
-    print(f"\n\n{'='*80}")
+    print(f"\n\n{'='*95}")
     print(f"  总览：{len(time_points)} 个起始时间 × {len(capitals)} 档本金")
-    print(f"{'='*80}")
-    print(f"{'起始':>8} | " + " | ".join(f"¥{c:>8,}" for c in capitals))
-    print(f"{'-'*80}")
-    for (sy, sm), runs in all_runs.items():
-        row = f"{sy}-{sm:02d} | " + " | ".join(
-            f"{r['final_pnl']:>+7.1f}%" + " " * 2 for r in runs
+    print(f"{'='*95}")
+    print(f"{'起始':>8} | {'年数':>5} | " + " | ".join(f"¥{c:>10,}" for c in capitals))
+    print(f"{'-'*95}")
+    for (sy, sm), (years, runs) in all_runs.items():
+        row = f"{sy}-{sm:02d} | {years:>5.1f} | " + " | ".join(
+            f"{r['final_pnl']:>+9.1f}%" for r in runs
         )
         print(row)
+
+    # 均值 + 最低/最高 统计
+    print(f"\n{'-'*95}")
+    print(f"{'统计':>8} | {'':>5} | " + " | ".join(f"¥{c:>10,}" for c in capitals))
+    print(f"{'-'*95}")
+    for stat_name, stat_fn in [("均值", lambda xs: sum(xs)/len(xs)),
+                                ("最低", min),
+                                ("最高", max)]:
+        cells = []
+        for i, cap in enumerate(capitals):
+            pnls = [runs[i]['final_pnl'] for _, (_, runs) in all_runs.items()]
+            cells.append(f"{stat_fn(pnls):>+9.1f}%")
+        print(f"{stat_name:>8} | {'':>5} | " + " | ".join(cells))
 
 
 if __name__ == "__main__":
     capitals = [10000, 100000, 500000, 1000000]
 
-    # 支持命令行指定单个起始时间：python backtest_autorun.py 2019 11
-    if len(sys.argv) >= 3:
+    # 支持命令行参数：
+    #   python backtest_autorun.py 2019 11       → 单个起始时间
+    #   python backtest_autorun.py --suite 10    → 10 个随机起始时间
+    #   python backtest_autorun.py               → 默认 3 个随机起始时间
+    if len(sys.argv) >= 3 and sys.argv[1] != "--suite":
         sy = int(sys.argv[1])
         sm = int(sys.argv[2])
         run_suite([(sy, sm)], capitals)
     else:
-        # 默认跑 3 个随机起始时间
+        # 支持命令行指定时间点数量，默认 3
+        n_points = 3
+        if len(sys.argv) >= 3 and sys.argv[1] == "--suite":
+            n_points = int(sys.argv[2])
+
         random.seed()
         time_points = []
         used = set()
-        while len(time_points) < 3:
+        while len(time_points) < n_points:
             y = random.randint(2011, 2020)
             m = random.randint(1, 12)
             if (y, m) not in used:
                 time_points.append((y, m))
                 used.add((y, m))
-        print(f"{'='*80}")
+        # 按时间排序便于阅读
+        time_points.sort()
+        print(f"{'='*95}")
         print(f"  选股模型验证回测")
-        print(f"  起始时间: {', '.join(f'{y}-{m:02d}' for y,m in time_points)}")
+        print(f"  起始时间（{n_points}个）: {', '.join(f'{y}-{m:02d}' for y,m in time_points)}")
         print(f"  规则: 严格按信号买入，买后除非卖出/护城河松动/退市，否则不动")
-        print(f"{'='*80}")
-        run_suite(time_points, capitals)
+        print(f"{'='*95}")
+        run_suite(time_points, capitals, verbose_first=(n_points <= 3))

@@ -407,6 +407,15 @@ with tab2:
                         if new_sha:
                             st.session_state["holdings_sha"] = new_sha
                             st.rerun()
+
+                # 消费龙头现金流警示（已豁免护城河规则但需重点关注）
+                cf_warning = sig_data.get("cf_warning")
+                if cf_warning:
+                    st.warning(
+                        f"⚠️ **{h.get('name', '未知')} 重点关注**：该股触发现金流异常但因高ROE+高毛利被豁免，"
+                        f"建议用以下多维线索判断真假跌：\n\n"
+                        f"{cf_warning}"
+                    )
             st.divider()
 
     st.subheader("➕ 添加持仓")

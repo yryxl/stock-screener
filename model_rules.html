@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>选股模型规则清单</title>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 20px 40px;
+  line-height: 1.7;
+  color: #333;
+  background: #f5f5f0;
+}
+h1 {
+  font-size: 28px;
+  border-bottom: 3px solid #c0392b;
+  padding-bottom: 10px;
+  color: #2c3e50;
+}
+h2 {
+  font-size: 22px;
+  color: #2c3e50;
+  margin-top: 40px;
+  padding: 8px 15px;
+  background: linear-gradient(90deg, #e67e22 0%, transparent 80%);
+  color: #fff;
+  border-radius: 4px;
+}
+h3 {
+  font-size: 17px;
+  color: #c0392b;
+  border-left: 4px solid #c0392b;
+  padding-left: 12px;
+  margin-top: 25px;
+}
+.principle {
+  background: #fef9e7;
+  border: 2px solid #f39c12;
+  border-radius: 8px;
+  padding: 18px 25px;
+  margin: 20px 0;
+}
+.principle h3 {
+  margin-top: 0;
+  color: #b9770e;
+  border-left: none;
+  padding-left: 0;
+}
+.principle ol {
+  margin: 10px 0;
+  padding-left: 25px;
+}
+.principle li {
+  padding: 5px 0;
+  font-size: 16px;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 15px 0;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+th {
+  background: #34495e;
+  color: white;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #ecf0f1;
+}
+tr:nth-child(even) td { background: #f8f9f9; }
+tr:hover td { background: #fef5e7; }
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: 6px;
+}
+.tag-buy { background: #d4efdf; color: #196f3d; }
+.tag-sell { background: #fadbd8; color: #922b21; }
+.tag-hold { background: #eaeded; color: #566573; }
+.tag-warn { background: #fdebd0; color: #9c640c; }
+.rule-box {
+  background: white;
+  border-left: 5px solid #3498db;
+  padding: 15px 20px;
+  margin: 12px 0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.rule-box.critical { border-left-color: #c0392b; }
+.rule-box.exempt { border-left-color: #27ae60; }
+.rule-num {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  background: #3498db;
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  margin-right: 10px;
+}
+.critical .rule-num { background: #c0392b; }
+.exempt .rule-num { background: #27ae60; }
+.formula {
+  background: #f4f6f6;
+  padding: 12px 18px;
+  border-radius: 4px;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 14px;
+  margin: 10px 0;
+  border: 1px solid #d5d8dc;
+}
+.example {
+  background: #eaf2f8;
+  border-left: 4px solid #3498db;
+  padding: 10px 15px;
+  margin: 10px 0;
+  font-size: 14px;
+  border-radius: 4px;
+}
+.example strong { color: #1a5276; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+.stat-card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+}
+.stat-card .label {
+  font-size: 13px;
+  color: #7f8c8d;
+}
+.stat-card .value {
+  font-size: 22px;
+  font-weight: bold;
+  color: #27ae60;
+  margin: 5px 0;
+}
+footer {
+  margin-top: 50px;
+  padding-top: 15px;
+  border-top: 1px solid #bdc3c7;
+  color: #7f8c8d;
+  font-size: 13px;
+  text-align: center;
+}
+.warn-highlight {
+  background: #fef5e7;
+  border: 1px solid #f39c12;
+  padding: 12px 18px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+</style>
+</head>
+<body>
+
+<h1>选股模型规则清单</h1>
+<p style="color: #7f8c8d;">最后更新：2026-04-10 | 版本号 08ffd6a | 70 只股票池 | 40 次回测全部正收益</p>
+
+<div class="principle">
+  <h3>核心理念（不可违反）</h3>
+  <ol>
+    <li><strong>宁可错过，不可犯错</strong>（芒格）—— 所有规则设计偏保守</li>
+    <li><strong>净资产收益率是核心</strong>，其他指标是辅助（巴菲特 1979 年致股东信）</li>
+    <li><strong>现金流不会骗人</strong>（巴菲特 1986 年致股东信"股东盈余"概念）</li>
+    <li><strong>长期持有，不频繁交易</strong>（买后除非明确卖出信号，否则不动）</li>
+    <li><strong>不投大宗商品周期股</strong>（巴菲特/芒格"时间是优秀企业的朋友"）</li>
+  </ol>
+</div>
+
+<h2>一、股票池构成（70 只）</h2>
+<table>
+  <tr><th>类别</th><th>数量</th><th>代表股票</th></tr>
+  <tr><td>长期向上（好公司）</td><td>9</td><td>茅台、五粮液、云南白药、恒瑞、格力、伊利、海尔、片仔癀、爱尔眼科</td></tr>
+  <tr><td>长期向下（烂公司）</td><td>8</td><td>中石油、ST华锐、京东方、华夏幸福、中铁建、海航</td></tr>
+  <tr><td>随大盘波动</td><td>9</td><td>平安、兴业、万科、中免、招商、工行、上汽、上海机场、中车</td></tr>
+  <tr><td>大涨大跌（妖股/周期）</td><td>10</td><td>东财、宁德、立讯、稀土、比亚迪、福耀、三一、牧原、赣锋、天齐</td></tr>
+  <tr><td>退市/暴雷</td><td>9</td><td>乐视、暴风、欧菲、ST康美、雏鹰、康得新、獐子岛</td></tr>
+  <tr><td>新上市</td><td>7</td><td>海天、迈瑞、中芯、华大九天、中移动、金龙鱼、联影</td></tr>
+  <tr><td>低价高分红蓝筹</td><td>8</td><td>大秦、农行、中行、建行、中石化、宝钢、华能、陕煤</td></tr>
+  <tr><td>低价多样化</td><td>12</td><td>长江电力、皖通、国投电力、中信证券、华泰、交行、民生、中联、富联、电信、广核、三峡能源</td></tr>
+</table>
+
+<h2>二、费用模型（还原真实 A 股环境）</h2>
+<table>
+  <tr><th>费用类型</th><th>规则</th><th>谁支付</th></tr>
+  <tr><td>佣金</td><td>双向万2.5，最低 5 元</td><td>券商收</td></tr>
+  <tr><td>过户费</td><td>2022-04 后沪深统一十万分之一；此前沪市万二、深市 0</td><td>中登公司收</td></tr>
+  <tr><td>印花税</td><td>卖出单向，2023-08 后万五、此前万十</td><td>国家收</td></tr>
+  <tr><td>股息红利税</td><td>持股 &gt;1 年免税；1-12 月 10%；&lt;1 月 20%</td><td>国家收</td></tr>
+  <tr><td>滑点</td><td>买入价 +0.2%，卖出价 -0.2%</td><td>市场摩擦</td></tr>
+</table>
+
+<h2>三、买入信号档位</h2>
+<p>根据公司市盈率（PE）在行业合理区间的位置判定：</p>
+<table>
+  <tr><th>档位</th><th>触发条件</th><th>首次建仓比例</th></tr>
+  <tr><td><span class="tag tag-buy">🔴 重仓买入</span></td><td>PE ≤ 行业底部</td><td>可投资金的 30%</td></tr>
+  <tr><td><span class="tag tag-buy">🟠 中仓买入</span></td><td>PE ≤ (行业底部+合理下限)/2</td><td>15%</td></tr>
+  <tr><td><span class="tag tag-buy">🟡 轻仓买入</span></td><td>PE ≤ 合理下限</td><td>8%</td></tr>
+  <tr><td><span class="tag tag-hold">⚪ 关注买入</span></td><td>合理偏低</td><td>不建仓</td></tr>
+  <tr><td><span class="tag tag-hold">⚪ 继续观望</span></td><td>合理区间</td><td>不建仓</td></tr>
+  <tr><td><span class="tag tag-sell">⚪ 关注卖出</span></td><td>合理偏高</td><td>持仓不卖</td></tr>
+  <tr><td><span class="tag tag-sell">🟡 适当卖出</span></td><td>偏高</td><td>持仓可减</td></tr>
+  <tr><td><span class="tag tag-sell">🟠 中仓卖出</span></td><td>明显偏高</td><td>持仓减一半</td></tr>
+  <tr><td><span class="tag tag-sell">🔴 大量卖出</span></td><td>远超行业上限</td><td>持仓清仓</td></tr>
+</table>
+
+<h2>四、护城河检查（7 条规则）</h2>
+<p>在"信号判断"之后、"实际买入"之前，对所有候选股做护城河趋势检查。任一触发即判定护城河松动，买入信号一律降级为观望；对持仓则触发卖出。</p>
+
+<div class="rule-box critical">
+  <span class="rule-num">1</span><strong>最新亏损</strong>
+  <p>最新年报净资产收益率 &lt; 0 → 直接判松动</p>
+</div>
+
+<div class="rule-box critical">
+  <span class="rule-num">2</span><strong>净资产收益率单年暴跌</strong>
+  <p>连降 ≥ 6 个百分点 <strong>且</strong> 跌后 &lt; 15%（巴菲特合格线）→ 松动</p>
+  <div class="example"><strong>豁免案例</strong>：五粮液 2013 年从 36.8% 跌到 23.7%，跌后 ≥ 15% 豁免；万科从 20% 跌到 9%，跌后 &lt; 15% 触发。</div>
+</div>
+
+<div class="rule-box critical">
+  <span class="rule-num">3</span><strong>净资产收益率连续 3 年下滑</strong>
+  <p>连续 3 年单调下降 <strong>且</strong> 最新 &lt; 15% → 松动</p>
+</div>
+
+<div class="rule-box critical">
+  <span class="rule-num">4</span><strong>毛利率连续 3 年下滑</strong>
+  <p>连续 3 年下降 <strong>且</strong> 累计跌幅 ≥ 5 个百分点 → 松动</p>
+  <div class="example"><strong>案例</strong>：万科毛利率从 37.5% → 29.2% → 21.8% → 15.2%，多年触发。</div>
+</div>
+
+<div class="rule-box critical">
+  <span class="rule-num">5</span><strong>营收连续 2 年负增长 + 净资产收益率 &lt; 15%</strong>
+  <p>双重证据：营收连降 <strong>且</strong> 盈利能力也跌破合格线 → 松动</p>
+  <div class="example"><strong>豁免案例</strong>：五粮液 2014 年营收连降但 ROE 仍 15.4% ≥ 15%，豁免。</div>
+</div>
+
+<div class="rule-box critical">
+  <span class="rule-num">6</span><strong>负债率 + 净资产收益率双重恶化</strong>
+  <p>近 3 年负债率上升 &gt;10 个百分点至 &gt;70% <strong>且</strong> ROE 连降至 &lt;15% → 松动</p>
+  <div class="example"><strong>豁免案例</strong>：格力家电行业高预收款导致负债率 70%+，但 ROE 健康，豁免。</div>
+</div>
+
+<div class="rule-box critical">
+  <span class="rule-num">7</span><strong>盈利质量恶化（现金流不会骗人）</strong>
+  <p>经营现金流 ÷ 每股收益 连续 2 年 &lt; 30% → 账面盈利没变成真金白银 → 松动</p>
+  <div class="formula">现金流比值 = 每股经营现金流 ÷ 每股收益</div>
+  <div class="example"><strong>万科案例</strong>：2021 比值 0.18、2022 比值 0.12，账面赚钱但现金流崩塌，规则 7 正确识别。</div>
+</div>
+
+<h2>五、规则 7 的豁免机制（避免误杀消费龙头）</h2>
+
+<div class="rule-box exempt">
+  <span class="rule-num">A</span><strong>银行/保险/证券/券商豁免</strong>
+  <p>这些行业的"经营现金流"包含存款/保费/客户保证金波动，指标失真，一律豁免规则 7。</p>
+</div>
+
+<div class="rule-box exempt">
+  <span class="rule-num">B</span><strong>消费龙头豁免</strong>
+  <p>净资产收益率 ≥ 15% <strong>且</strong> 毛利率 ≥ 50% 的公司，即使现金流比值连续 2 年 &lt; 30% 也豁免。</p>
+  <div class="example"><strong>豁免案例</strong>：五粮液 2013-2014 现金流比值 0.18、0.14，但 ROE 15%、毛利率 73% 仍强劲，判定为行业周期扰动（三公消费限制）而非造假，豁免。</div>
+</div>
+
+<div class="warn-highlight">
+  <strong>⚠️ 豁免不等于无视</strong>：消费龙头被豁免后会在持仓列表中输出"重点关注"警示，并给出 5 个维度的辅助判断线索：ROE 趋势、毛利率趋势、应收账款周转率、存货周转率、营收同步下滑程度。用户可以据此判断是"行业周期"还是"真造假"。
+</div>
+
+<h2>六、卖出逻辑（严格按信号）</h2>
+<p>买入后除非以下情况，否则不动：</p>
+<ol>
+  <li><strong>退市</strong>（立即清仓）</li>
+  <li><strong>大量卖出信号</strong>：PE 远超行业上限 → 清仓</li>
+  <li><strong>适当卖出信号</strong>：明显偏高 → 清仓（<strong>好公司豁免</strong>，历史 ROE ≥ 15% 的公司不因此卖出）</li>
+  <li><strong>护城河松动</strong>：7 条规则任一触发 → 清仓</li>
+</ol>
+
+<h3>不做的事</h3>
+<ul>
+  <li>不加仓（买了就不动）</li>
+  <li>不主观止损（不因亏损 X% 就卖）</li>
+  <li>不因价格波动操作</li>
+  <li>不因市场情绪操作</li>
+</ul>
+
+<h2>七、买入机制的三道关卡</h2>
+<div class="rule-box">
+  <span class="rule-num">1</span><strong>PE 信号判定</strong>
+  <p>按行业 PE 区间给出重仓/中仓/轻仓/观望信号。</p>
+</div>
+<div class="rule-box">
+  <span class="rule-num">2</span><strong>净资产收益率门槛</strong>
+  <p>按行业复杂度和杠杆水平，检查 ROE 是否达标。不达标降级。</p>
+</div>
+<div class="rule-box">
+  <span class="rule-num">3</span><strong>护城河趋势检查（7 条规则）</strong>
+  <p>任一规则触发，买入降级为观望。</p>
+</div>
+<div class="rule-box">
+  <span class="rule-num">4</span><strong>净资产收益率下降趋势检查（防价值陷阱）</strong>
+  <p>近 3 年 ROE 单调下降且总跌幅 ≥ 3 个百分点 → 重仓降轻仓，轻仓降观望。</p>
+  <div class="example"><strong>避免的场景</strong>：某公司 PE 看起来便宜但盈利能力在持续下滑，越跌越"贵"（分母越来越小）。</div>
+</div>
+
+<h2>八、周期股彻底过滤</h2>
+<p>按巴菲特/芒格理念，所有周期股（锂电、新能源、电池、石油、煤炭、钢铁、稀土、有色金属、养殖、牧原等）<strong>完全不出现在任何推荐列表</strong>。</p>
+<p>这意味着：</p>
+<ul>
+  <li>即使某只周期股 PE 极低、ROE 极高，也不会推荐买入</li>
+  <li>即使周期股大幅下跌触发任何指标，也不会报警</li>
+  <li>代码里保留开关 CYCLE_STOCKS_ENABLED，便于未来改变策略</li>
+</ul>
+
+<h2>九、实战验证（2026-04-10）</h2>
+
+<h3>10 个随机起始时间 × 4 档本金 = 40 次回测</h3>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="label">40 次回测全部正收益</div>
+    <div class="value">100%</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">最低收益</div>
+    <div class="value">+8.8%</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">最高收益</div>
+    <div class="value">+267.8%</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">10万本金均值</div>
+    <div class="value">+116%</div>
+  </div>
+</div>
+
+<table>
+  <tr><th>起始时间</th><th>年数</th><th>1 万</th><th>10 万</th><th>50 万</th><th>100 万</th></tr>
+  <tr><td>2012-01</td><td>13.9</td><td>+267.8%</td><td>+186.3%</td><td>+185.5%</td><td>+187.1%</td></tr>
+  <tr><td>2012-02</td><td>13.8</td><td>+250.5%</td><td>+182.1%</td><td>+182.1%</td><td>+184.2%</td></tr>
+  <tr><td>2015-01</td><td>10.9</td><td>+92.1%</td><td>+160.9%</td><td>+213.0%</td><td>+226.1%</td></tr>
+  <tr><td>2015-03</td><td>10.8</td><td>+76.1%</td><td>+161.0%</td><td>+212.5%</td><td>+214.5%</td></tr>
+  <tr><td>2015-05</td><td>10.6</td><td>+222.7%</td><td>+158.4%</td><td>+68.4%</td><td>+70.8%</td></tr>
+  <tr><td>2015-10</td><td>10.2</td><td>+225.2%</td><td>+172.9%</td><td>+79.6%</td><td>+93.3%</td></tr>
+  <tr><td>2016-06</td><td>9.5</td><td>+219.8%</td><td>+41.2%</td><td>+44.5%</td><td>+46.6%</td></tr>
+  <tr><td>2017-06</td><td>8.5</td><td>+71.8%</td><td>+31.3%</td><td>+37.3%</td><td>+39.0%</td></tr>
+  <tr><td>2018-11</td><td>7.1</td><td>+191.3%</td><td>+58.1%</td><td>+57.3%</td><td>+59.0%</td></tr>
+  <tr><td>2019-10</td><td>6.2</td><td>+36.1%</td><td>+8.8%</td><td>+12.3%</td><td>+12.3%</td></tr>
+  <tr style="font-weight: bold; background: #fef9e7;"><td>均值</td><td></td><td>+165.3%</td><td>+116.1%</td><td>+109.2%</td><td>+113.3%</td></tr>
+</table>
+
+<h3>关键案例验证</h3>
+
+<div class="rule-box">
+  <strong>万科案例（护城河规则正确识别）</strong>
+  <p>2018-2020 年现金流比值健康（1.00~1.27），2021 年突然跌到 0.18，2022 年 0.12。规则 7 在 2023-04 触发（可见 2021+2022 数据），比原来的"ROE 连降"规则提前 1 年识别。2024 年开始万科巨亏，规则判断完全正确。</p>
+</div>
+
+<div class="rule-box">
+  <strong>五粮液案例（消费龙头豁免正确）</strong>
+  <p>2013-2014 年因"三公消费限制"导致经销商去库存+延期付款，现金流比值 0.18、0.14，规则 7 本应触发。但因 ROE 仍 15%、毛利率 73%，符合消费龙头豁免条件。2015-04 输出重点关注警示，2016-04 警示解除。</p>
+</div>
+
+<div class="rule-box">
+  <strong>好公司现金流测试（8 只消费龙头全部通过）</strong>
+  <p>贵州茅台（最低比值 0.59）、五粮液（0.74）、云南白药（0.37）、恒瑞医药（0.33）、格力电器（0.08 单年）、中国中免（-0.65 单年）、海天味业（0.75）、迈瑞医疗——全部没有触发连续 2 年异常，规则 7 设计经受住检验。</p>
+</div>
+
+<footer>
+  <p>选股模型规则清单 | 2026-04-10</p>
+  <p>完整代码详见 <code>backtest_engine.py</code> / <code>backtest_autorun.py</code> / <code>screener.py</code></p>
+</footer>
+
+</body>
+</html>
