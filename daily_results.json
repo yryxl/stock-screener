@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-09 19:46",
-  "mode": "full",
+  "date": "2026-04-10 04:07",
+  "mode": "holdings",
   "is_trading_day": true,
-  "data_source": "全市场扫描",
+  "data_source": "持仓检查",
   "ai_recommendations": [],
   "watchlist_signals": [
     {
