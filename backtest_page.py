@@ -11,21 +11,33 @@ import os
 from backtest_engine import (
     get_month_signals, generate_anonymous_map,
     load_stock_list, load_events,
+    check_moat, get_cash_flow_warnings, _roe_historical_avg,
 )
 
 SIGNAL_LABELS = {
-    "buy_heavy": "🟢🟢🟢 可以重仓",
-    "buy_medium": "🟢🟢 可以中仓",
-    "buy_light": "🟢 可以轻仓",
-    "buy_watch": "👀 重点关注",
+    "buy_heavy": "🟢🟢🟢 可以重仓买入",
+    "buy_medium": "🟢🟢 可以中仓买入",
+    "buy_light": "🟢 可以轻仓买入",
+    "buy_watch": "👀 重点关注买入",
     "hold": "⚪ 继续观望",
-    "hold_keep": "🔵 持续持有",
-    "sell_watch": "🟡 关注卖出",
-    "sell_light": "🟠 适当卖出",
-    "sell_medium": "🔴 中仓卖出",
-    "sell_heavy": "🔴🔴 大量卖出",
+    "hold_keep": "🔵 建议持续持有",
+    "sell_watch": "🟡 关注卖出（偏高）",
+    "sell_light": "🟠 可以适当卖出（偏高）",
+    "sell_medium": "🔴 可以中仓卖出（明显偏高）",
+    "sell_heavy": "🔴🔴 可以大量卖出（远超上限）",
     "delisted": "⛔ 已停止交易",
 }
+
+
+def buyback_tag(score):
+    """回购加分对应的徽章"""
+    if score >= 15:
+        return "🏅 高回购"
+    if score >= 8:
+        return "⭐ 中回购"
+    if score >= 3:
+        return "· 少量回购"
+    return ""
 
 
 def init_state():
@@ -117,18 +129,34 @@ def render_backtest_page():
     with st.sidebar:
         st.markdown("---")
         st.subheader("🧪 回测控制")
-        default_cap = max(10000, min(1000000, st.session_state.get("bt_initial_capital", 100000)))
-        cap = st.number_input("💰 起始资金", min_value=10000, max_value=1000000, value=default_cap, step=10000, key="bt_cap_s")
+        default_cap = max(10000, min(10000000, st.session_state.get("bt_initial_capital", 100000)))
+        cap = st.number_input(
+            "💰 起始资金",
+            min_value=10000,
+            max_value=10000000,
+            value=default_cap,
+            step=10000,
+            key="bt_cap_s",
+            help="修改后点击下方按钮生效，或按回车自动重置"
+        )
         st.session_state["bt_capital_setting"] = cap
+
+        # 起始资金变化 → 自动提示需要重置
+        if cap != st.session_state.get("bt_initial_capital", 100000):
+            st.warning(f"⚠️ 起始资金已改为 ¥{cap:,}，点击下方按钮应用")
 
         if st.button("🔄 重置（新一局）", use_container_width=True, type="primary"):
             reset_game()
             st.rerun()
 
         st.markdown("---")
+        st.caption("📅 数据范围：2010年1月 ~ 2025年12月")
         c1, c2 = st.columns(2)
         with c1:
-            st.session_state["bt_year"] = st.number_input("年", 2010, 2025, st.session_state["bt_year"], key="bty")
+            st.session_state["bt_year"] = st.number_input(
+                "年", 2010, 2025, st.session_state["bt_year"], key="bty",
+                help="回测数据从 2010 年开始"
+            )
         with c2:
             st.session_state["bt_month"] = st.number_input("月", 1, 12, st.session_state["bt_month"], key="btm")
         st.session_state["bt_speed"] = st.select_slider("⏩ 倍速", [1, 2, 5], st.session_state.get("bt_speed", 1))
@@ -193,35 +221,74 @@ def render_backtest_page():
     tab1, tab2, tab3 = st.tabs(["🔮 模型推荐 [回测]", "📦 模拟持仓 [回测]", "⭐ 模拟关注 [回测]"])
 
     # ========================================
-    # Tab1: 模型推荐
+    # Tab1: 模型推荐（所有档位）
     # ========================================
     with tab1:
         if not signals:
             st.info(f"{yr}年{mo}月暂无数据")
         else:
-            buy_signals = ["buy_heavy", "buy_medium", "buy_light", "buy_watch"]
-            for sig_key in buy_signals:
+            # 按档位分组展示
+            all_signals_order = [
+                "buy_heavy", "buy_medium", "buy_light", "buy_watch",
+                "sell_heavy", "sell_medium", "sell_light", "sell_watch",
+            ]
+            for sig_key in all_signals_order:
                 group = {k: v for k, v in signals.items() if v.get("signal") == sig_key}
                 if not group:
                     continue
                 st.subheader(SIGNAL_LABELS.get(sig_key, sig_key))
-                for anon_id, sdata in group.items():
+
+                # 按"回购加分 > 评分"排序，体现买入优先级
+                items = sorted(
+                    group.items(),
+                    key=lambda kv: (
+                        -(kv[1].get("buyback_score") or 0),
+                        -(kv[1].get("score") or 0),
+                    ),
+                )
+
+                for anon_id, sdata in items:
                     sid = sdata["sid"]
                     price = sdata.get("price", 0)
                     pe = sdata.get("pe_ttm")
                     roe = sdata.get("roe")
+                    gm = sdata.get("gross_margin")
+                    debt = sdata.get("debt_ratio")
                     div_y = sdata.get("dividend_yield", 0)
                     score = sdata.get("score", 0)
+                    bb_score = sdata.get("buyback_score", 0)
+                    bb_yi = sdata.get("buyback_yi", 0)
                     events = sdata.get("events", [])
+                    is_buy = sig_key.startswith("buy_")
 
-                    c1, c2, c3, c4 = st.columns([2, 1.5, 1.5, 3])
+                    # 股票标题行（含回购徽章）
+                    title_parts = [f"**{anon_id}**"]
+                    bb_tag = buyback_tag(bb_score)
+                    if bb_tag:
+                        title_parts.append(bb_tag)
+
+                    c1, c2, c3, c4 = st.columns([2.2, 1.3, 1.3, 3.2])
                     with c1:
-                        st.markdown(f"**{anon_id}**")
-                        st.caption(f"PE={pe:.1f}" if pe else "PE=—")
+                        st.markdown(" ".join(title_parts))
+                        # 关键财务指标一行
+                        fin_parts = []
+                        if pe is not None:
+                            fin_parts.append(f"市盈率 {pe:.1f}")
+                        if roe is not None:
+                            fin_parts.append(f"净收益率 {roe:.1f}%")
+                        if gm is not None:
+                            fin_parts.append(f"毛利 {gm:.0f}%")
+                        if debt is not None:
+                            fin_parts.append(f"负债 {debt:.0f}%")
+                        if div_y:
+                            fin_parts.append(f"股息 {div_y:.1f}%")
+                        st.caption(" | ".join(fin_parts) if fin_parts else "—")
                     with c2:
                         st.metric("股价", f"¥{price:.2f}" if price else "—")
                     with c3:
                         st.metric("评分", f"{score}/50")
+                        if bb_score > 0:
+                            st.caption(f"近5年回购 {bb_yi:.1f}亿")
                     with c4:
                         st.caption(sdata.get("signal_text", ""))
                         # 事件
@@ -230,22 +297,23 @@ def render_backtest_page():
                                 etype = evt.get("type", "neutral")
                                 emoji = "🟢" if etype == "positive" else "🔴" if etype == "negative" else "⚪"
                                 st.info(f"📰 {emoji} {evt.get('text', '')}")
-                        # 买入按钮
-                        bc1, bc2, bc3 = st.columns(3)
-                        with bc1:
-                            if st.button(f"虚拟买100股", key=f"bb1_{anon_id}"):
-                                if virtual_buy(sid, anon_id, price, 100):
-                                    st.success(f"买入{anon_id} 100股 @¥{price:.2f}")
-                                    st.rerun()
-                        with bc2:
-                            if st.button(f"虚拟买500股", key=f"bb5_{anon_id}"):
-                                if virtual_buy(sid, anon_id, price, 500):
-                                    st.rerun()
-                        with bc3:
-                            n = st.number_input("股数", 100, 10000, 100, 100, key=f"bn_{anon_id}")
-                            if st.button("买入", key=f"bbx_{anon_id}"):
-                                if virtual_buy(sid, anon_id, price, int(n)):
-                                    st.rerun()
+                        # 买入按钮（仅买入档位显示）
+                        if is_buy and price > 0:
+                            bc1, bc2, bc3 = st.columns(3)
+                            with bc1:
+                                if st.button(f"虚拟买100股", key=f"bb1_{anon_id}"):
+                                    if virtual_buy(sid, anon_id, price, 100):
+                                        st.success(f"买入{anon_id} 100股 @¥{price:.2f}")
+                                        st.rerun()
+                            with bc2:
+                                if st.button(f"虚拟买500股", key=f"bb5_{anon_id}"):
+                                    if virtual_buy(sid, anon_id, price, 500):
+                                        st.rerun()
+                            with bc3:
+                                n = st.number_input("股数", 100, 100000, 100, 100, key=f"bn_{anon_id}")
+                                if st.button("买入", key=f"bbx_{anon_id}"):
+                                    if virtual_buy(sid, anon_id, price, int(n)):
+                                        st.rerun()
                     st.divider()
 
             # 观望的也显示（不显示买入按钮）
@@ -257,10 +325,10 @@ def render_backtest_page():
                             continue
                         pe = sdata.get("pe_ttm")
                         pe_str = f"{pe:.1f}" if pe else "—"
-                        st.caption(f"{anon_id} | PE={pe_str} | ¥{sdata.get('price',0):.2f} | {sdata.get('signal_text','')}")
+                        st.caption(f"{anon_id} | 市盈率={pe_str} | ¥{sdata.get('price',0):.2f} | {sdata.get('signal_text','')}")
 
     # ========================================
-    # Tab2: 模拟持仓
+    # Tab2: 模拟持仓（含护城河松动和消费龙头警示）
     # ========================================
     with tab2:
         holdings = st.session_state.get("bt_holdings", [])
@@ -316,6 +384,27 @@ def render_backtest_page():
                         if st.button("卖出", key=f"sx_{anon_id}"):
                             if virtual_sell(sid, int(sn), cur_price):
                                 st.rerun()
+
+                # 护城河松动警告（调用 check_moat）
+                try:
+                    is_intact, moat_problems = check_moat(sid, yr, mo)
+                    if not is_intact:
+                        st.error(
+                            f"🚨 **{anon_id} 护城河松动**\n\n"
+                            + "\n".join(f"- {p}" for p in moat_problems[:3])
+                        )
+                except Exception:
+                    pass
+
+                # 消费龙头现金流警示（已豁免但需重点关注）
+                try:
+                    cf_warnings = get_cash_flow_warnings(sid, yr, mo)
+                    if cf_warnings:
+                        for w in cf_warnings:
+                            st.warning(f"⚠️ **{anon_id} 重点关注**：{w}")
+                except Exception:
+                    pass
+
                 st.divider()
 
     # ========================================
