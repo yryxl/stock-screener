@@ -149,6 +149,38 @@ def collect_financial_data(code):
         return []
 
 
+def collect_all_buybacks():
+    """
+    一次性采集全 A 股回购历史（东方财富）
+    返回：{code: [{start_date, status, amount, notice_date}]}
+    只保留"完成实施"或有实际回购金额的记录
+    """
+    try:
+        df = ak.stock_repurchase_em()
+        if df is None or df.empty:
+            return {}
+        result = {}
+        for _, row in df.iterrows():
+            code = str(row.get("股票代码", "")).strip()
+            if not code:
+                continue
+            status = str(row.get("实施进度", ""))
+            amount = _to_float(row.get("已回购金额"))  # 万元或元，需要检查
+            start_date = str(row.get("回购起始时间", ""))[:10]
+            notice_date = str(row.get("最新公告日期", ""))[:10]
+            record = {
+                "start_date": start_date,
+                "status": status,
+                "amount": amount,
+                "notice_date": notice_date,
+            }
+            result.setdefault(code, []).append(record)
+        return result
+    except Exception as e:
+        print(f"回购数据采集失败: {e}")
+        return {}
+
+
 def collect_dividend_data(code):
     """采集分红历史"""
     try:

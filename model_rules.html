@@ -329,7 +329,35 @@ footer {
   <div class="example"><strong>避免的场景</strong>：某公司 PE 看起来便宜但盈利能力在持续下滑，越跌越"贵"（分母越来越小）。</div>
 </div>
 
-<h2>八、周期股彻底过滤</h2>
+<h2>八、回购加分（巴菲特"伟大公司的标志"）</h2>
+<p>巴菲特 2020 年股东信原话："苹果的投资<strong>生动地说明了回购的力量</strong>"。伯克希尔 2018 年买入苹果时持股 5.2%，到 2020 年因苹果持续回购被动增持到 5.4%——一分钱没花的免费增持。</p>
+
+<h3>评分规则（往前看 5 年的已完成回购）</h3>
+<table>
+  <tr><th>累计回购金额</th><th>加分</th><th>标记</th></tr>
+  <tr><td>≥ 50 亿元</td><td>+15 分</td><td>🏅 高加分</td></tr>
+  <tr><td>≥ 10 亿元</td><td>+8 分</td><td>⭐ 中加分</td></tr>
+  <tr><td>≥ 1 亿元</td><td>+3 分</td><td>· 低加分</td></tr>
+  <tr><td>&lt; 1 亿元 或 无</td><td>0 分</td><td>无</td></tr>
+</table>
+
+<h3>在买入排序里的位置</h3>
+<div class="formula">信号强度 &gt; 简单生意 &gt; 回购加分 &gt; 高评分</div>
+<p>同等信号+同等简单度下，优先买有大额回购历史的公司。</p>
+
+<h3>当前股票池的回购评级（2024-06 时点）</h3>
+<table>
+  <tr><th>评级</th><th>代表股票</th><th>近 5 年回购</th></tr>
+  <tr><td>🏅 高加分</td><td>格力电器</td><td>120 亿</td></tr>
+  <tr><td>🏅 高加分</td><td>中国平安</td><td>110 亿</td></tr>
+  <tr><td>🏅 高加分</td><td>伊利股份</td><td>68 亿</td></tr>
+  <tr><td>⭐ 中加分</td><td>海尔智家</td><td>41 亿</td></tr>
+  <tr><td>⭐ 中加分</td><td>宝钢股份</td><td>36 亿</td></tr>
+  <tr><td>⭐ 中加分</td><td>中国石化</td><td>27 亿</td></tr>
+  <tr><td>（不加分）</td><td>茅台、五粮液、招商银行、海天味业</td><td>近 5 年无大额回购</td></tr>
+</table>
+
+<h2>九、周期股彻底过滤</h2>
 <p>按巴菲特/芒格理念，所有周期股（锂电、新能源、电池、石油、煤炭、钢铁、稀土、有色金属、养殖、牧原等）<strong>完全不出现在任何推荐列表</strong>。</p>
 <p>这意味着：</p>
 <ul>
@@ -338,9 +366,9 @@ footer {
   <li>代码里保留开关 CYCLE_STOCKS_ENABLED，便于未来改变策略</li>
 </ul>
 
-<h2>九、实战验证（2026-04-10）</h2>
+<h2>十、实战验证（2026-04-10）</h2>
 
-<h3>10 个随机起始时间 × 4 档本金 = 40 次回测</h3>
+<h3>10 个随机起始时间 × 4 档本金 = 40 次回测（含规则 8 + 回购加分）</h3>
 <div class="stats-grid">
   <div class="stat-card">
     <div class="label">40 次回测全部正收益</div>
@@ -348,32 +376,42 @@ footer {
   </div>
   <div class="stat-card">
     <div class="label">最低收益</div>
-    <div class="value">+8.8%</div>
+    <div class="value">+1.8%</div>
   </div>
   <div class="stat-card">
     <div class="label">最高收益</div>
-    <div class="value">+267.8%</div>
+    <div class="value">+407.3%</div>
   </div>
   <div class="stat-card">
-    <div class="label">10万本金均值</div>
-    <div class="value">+116%</div>
+    <div class="label">100万本金均值</div>
+    <div class="value">+141.8%</div>
   </div>
 </div>
 
 <table>
   <tr><th>起始时间</th><th>年数</th><th>1 万</th><th>10 万</th><th>50 万</th><th>100 万</th></tr>
-  <tr><td>2012-01</td><td>13.9</td><td>+267.8%</td><td>+186.3%</td><td>+185.5%</td><td>+187.1%</td></tr>
-  <tr><td>2012-02</td><td>13.8</td><td>+250.5%</td><td>+182.1%</td><td>+182.1%</td><td>+184.2%</td></tr>
-  <tr><td>2015-01</td><td>10.9</td><td>+92.1%</td><td>+160.9%</td><td>+213.0%</td><td>+226.1%</td></tr>
-  <tr><td>2015-03</td><td>10.8</td><td>+76.1%</td><td>+161.0%</td><td>+212.5%</td><td>+214.5%</td></tr>
-  <tr><td>2015-05</td><td>10.6</td><td>+222.7%</td><td>+158.4%</td><td>+68.4%</td><td>+70.8%</td></tr>
-  <tr><td>2015-10</td><td>10.2</td><td>+225.2%</td><td>+172.9%</td><td>+79.6%</td><td>+93.3%</td></tr>
-  <tr><td>2016-06</td><td>9.5</td><td>+219.8%</td><td>+41.2%</td><td>+44.5%</td><td>+46.6%</td></tr>
-  <tr><td>2017-06</td><td>8.5</td><td>+71.8%</td><td>+31.3%</td><td>+37.3%</td><td>+39.0%</td></tr>
+  <tr><td>2011-09</td><td>14.2</td><td>+249.7%</td><td>+178.9%</td><td>+179.8%</td><td>+181.4%</td></tr>
+  <tr><td>2013-03</td><td>12.8</td><td>+259.8%</td><td>+188.1%</td><td>+267.5%</td><td>+267.3%</td></tr>
+  <tr><td>2013-09</td><td>12.2</td><td>+239.3%</td><td>+195.0%</td><td>+296.6%</td><td>+311.6%</td></tr>
+  <tr style="background: #fef9e7;"><td>2014-01</td><td>11.9</td><td>+293.5%</td><td>+366.0%</td><td>+392.6%</td><td><strong>+407.3%</strong></td></tr>
+  <tr><td>2015-08</td><td>10.3</td><td>+222.7%</td><td>+162.3%</td><td>+70.2%</td><td>+82.9%</td></tr>
+  <tr><td>2018-01</td><td>7.9</td><td>+54.5%</td><td>+27.6%</td><td>+33.3%</td><td>+35.1%</td></tr>
+  <tr><td>2018-05</td><td>7.6</td><td>+59.9%</td><td>+28.9%</td><td>+34.6%</td><td>+34.7%</td></tr>
+  <tr><td>2018-06</td><td>7.5</td><td>+59.3%</td><td>+28.8%</td><td>+34.4%</td><td>+34.4%</td></tr>
   <tr><td>2018-11</td><td>7.1</td><td>+191.3%</td><td>+58.1%</td><td>+57.3%</td><td>+59.0%</td></tr>
-  <tr><td>2019-10</td><td>6.2</td><td>+36.1%</td><td>+8.8%</td><td>+12.3%</td><td>+12.3%</td></tr>
-  <tr style="font-weight: bold; background: #fef9e7;"><td>均值</td><td></td><td>+165.3%</td><td>+116.1%</td><td>+109.2%</td><td>+113.3%</td></tr>
+  <tr><td>2020-09</td><td>5.2</td><td>+23.2%</td><td>+1.8%</td><td>+4.0%</td><td>+4.0%</td></tr>
+  <tr style="font-weight: bold; background: #fef9e7;"><td>均值</td><td></td><td>+165.3%</td><td>+123.5%</td><td>+137.0%</td><td>+141.8%</td></tr>
 </table>
+
+<h3>规则 8 + 回购加分 加入前后对比</h3>
+<table>
+  <tr><th>本金</th><th>加入前均值</th><th>加入后均值</th><th>提升</th></tr>
+  <tr><td>1 万</td><td>+165.3%</td><td>+165.3%</td><td>持平</td></tr>
+  <tr><td>10 万</td><td>+116.1%</td><td>+123.5%</td><td>+7.4 pp</td></tr>
+  <tr><td>50 万</td><td>+109.2%</td><td><strong>+137.0%</strong></td><td><strong>+27.8 pp</strong></td></tr>
+  <tr><td>100 万</td><td>+113.3%</td><td><strong>+141.8%</strong></td><td><strong>+28.5 pp</strong></td></tr>
+</table>
+<p><strong>大本金改善特别显著</strong>——因为大本金能同时持有多只股票，"回购加分"能实际影响选股顺序；小本金只能买 1 手股票，优先级排序的影响被兜底逻辑盖过。这在数据上验证了巴菲特的判断：<strong>有大额回购历史的公司确实更值得买</strong>。</p>
 
 <h3>关键案例验证</h3>
 

@@ -339,8 +339,10 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             del holdings[sid]
 
         # 4. 买入检查：未持仓的股票收到买入信号就建仓
-        # 排序优先级：信号强度 > 简单生意 > 高评分
-        # 理由：同样的便宜机会里，巴菲特优先买"一看就懂"的公司
+        # 排序优先级：信号强度 > 简单生意 > 回购加分 > 高评分
+        # 理由：同样的便宜机会里，
+        #   1) 优先买"一看就懂"的简单生意（巴菲特：能力圈）
+        #   2) 其次优先买"有大额回购历史"的公司（巴菲特：回购是伟大公司的标志）
         investable_cash = cash * (1 - CASH_RESERVE)
 
         def _buy_priority(item):
@@ -351,8 +353,9 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             comp_rank = {"simple": 0, "medium": 1, "complex": 2}.get(
                 s.get("complexity", "medium"), 1
             )
-            score_desc = -(s.get("score") or 0)  # 评分高的排前
-            return (sig_rank, comp_rank, score_desc)
+            buyback_desc = -(s.get("buyback_score") or 0)  # 回购分高的排前
+            score_desc = -(s.get("score") or 0)            # 评分高的排前
+            return (sig_rank, comp_rank, buyback_desc, score_desc)
 
         for anon, sdata in sorted(signals.items(), key=_buy_priority):
             if len(holdings) >= MAX_HOLDINGS:

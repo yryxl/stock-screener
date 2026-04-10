@@ -1,0 +1,542 @@
+{
+  "S01": [
+    {
+      "start_date": "2025-11-05",
+      "status": "实施中",
+      "amount": 1112118415.55,
+      "notice_date": "2026-01-05"
+    },
+    {
+      "start_date": "2024-09-20",
+      "status": "完成实施",
+      "amount": 5999985966.95,
+      "notice_date": "2025-08-30"
+    }
+  ],
+  "S03": [
+    {
+      "start_date": "2022-04-07",
+      "status": "完成实施",
+      "amount": 707428892.15,
+      "notice_date": "2024-02-24"
+    },
+    {
+      "start_date": "2020-03-26",
+      "status": "完成实施",
+      "amount": 1807904769.04,
+      "notice_date": "2020-12-29"
+    },
+    {
+      "start_date": "2018-11-01",
+      "status": "完成实施",
+      "amount": 244704739.06,
+      "notice_date": "2019-11-21"
+    }
+  ],
+  "S04": [
+    {
+      "start_date": "2025-08-20",
+      "status": "实施中",
+      "amount": 765908200.0,
+      "notice_date": "2025-09-05"
+    },
+    {
+      "start_date": "2024-05-15",
+      "status": "完成实施",
+      "amount": 601267615.04,
+      "notice_date": "2025-05-16"
+    },
+    {
+      "start_date": "2023-05-15",
+      "status": "完成实施",
+      "amount": 634665849.66,
+      "notice_date": "2024-05-16"
+    },
+    {
+      "start_date": "2022-03-11",
+      "status": "完成实施",
+      "amount": 600512566.67,
+      "notice_date": "2023-03-13"
+    }
+  ],
+  "S05": [
+    {
+      "start_date": "2023-10-30",
+      "status": "完成实施",
+      "amount": 2999997275.61,
+      "notice_date": "2024-08-20"
+    },
+    {
+      "start_date": "2021-05-26",
+      "status": "完成实施",
+      "amount": 14999985072.39,
+      "notice_date": "2024-08-20"
+    },
+    {
+      "start_date": "2020-10-13",
+      "status": "完成实施",
+      "amount": 5999520920.65,
+      "notice_date": "2021-09-30"
+    },
+    {
+      "start_date": "2020-04-10",
+      "status": "完成实施",
+      "amount": 5999591034.74,
+      "notice_date": "2021-02-25"
+    }
+  ],
+  "S31": [
+    {
+      "start_date": "2024-04-29",
+      "status": "完成实施",
+      "amount": 1006823221.86,
+      "notice_date": "2025-05-20"
+    },
+    {
+      "start_date": "2022-10-28",
+      "status": "完成实施",
+      "amount": 1000002954.8,
+      "notice_date": "2023-05-27"
+    },
+    {
+      "start_date": "2019-04-08",
+      "status": "完成实施",
+      "amount": 5792641502.01,
+      "notice_date": "2019-09-28"
+    },
+    {
+      "start_date": "2015-07-09",
+      "status": "完成实施",
+      "amount": 998979977.83,
+      "notice_date": "2015-11-05"
+    }
+  ],
+  "S32": [
+    {
+      "start_date": "2026-03-26",
+      "status": "实施中",
+      "amount": 334007465.88,
+      "notice_date": "2026-04-02"
+    },
+    {
+      "start_date": "2025-03-27",
+      "status": "完成实施",
+      "amount": 1201376953.24,
+      "notice_date": "2026-03-27"
+    },
+    {
+      "start_date": "2022-03-30",
+      "status": "完成实施",
+      "amount": 1510100758.93,
+      "notice_date": "2025-10-17"
+    },
+    {
+      "start_date": "2021-03-05",
+      "status": "完成实施",
+      "amount": 2201974679.75,
+      "notice_date": "2024-06-21"
+    },
+    {
+      "start_date": "2023-04-27",
+      "status": "完成实施",
+      "amount": 1879718741.02,
+      "notice_date": "2024-04-30"
+    },
+    {
+      "start_date": "2015-08-07",
+      "status": "完成实施",
+      "amount": 160044579.72,
+      "notice_date": "2016-02-26"
+    }
+  ],
+  "S34": [
+    {
+      "start_date": "2023-10-25",
+      "status": "完成实施",
+      "amount": 219647679.31,
+      "notice_date": "2024-10-25"
+    },
+    {
+      "start_date": "2023-05-26",
+      "status": "完成实施",
+      "amount": 366362281.49,
+      "notice_date": "2023-10-26"
+    }
+  ],
+  "S07": [
+    {
+      "start_date": "2019-11-05",
+      "status": "完成实施",
+      "amount": 17840048.0,
+      "notice_date": "2020-05-22"
+    },
+    {
+      "start_date": "2018-10-16",
+      "status": "完成实施",
+      "amount": 1180000.0,
+      "notice_date": "2019-05-08"
+    }
+  ],
+  "S08": [
+    {
+      "start_date": "2026-03-31",
+      "status": "实施中",
+      "amount": 80262500.0,
+      "notice_date": "2026-04-10"
+    },
+    {
+      "start_date": "2026-03-31",
+      "status": "董事会预案",
+      "amount": NaN,
+      "notice_date": "2026-04-01"
+    },
+    {
+      "start_date": "2025-04-21",
+      "status": "完成实施",
+      "amount": 1500060240.57,
+      "notice_date": "2026-01-06"
+    },
+    {
+      "start_date": "2024-10-30",
+      "status": "完成实施",
+      "amount": 999872378.0,
+      "notice_date": "2025-05-24"
+    },
+    {
+      "start_date": "2021-08-30",
+      "status": "完成实施",
+      "amount": 2620105418.52,
+      "notice_date": "2023-12-15"
+    },
+    {
+      "start_date": "2020-08-28",
+      "status": "完成实施",
+      "amount": 1998774693.72,
+      "notice_date": "2020-09-05"
+    },
+    {
+      "start_date": "2016-07-14",
+      "status": "完成实施",
+      "amount": 226525285.07,
+      "notice_date": "2017-08-22"
+    }
+  ],
+  "S11": [
+    {
+      "start_date": "2021-08-26",
+      "status": "完成实施",
+      "amount": 5000001422.4,
+      "notice_date": "2022-08-30"
+    },
+    {
+      "start_date": "2019-03-12",
+      "status": "完成实施",
+      "amount": 5993765118.2,
+      "notice_date": "2020-04-30"
+    }
+  ],
+  "S13": [
+    {
+      "start_date": "2022-03-30",
+      "status": "完成实施",
+      "amount": 1291541933.32,
+      "notice_date": "2022-07-02"
+    },
+    {
+      "start_date": "2015-07-16",
+      "status": "完成实施",
+      "amount": 160148519.71,
+      "notice_date": "2016-01-15"
+    }
+  ],
+  "S39": [
+    {
+      "start_date": "2023-06-13",
+      "status": "完成实施",
+      "amount": 1000088308.8,
+      "notice_date": "2024-06-13"
+    },
+    {
+      "start_date": "2021-09-09",
+      "status": "完成实施",
+      "amount": 1500062241.03,
+      "notice_date": "2022-09-10"
+    },
+    {
+      "start_date": "2020-07-03",
+      "status": "完成实施",
+      "amount": 2247000000.0,
+      "notice_date": "2021-01-20"
+    }
+  ],
+  "S40": [
+    {
+      "start_date": "2024-07-22",
+      "status": "完成实施",
+      "amount": 286320561.0,
+      "notice_date": "2025-07-22"
+    }
+  ],
+  "S16": [
+    {
+      "start_date": "2023-08-24",
+      "status": "完成实施",
+      "amount": 999885400.0,
+      "notice_date": "2024-04-15"
+    }
+  ],
+  "S17": [
+    {
+      "start_date": "2025-04-03",
+      "status": "完成实施",
+      "amount": 4385504687.9,
+      "notice_date": "2026-04-07"
+    },
+    {
+      "start_date": "2023-10-30",
+      "status": "完成实施",
+      "amount": 2710713907.1,
+      "notice_date": "2024-10-30"
+    }
+  ],
+  "S18": [
+    {
+      "start_date": "2025-12-30",
+      "status": "实施中",
+      "amount": 499946537.83,
+      "notice_date": "2026-02-24"
+    }
+  ],
+  "S19": [
+    {
+      "start_date": "2019-11-27",
+      "status": "完成实施",
+      "amount": 187630088.74,
+      "notice_date": "2019-12-28"
+    }
+  ],
+  "S20": [
+    {
+      "start_date": "2024-03-06",
+      "status": "完成实施",
+      "amount": 399993367.0,
+      "notice_date": "2024-04-30"
+    },
+    {
+      "start_date": "2022-04-22",
+      "status": "完成实施",
+      "amount": 1809702398.72,
+      "notice_date": "2022-06-15"
+    }
+  ],
+  "S43": [
+    {
+      "start_date": "2025-04-03",
+      "status": "完成实施",
+      "amount": 1355368734.06,
+      "notice_date": "2026-04-03"
+    },
+    {
+      "start_date": "2024-02-05",
+      "status": "完成实施",
+      "amount": 657086207.58,
+      "notice_date": "2024-06-29"
+    },
+    {
+      "start_date": "2023-03-31",
+      "status": "完成实施",
+      "amount": 612691285.69,
+      "notice_date": "2023-05-05"
+    },
+    {
+      "start_date": "2019-05-06",
+      "status": "完成实施",
+      "amount": 818985380.7,
+      "notice_date": "2019-08-24"
+    }
+  ],
+  "S44": [
+    {
+      "start_date": "2024-09-26",
+      "status": "完成实施",
+      "amount": 3001295200.0,
+      "notice_date": "2025-08-27"
+    },
+    {
+      "start_date": "2022-12-12",
+      "status": "完成实施",
+      "amount": 1999543400.0,
+      "notice_date": "2023-05-26"
+    }
+  ],
+  "S46": [
+    {
+      "start_date": "2022-08-30",
+      "status": "完成实施",
+      "amount": 199985000.0,
+      "notice_date": "2025-09-23"
+    }
+  ],
+  "S23": [
+    {
+      "start_date": "2018-09-27",
+      "status": "完成实施",
+      "amount": 50009244.93,
+      "notice_date": "2019-03-13"
+    }
+  ],
+  "S47": [
+    {
+      "start_date": "2018-11-14",
+      "status": "完成实施",
+      "amount": NaN,
+      "notice_date": "2019-12-17"
+    }
+  ],
+  "S26": [
+    {
+      "start_date": "2023-10-30",
+      "status": "完成实施",
+      "amount": 563649337.41,
+      "notice_date": "2024-11-01"
+    }
+  ],
+  "S27": [
+    {
+      "start_date": "2022-01-12",
+      "status": "完成实施",
+      "amount": 999944451.22,
+      "notice_date": "2022-02-24"
+    },
+    {
+      "start_date": "2021-08-25",
+      "status": "完成实施",
+      "amount": 999990786.17,
+      "notice_date": "2021-09-02"
+    }
+  ],
+  "S50": [
+    {
+      "start_date": "2023-08-22",
+      "status": "完成实施",
+      "amount": 566248120.41,
+      "notice_date": "2024-08-23"
+    }
+  ],
+  "S51": [
+    {
+      "start_date": "2025-08-28",
+      "status": "实施中",
+      "amount": 846245965.0,
+      "notice_date": "2025-10-31"
+    }
+  ],
+  "S55": [
+    {
+      "start_date": "2025-08-21",
+      "status": "完成实施",
+      "amount": 500000213.01,
+      "notice_date": "2025-11-24"
+    },
+    {
+      "start_date": "2024-08-23",
+      "status": "完成实施",
+      "amount": 816001427.2,
+      "notice_date": "2024-11-23"
+    },
+    {
+      "start_date": "2023-08-25",
+      "status": "完成实施",
+      "amount": 816009269.0,
+      "notice_date": "2023-11-25"
+    },
+    {
+      "start_date": "2022-08-26",
+      "status": "完成实施",
+      "amount": 1888163981.61,
+      "notice_date": "2022-11-26"
+    }
+  ],
+  "S56": [
+    {
+      "start_date": "2023-10-16",
+      "status": "完成实施",
+      "amount": 2491881900.0,
+      "notice_date": "2024-10-17"
+    },
+    {
+      "start_date": "2021-01-19",
+      "status": "完成实施",
+      "amount": 3598178500.0,
+      "notice_date": "2022-01-20"
+    },
+    {
+      "start_date": "2014-05-23",
+      "status": "完成实施",
+      "amount": 187734750.08,
+      "notice_date": "2014-06-12"
+    },
+    {
+      "start_date": "2012-08-27",
+      "status": "完成实施",
+      "amount": 5000000000.0,
+      "notice_date": "2013-05-23"
+    }
+  ],
+  "S58": [
+    {
+      "start_date": "2018-09-06",
+      "status": "完成实施",
+      "amount": 2503129761.16,
+      "notice_date": "2019-03-28"
+    }
+  ],
+  "S63": [
+    {
+      "start_date": "2020-03-30",
+      "status": "完成实施",
+      "amount": 1675361296.88,
+      "notice_date": "2021-01-12"
+    }
+  ],
+  "S66": [
+    {
+      "start_date": "2022-07-20",
+      "status": "完成实施",
+      "amount": 2639869544.26,
+      "notice_date": "2023-07-20"
+    },
+    {
+      "start_date": "2019-05-13",
+      "status": "完成实施",
+      "amount": 2144813074.51,
+      "notice_date": "2019-06-29"
+    },
+    {
+      "start_date": "2016-06-13",
+      "status": "完成实施",
+      "amount": 169520900.0,
+      "notice_date": "2017-07-08"
+    }
+  ],
+  "S67": [
+    {
+      "start_date": "2025-04-14",
+      "status": "完成实施",
+      "amount": 500001384.95,
+      "notice_date": "2026-03-31"
+    },
+    {
+      "start_date": "2024-07-30",
+      "status": "完成实施",
+      "amount": 203007423.29,
+      "notice_date": "2025-02-07"
+    },
+    {
+      "start_date": "2021-09-22",
+      "status": "完成实施",
+      "amount": 1439354081.63,
+      "notice_date": "2022-09-23"
+    }
+  ]
+}

@@ -100,6 +100,72 @@ STOCK_INDUSTRY = {
 # 原始数据缓存（financial_data历史序列，用于护城河趋势检查）
 _raw_cache = {}
 
+# 回购数据缓存（全股票池的回购历史）
+_buybacks_cache = None
+
+
+def _load_buybacks():
+    """懒加载回购数据（仅第一次调用时读盘）"""
+    global _buybacks_cache
+    if _buybacks_cache is not None:
+        return _buybacks_cache
+    path = os.path.join(SCRIPT_DIR, "backtest_data", "buybacks.json")
+    if not os.path.exists(path):
+        _buybacks_cache = {}
+        return _buybacks_cache
+    with open(path, "r", encoding="utf-8") as f:
+        # 文件按 sid 组织：{"S01": [{"start_date", "status", "amount", ...}]}
+        _buybacks_cache = json.load(f)
+    return _buybacks_cache
+
+
+def get_buyback_score(sid, year, month, lookback_years=5):
+    """
+    计算某股票在某时点的"回购加分"
+    往前看 N 年，计算已完成的回购金额总和，分级加分：
+      ≥50 亿 → +15（高加分，巴菲特最爱）
+      ≥10 亿 → +8
+      ≥1 亿  → +3
+      否则   → 0
+    """
+    buybacks = _load_buybacks()
+    records = buybacks.get(sid) or []
+    if not records:
+        return 0, 0  # (score, total_amount_yi)
+
+    cutoff_y = year - lookback_years
+    total = 0.0
+    for r in records:
+        if "完成" not in str(r.get("status", "")):
+            continue
+        date_str = str(r.get("notice_date") or r.get("start_date") or "")[:7]
+        if len(date_str) < 7:
+            continue
+        try:
+            ry, rm = int(date_str[:4]), int(date_str[5:7])
+        except ValueError:
+            continue
+        # 只累计 cutoff_y ~ year-month 之间的回购
+        if (ry, rm) > (year, month):
+            continue
+        if ry < cutoff_y:
+            continue
+        amount = r.get("amount")
+        if amount is None or (isinstance(amount, float) and amount != amount):
+            continue
+        total += float(amount)
+
+    total_yi = total / 1e8  # 转亿元
+    if total_yi >= 50:
+        score = 15
+    elif total_yi >= 10:
+        score = 8
+    elif total_yi >= 1:
+        score = 3
+    else:
+        score = 0
+    return score, total_yi
+
 
 def load_raw_data(sid):
     """加载某只股票的完整raw数据（含多年财务序列），带缓存"""
@@ -575,12 +641,19 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
     is_cycle = pe_range.get("type") == "cycle"
     high_leverage = pe_range.get("high_leverage", False)
 
+    # 回购加分（巴菲特："大量回购的公司是伟大公司的标志"）
+    buyback_score, buyback_yi = (0, 0.0)
+    if sid and year and month:
+        buyback_score, buyback_yi = get_buyback_score(sid, year, month)
+
     result = {
         "signal": "hold",
         "signal_text": "数据不足",
         "score": 0,
         "complexity": complexity,
         "is_cycle": is_cycle,
+        "buyback_score": buyback_score,
+        "buyback_yi": buyback_yi,
     }
 
     # 没有价格的（已退市/未上市）
@@ -787,6 +860,8 @@ def get_month_signals(year, month, anon_map=None, industry_map=None):
             "score": eval_result["score"],
             "complexity": eval_result.get("complexity", "medium"),
             "is_cycle": eval_result.get("is_cycle", False),
+            "buyback_score": eval_result.get("buyback_score", 0),
+            "buyback_yi": eval_result.get("buyback_yi", 0),
             "events": stock_events,
         }
 
