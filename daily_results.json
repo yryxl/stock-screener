@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-10 09:16",
-  "mode": "all",
+  "date": "2026-04-10 10:50",
+  "mode": "watchlist",
   "is_trading_day": true,
-  "data_source": "全量运行（交易日实时数据）",
+  "data_source": "关注表+持仓",
   "ai_recommendations": [],
   "watchlist_signals": [
     {
@@ -50,9 +50,9 @@
       "category": "生物制品",
       "note": "生长激素国内市占70%+",
       "price": 86.0,
-      "pe": 36.21,
+      "pe": 36.58,
       "signal": "hold",
-      "signal_text": "PE(TTM)=36.2，继续观望",
+      "signal_text": "PE(TTM)=36.6，继续观望",
       "total_score": 26,
       "dividend_yield": 8.26,
       "dimensions": {
@@ -79,7 +79,7 @@
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=36.2偏高 | 简单生意"
+          "detail": "PE=36.6偏高 | 简单生意"
         }
       }
     },
@@ -89,7 +89,7 @@
       "category": "中药Ⅱ",
       "note": "国家绝密配方+百年品牌",
       "price": 54.92,
-      "pe": 19.08,
+      "pe": 19.01,
       "signal": "hold",
       "signal_text": "财务风险(仅5年数据、ROE=10.2% 负债率26%)，继续观望",
       "total_score": 24,
@@ -118,7 +118,7 @@
         "估值": {
           "score": 8,
           "max": 10,
-          "detail": "PE=19.1低估 | 简单生意"
+          "detail": "PE=19.0低估 | 简单生意"
         }
       }
     },
@@ -390,11 +390,20 @@
       "shares": 100,
       "cost": 56.4,
       "price": 54.92,
-      "pe": 19.08,
+      "pe": 19.01,
       "signal": "hold_keep",
-      "signal_text": "PE=19.1，处于合理区间15-25 →建议持续持有",
+      "signal_text": "PE=19.0，处于合理区间15-25 →建议持续持有",
       "industry": "",
       "holding_pnl": -2.624113475177303
+    }
+  ],
+  "position_warnings": [
+    {
+      "code": "512890",
+      "name": "红利低波etf华泰",
+      "pct": 51.07690841513389,
+      "level": "danger",
+      "text": "仓位51.1%≥40%，严重偏重！建议分散"
     }
   ]
 }
