@@ -100,28 +100,48 @@ def collect_pe_history(code):
 
 
 def collect_financial_data(code):
-    """采集财务数据（ROE/负债率/毛利率等）"""
+    """
+    采集财务数据（ROE/负债率/毛利率/净利率等）
+    按列名精确匹配，兼容银行股（列数和列序与工商业股不同）
+    """
     try:
-        # 优先用同花顺
         df = ak.stock_financial_abstract_ths(symbol=code)
         if df is None or df.empty:
             return []
 
         cols = list(df.columns)
+        # 按列名找索引，找不到返回 None
+        def find(names):
+            for name in names:
+                if name in cols:
+                    return name
+            return None
+
+        col_date = find(["报告期"])
+        col_roe = find(["净资产收益率", "净资产收益率-摊薄"])
+        col_gm = find(["销售毛利率"])           # 银行股没有
+        col_nm = find(["销售净利率"])            # 银行股关键指标
+        col_debt = find(["资产负债率"])
+        col_current = find(["流动比率"])         # 银行股没有
+        col_eps = find(["基本每股收益"])
+        col_rev = find(["营业总收入同比增长率", "营业收入同比增长率"])
+        col_profit = find(["净利润同比增长率"])  # 净利润增长率
+        # 巴菲特核心：每股经营现金流（用于识别"账面利润是否真变成现金"）
+        col_ocf = find(["每股经营现金流", "每股经营性现金流"])
+
         records = []
         for _, row in df.iterrows():
-            date = str(row[cols[0]])[:7]
+            date = str(row[col_date])[:7] if col_date else ""
             record = {"date": date}
-
-            # 按列索引取数据（同花顺列名可能乱码）
-            if len(cols) >= 25:
-                record["roe"] = _to_float(row[cols[14]])
-                record["gross_margin"] = _to_float(row[cols[13]])
-                record["debt_ratio"] = _to_float(row[cols[24]])
-                record["current_ratio"] = _to_float(row[cols[20]])
-                record["eps"] = _to_float(row[cols[7]])
-                record["revenue_growth"] = _to_float(row[cols[6]])
-
+            if col_roe:     record["roe"] = _to_float(row[col_roe])
+            if col_gm:      record["gross_margin"] = _to_float(row[col_gm])
+            if col_nm:      record["net_margin"] = _to_float(row[col_nm])
+            if col_debt:    record["debt_ratio"] = _to_float(row[col_debt])
+            if col_current: record["current_ratio"] = _to_float(row[col_current])
+            if col_eps:     record["eps"] = _to_float(row[col_eps])
+            if col_rev:     record["revenue_growth"] = _to_float(row[col_rev])
+            if col_profit:  record["profit_growth"] = _to_float(row[col_profit])
+            if col_ocf:     record["ocf_per_share"] = _to_float(row[col_ocf])
             records.append(record)
         return records
     except Exception as e:
@@ -226,17 +246,34 @@ def build_monthly_snapshots(all_data, stocks):
             # 取当月PE（精确匹配或最近的）
             pe = stock_data.get("pe_history", {}).get(month)
 
-            # 取最近的财务数据（年报/季报，取最新的<=当月的）
+            # 只取最新已披露的年报（避免季度ROE被当年化ROE误判）
+            # 年报披露规则：X年12月年报在X+1年4月后才公开
+            all_fin = stock_data.get("financial_data", []) or []
+            cy, cm = int(month[:4]), int(month[5:7])
             fin = {}
-            for f in stock_data.get("financial_data", []):
-                if f["date"] <= month:
-                    fin = f
-                    break  # 已按日期降序
+            best_date = ""
+            for f in all_fin:
+                fd_str = str(f.get("date", ""))[:7]
+                if len(fd_str) != 7 or not fd_str.endswith("-12"):
+                    continue
+                try:
+                    fy = int(fd_str[:4])
+                except ValueError:
+                    continue
+                # 披露可见时间：次年4月起
+                if (fy + 1, 4) <= (cy, cm):
+                    if fd_str > best_date:
+                        best_date = fd_str
+                        fin = f
 
             # 取股息率（用最近2次分红/当月价格）
             div_yield = 0
             divs = stock_data.get("dividends", [])
-            recent_divs = [d for d in divs if d["date"] <= month][:2]
+            recent_divs = sorted(
+                [d for d in divs if str(d.get("date", ""))[:7] <= month],
+                key=lambda d: str(d.get("date", "")),
+                reverse=True,
+            )[:2]
             if recent_divs and price_data.get("price", 0) > 0:
                 total = sum(d.get("div_per_10", 0) or 0 for d in recent_divs)
                 div_yield = round((total / 10 / price_data["price"]) * 100, 2)
@@ -247,10 +284,15 @@ def build_monthly_snapshots(all_data, stocks):
                 "pe_ttm": pe,
                 "roe": fin.get("roe"),
                 "gross_margin": fin.get("gross_margin"),
+                "net_margin": fin.get("net_margin"),
                 "debt_ratio": fin.get("debt_ratio"),
                 "current_ratio": fin.get("current_ratio"),
                 "revenue_growth": fin.get("revenue_growth"),
+                "profit_growth": fin.get("profit_growth"),
+                "eps": fin.get("eps"),
+                "ocf_per_share": fin.get("ocf_per_share"),  # 巴菲特：真金白银
                 "dividend_yield": div_yield,
+                "fin_date": best_date,  # 记录所用财报期，便于诊断
             }
 
         # 保存月度快照

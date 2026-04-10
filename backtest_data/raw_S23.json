@@ -1865,631 +1865,841 @@
       "date": "2007-12",
       "roe": 24.57,
       "gross_margin": 33.28,
+      "net_margin": 19.94,
       "debt_ratio": 35.92,
       "current_ratio": 2.19,
       "eps": 0.44,
-      "revenue_growth": null
+      "revenue_growth": null,
+      "profit_growth": null,
+      "ocf_per_share": 0.54
     },
     {
       "date": "2008-12",
       "roe": 21.19,
       "gross_margin": 28.07,
+      "net_margin": 16.16,
       "debt_ratio": 45.05,
       "current_ratio": 2.12,
       "eps": 0.52,
-      "revenue_growth": 50.34
+      "revenue_growth": 50.34,
+      "profit_growth": 22.02,
+      "ocf_per_share": 0.55
     },
     {
       "date": "2009-03",
       "roe": null,
       "gross_margin": 23.29,
+      "net_margin": 10.17,
       "debt_ratio": null,
       "current_ratio": null,
       "eps": 0.1,
-      "revenue_growth": null
+      "revenue_growth": null,
+      "profit_growth": null,
+      "ocf_per_share": null
     },
     {
       "date": "2009-06",
       "roe": 8.15,
       "gross_margin": 22.97,
+      "net_margin": 10.25,
       "debt_ratio": null,
       "current_ratio": null,
       "eps": 0.23,
-      "revenue_growth": null
+      "revenue_growth": null,
+      "profit_growth": null,
+      "ocf_per_share": 0.21
     },
     {
       "date": "2009-09",
       "roe": null,
       "gross_margin": 25.68,
+      "net_margin": 12.37,
       "debt_ratio": null,
       "current_ratio": null,
       "eps": 0.43,
-      "revenue_growth": null
+      "revenue_growth": null,
+      "profit_growth": null,
+      "ocf_per_share": null
     },
     {
       "date": "2009-12",
       "roe": 23.22,
       "gross_margin": 26.47,
+      "net_margin": 13.67,
       "debt_ratio": 46.34,
       "current_ratio": 1.45,
       "eps": 0.71,
-      "revenue_growth": 61.65
+      "revenue_growth": 61.65,
+      "profit_growth": 36.77,
+      "ocf_per_share": 0.68
     },
     {
       "date": "2010-03",
       "roe": null,
       "gross_margin": 23.26,
+      "net_margin": 9.31,
       "debt_ratio": 47.26,
       "current_ratio": 1.4,
       "eps": 0.13,
-      "revenue_growth": 50.76
+      "revenue_growth": 50.76,
+      "profit_growth": 37.93,
+      "ocf_per_share": -0.25
     },
     {
       "date": "2010-06",
       "roe": 9.1,
       "gross_margin": 23.59,
+      "net_margin": 9.84,
       "debt_ratio": 53.49,
       "current_ratio": 1.19,
       "eps": 0.16,
-      "revenue_growth": 47.44
+      "revenue_growth": 47.44,
+      "profit_growth": 41.58,
+      "ocf_per_share": 0.09
     },
     {
       "date": "2010-09",
       "roe": 6.28,
       "gross_margin": 22.74,
+      "net_margin": 9.7,
       "debt_ratio": 24.34,
       "current_ratio": 3.92,
       "eps": 0.25,
-      "revenue_growth": 59.97
+      "revenue_growth": 59.97,
+      "profit_growth": 25.41,
+      "ocf_per_share": -0.13
     },
     {
       "date": "2010-12",
       "roe": 9.46,
       "gross_margin": 22.62,
+      "net_margin": 8.43,
       "debt_ratio": 28.32,
       "current_ratio": 3.14,
       "eps": 0.32,
-      "revenue_growth": 65.78
+      "revenue_growth": 65.78,
+      "profit_growth": 2.16,
+      "ocf_per_share": -0.93
     },
     {
       "date": "2011-03",
       "roe": 0.6,
       "gross_margin": 14.87,
+      "net_margin": 2.48,
       "debt_ratio": 42.98,
       "current_ratio": 2.49,
       "eps": 0.03,
-      "revenue_growth": 131.85
+      "revenue_growth": 131.85,
+      "profit_growth": -38.24,
+      "ocf_per_share": -1.09
     },
     {
       "date": "2011-06",
       "roe": -1.91,
       "gross_margin": 10.77,
+      "net_margin": -4.25,
       "debt_ratio": 51.43,
       "current_ratio": 1.83,
       "eps": -0.09,
-      "revenue_growth": 79.64
+      "revenue_growth": 79.64,
+      "profit_growth": -177.58,
+      "ocf_per_share": -0.98
     },
     {
       "date": "2011-09",
       "roe": -2.58,
       "gross_margin": 10.57,
+      "net_margin": -3.8,
       "debt_ratio": 55.32,
       "current_ratio": 1.54,
       "eps": -0.13,
-      "revenue_growth": 60.19
+      "revenue_growth": 60.19,
+      "profit_growth": -162.75,
+      "ocf_per_share": -1.45
     },
     {
       "date": "2011-12",
       "roe": 2.14,
       "gross_margin": 13.78,
+      "net_margin": 1.66,
       "debt_ratio": 59.13,
       "current_ratio": 1.3,
       "eps": 0.11,
-      "revenue_growth": 101.43
+      "revenue_growth": 101.43,
+      "profit_growth": -60.24,
+      "ocf_per_share": -1.08
     },
     {
       "date": "2012-03",
       "roe": 2.1,
       "gross_margin": 21.15,
+      "net_margin": 5.68,
       "debt_ratio": 59.51,
       "current_ratio": 1.26,
       "eps": 0.09,
-      "revenue_growth": 53.86
+      "revenue_growth": 53.86,
+      "profit_growth": 252.46,
+      "ocf_per_share": -0.8
     },
     {
       "date": "2012-06",
       "roe": 8.46,
       "gross_margin": 21.1,
+      "net_margin": 6.68,
       "debt_ratio": 69.2,
       "current_ratio": 0.98,
       "eps": 0.22,
-      "revenue_growth": 201.78
+      "revenue_growth": 201.78,
+      "profit_growth": 574.16,
+      "ocf_per_share": 0.03
     },
     {
       "date": "2012-09",
       "roe": 18.23,
       "gross_margin": 20.31,
+      "net_margin": 7.91,
       "debt_ratio": 70.07,
       "current_ratio": 0.99,
       "eps": 1.02,
-      "revenue_growth": 280.52
+      "revenue_growth": 280.52,
+      "profit_growth": 891.76,
+      "ocf_per_share": 0.39
     },
     {
       "date": "2012-12",
       "roe": 28.33,
       "gross_margin": 20.04,
+      "net_margin": 8.17,
       "debt_ratio": 72.92,
       "current_ratio": 0.92,
       "eps": 0.84,
-      "revenue_growth": 215.75
+      "revenue_growth": 215.75,
+      "profit_growth": 1450.41,
+      "ocf_per_share": 0.93
     },
     {
       "date": "2013-03",
       "roe": 3.7,
       "gross_margin": 19.07,
+      "net_margin": 7.11,
       "debt_ratio": 56.88,
       "current_ratio": 1.34,
       "eps": 0.19,
-      "revenue_growth": 230.52
+      "revenue_growth": 230.52,
+      "profit_growth": 313.54,
+      "ocf_per_share": 1.48
     },
     {
       "date": "2013-06",
       "roe": 8.5,
       "gross_margin": 17.85,
+      "net_margin": 6.69,
       "debt_ratio": 64.75,
       "current_ratio": 1.11,
       "eps": 0.24,
-      "revenue_growth": 156.74
+      "revenue_growth": 156.74,
+      "profit_growth": 156.94,
+      "ocf_per_share": -0.56
     },
     {
       "date": "2013-09",
       "roe": 13.72,
       "gross_margin": 16.99,
+      "net_margin": 6.52,
       "debt_ratio": 68.1,
       "current_ratio": 1.07,
       "eps": 0.41,
-      "revenue_growth": 134.06
+      "revenue_growth": 134.06,
+      "profit_growth": 93.14,
+      "ocf_per_share": 0.04
     },
     {
       "date": "2013-12",
       "roe": 19.86,
       "gross_margin": 16.34,
+      "net_margin": 6.28,
       "debt_ratio": 65.69,
       "current_ratio": 1.04,
       "eps": 0.62,
-      "revenue_growth": 131.5
+      "revenue_growth": 131.5,
+      "profit_growth": 77.95,
+      "ocf_per_share": 1.48
     },
     {
       "date": "2014-03",
       "roe": 4.38,
       "gross_margin": 14.02,
+      "net_margin": 4.82,
       "debt_ratio": 71.37,
       "current_ratio": 1.16,
       "eps": 0.16,
-      "revenue_growth": 152.76
+      "revenue_growth": 152.76,
+      "profit_growth": 71.52,
+      "ocf_per_share": -0.75
     },
     {
       "date": "2014-06",
       "roe": 9.28,
       "gross_margin": 12.03,
+      "net_margin": 3.79,
       "debt_ratio": 74.55,
       "current_ratio": 1.11,
       "eps": 0.34,
-      "revenue_growth": 151.57
+      "revenue_growth": 151.57,
+      "profit_growth": 42.71,
+      "ocf_per_share": -1.06
     },
     {
       "date": "2014-09",
       "roe": 14.18,
       "gross_margin": 11.88,
+      "net_margin": 3.75,
       "debt_ratio": 65.66,
       "current_ratio": 1.37,
       "eps": 0.56,
-      "revenue_growth": 142.06
+      "revenue_growth": 142.06,
+      "profit_growth": 39.07,
+      "ocf_per_share": -0.75
     },
     {
       "date": "2014-12",
       "roe": 16.22,
       "gross_margin": 12.0,
+      "net_margin": 3.5,
       "debt_ratio": 58.89,
       "current_ratio": 1.49,
       "eps": 0.75,
-      "revenue_growth": 114.05
+      "revenue_growth": 114.05,
+      "profit_growth": 26.33,
+      "ocf_per_share": -0.21
     },
     {
       "date": "2015-03",
       "roe": 1.37,
       "gross_margin": 11.94,
+      "net_margin": 2.04,
       "debt_ratio": 57.12,
       "current_ratio": 1.58,
       "eps": 0.09,
-      "revenue_growth": 29.55
+      "revenue_growth": 29.55,
+      "profit_growth": -34.18,
+      "ocf_per_share": -0.08
     },
     {
       "date": "2015-06",
       "roe": 4.48,
       "gross_margin": 11.62,
+      "net_margin": 3.07,
       "debt_ratio": 60.13,
       "current_ratio": 1.38,
       "eps": 0.274,
-      "revenue_growth": 4.51
+      "revenue_growth": 4.51,
+      "profit_growth": -10.4,
+      "ocf_per_share": -0.19
     },
     {
       "date": "2015-09",
       "roe": 4.45,
       "gross_margin": 12.07,
+      "net_margin": 2.61,
       "debt_ratio": 60.77,
       "current_ratio": 1.35,
       "eps": 0.343,
-      "revenue_growth": -5.31
+      "revenue_growth": -5.31,
+      "profit_growth": -32.55,
+      "ocf_per_share": 0.11
     },
     {
       "date": "2015-12",
       "roe": 8.22,
       "gross_margin": 12.84,
+      "net_margin": 2.59,
       "debt_ratio": 62.41,
       "current_ratio": 1.39,
       "eps": 0.4642,
-      "revenue_growth": -5.33
+      "revenue_growth": -5.33,
+      "profit_growth": -33.71,
+      "ocf_per_share": 0.57
     },
     {
       "date": "2016-03",
       "roe": 2.04,
       "gross_margin": 11.79,
+      "net_margin": 2.97,
       "debt_ratio": 59.93,
       "current_ratio": 1.25,
       "eps": 0.121,
-      "revenue_growth": 6.5
+      "revenue_growth": 6.5,
+      "profit_growth": 29.53,
+      "ocf_per_share": 0.54
     },
     {
       "date": "2016-06",
       "roe": 5.89,
       "gross_margin": 11.9,
+      "net_margin": 3.34,
       "debt_ratio": 68.13,
       "current_ratio": 1.15,
       "eps": 0.1427,
-      "revenue_growth": 26.42
+      "revenue_growth": 26.42,
+      "profit_growth": 30.17,
+      "ocf_per_share": 0.32
     },
     {
       "date": "2016-09",
       "roe": 8.98,
       "gross_margin": 11.02,
+      "net_margin": 2.97,
       "debt_ratio": 68.37,
       "current_ratio": 1.1,
       "eps": 0.2195,
-      "revenue_growth": 43.22
+      "revenue_growth": 43.22,
+      "profit_growth": 60.32,
+      "ocf_per_share": 0.23
     },
     {
       "date": "2016-12",
       "roe": 10.87,
       "gross_margin": 11.48,
+      "net_margin": 2.68,
       "debt_ratio": 65.69,
       "current_ratio": 1.09,
       "eps": 0.2757,
-      "revenue_growth": 44.59
+      "revenue_growth": 44.59,
+      "profit_growth": 50.24,
+      "ocf_per_share": 0.75
     },
     {
       "date": "2017-03",
       "roe": 2.34,
       "gross_margin": 11.98,
+      "net_margin": 3.08,
       "debt_ratio": 67.24,
       "current_ratio": 1.2,
       "eps": 0.07,
-      "revenue_growth": 47.09
+      "revenue_growth": 47.09,
+      "profit_growth": 52.83,
+      "ocf_per_share": -0.45
     },
     {
       "date": "2017-06",
       "roe": 7.43,
       "gross_margin": 12.09,
+      "net_margin": 4.1,
       "debt_ratio": 70.73,
       "current_ratio": 1.1,
       "eps": 0.2284,
-      "revenue_growth": 37.28
+      "revenue_growth": 37.28,
+      "profit_growth": 68.69,
+      "ocf_per_share": -0.4
     },
     {
       "date": "2017-09",
       "roe": 11.98,
       "gross_margin": 12.59,
+      "net_margin": 4.17,
       "debt_ratio": 71.34,
       "current_ratio": 1.21,
       "eps": 0.3764,
-      "revenue_growth": 28.69
+      "revenue_growth": 28.69,
+      "profit_growth": 80.3,
+      "ocf_per_share": -0.38
     },
     {
       "date": "2017-12",
       "roe": 9.71,
       "gross_margin": 13.76,
+      "net_margin": 2.43,
       "debt_ratio": 70.2,
       "current_ratio": 1.1,
       "eps": 0.3072,
-      "revenue_growth": 26.34
+      "revenue_growth": 26.34,
+      "profit_growth": 14.43,
+      "ocf_per_share": 0.12
     },
     {
       "date": "2018-03",
       "roe": 3.19,
       "gross_margin": 15.15,
+      "net_margin": 3.9,
       "debt_ratio": 70.94,
       "current_ratio": 1.08,
       "eps": 0.1089,
-      "revenue_growth": 22.06
+      "revenue_growth": 22.06,
+      "profit_growth": 55.01,
+      "ocf_per_share": -0.3
     },
     {
       "date": "2018-06",
       "roe": 7.82,
       "gross_margin": 15.26,
+      "net_margin": 4.07,
       "debt_ratio": 74.78,
       "current_ratio": 1.05,
       "eps": 0.2768,
-      "revenue_growth": 20.74
+      "revenue_growth": 20.74,
+      "profit_growth": 19.93,
+      "ocf_per_share": 0.05
     },
     {
       "date": "2018-09",
       "roe": 14.08,
       "gross_margin": 15.0,
+      "net_margin": 4.41,
       "debt_ratio": 73.56,
       "current_ratio": 1.05,
       "eps": 0.5133,
-      "revenue_growth": 27.35
+      "revenue_growth": 27.35,
+      "profit_growth": 34.69,
+      "ocf_per_share": 0.09
     },
     {
       "date": "2018-12",
       "roe": -5.88,
       "gross_margin": 12.32,
+      "net_margin": -1.23,
       "debt_ratio": 77.08,
       "current_ratio": 0.91,
       "eps": -0.1934,
-      "revenue_growth": 27.38
+      "revenue_growth": 27.38,
+      "profit_growth": -163.1,
+      "ocf_per_share": 0.24
     },
     {
       "date": "2019-03",
       "roe": -2.99,
       "gross_margin": 8.23,
+      "net_margin": -2.44,
       "debt_ratio": 78.43,
       "current_ratio": 0.96,
       "eps": -0.0953,
-      "revenue_growth": 40.98
+      "revenue_growth": 40.98,
+      "profit_growth": -186.86,
+      "ocf_per_share": 0.04
     },
     {
       "date": "2019-06",
       "roe": 0.24,
       "gross_margin": 10.08,
+      "net_margin": 0.15,
       "debt_ratio": 78.34,
       "current_ratio": 0.89,
       "eps": 0.0077,
-      "revenue_growth": 29.21
+      "revenue_growth": 29.21,
+      "profit_growth": -97.18,
+      "ocf_per_share": 0.5
     },
     {
       "date": "2019-09",
       "roe": 2.09,
       "gross_margin": 9.81,
+      "net_margin": 0.49,
       "debt_ratio": 77.83,
       "current_ratio": 0.9,
       "eps": 0.0666,
-      "revenue_growth": 21.67
+      "revenue_growth": 21.67,
+      "profit_growth": -86.88,
+      "ocf_per_share": 1.16
     },
     {
       "date": "2019-12",
       "roe": 5.8,
       "gross_margin": 9.87,
+      "net_margin": 0.99,
       "debt_ratio": 72.93,
       "current_ratio": 0.93,
       "eps": 0.1892,
-      "revenue_growth": 20.75
+      "revenue_growth": 20.75,
+      "profit_growth": 198.24,
+      "ocf_per_share": 1.21
     },
     {
       "date": "2020-03",
       "roe": 1.48,
       "gross_margin": 10.23,
+      "net_margin": 1.47,
       "debt_ratio": 72.0,
       "current_ratio": 0.96,
       "eps": 0.0523,
-      "revenue_growth": -8.36
+      "revenue_growth": -8.36,
+      "profit_growth": 154.89,
+      "ocf_per_share": 0.23
     },
     {
       "date": "2020-06",
       "roe": 5.17,
       "gross_margin": 10.77,
+      "net_margin": 2.27,
       "debt_ratio": 72.79,
       "current_ratio": 1.07,
       "eps": 0.1863,
-      "revenue_growth": -0.53
+      "revenue_growth": -0.53,
+      "profit_growth": 2290.28,
+      "ocf_per_share": 0.61
     },
     {
       "date": "2020-09",
       "roe": 7.55,
       "gross_margin": 10.65,
+      "net_margin": 2.23,
       "debt_ratio": 70.33,
       "current_ratio": 1.14,
       "eps": 0.2742,
-      "revenue_growth": -2.2
+      "revenue_growth": -2.2,
+      "profit_growth": 309.21,
+      "ocf_per_share": 0.87
     },
     {
       "date": "2020-12",
       "roe": -22.99,
       "gross_margin": 10.91,
+      "net_margin": -3.83,
       "debt_ratio": 73.71,
       "current_ratio": 1.27,
       "eps": -0.7216,
-      "revenue_growth": -6.97
+      "revenue_growth": -6.97,
+      "profit_growth": -481.39,
+      "ocf_per_share": 1.5
     },
     {
       "date": "2021-03",
       "roe": 1.03,
       "gross_margin": 14.12,
+      "net_margin": 1.69,
       "debt_ratio": 71.32,
       "current_ratio": 1.23,
       "eps": 0.0286,
-      "revenue_growth": -24.57
+      "revenue_growth": -24.57,
+      "profit_growth": -45.18,
+      "ocf_per_share": 0.51
     },
     {
       "date": "2021-06",
       "roe": 0.45,
       "gross_margin": 13.09,
+      "net_margin": 0.71,
       "debt_ratio": 66.31,
       "current_ratio": 1.17,
       "eps": 0.0126,
-      "revenue_growth": -49.96
+      "revenue_growth": -49.96,
+      "profit_growth": -93.25,
+      "ocf_per_share": 0.88
     },
     {
       "date": "2021-09",
       "roe": -0.51,
       "gross_margin": 10.87,
+      "net_margin": -0.02,
       "debt_ratio": 55.89,
       "current_ratio": 1.33,
       "eps": -0.0146,
-      "revenue_growth": -53.59
+      "revenue_growth": -53.59,
+      "profit_growth": -105.47,
+      "ocf_per_share": 0.41
     },
     {
       "date": "2021-12",
       "roe": -35.67,
       "gross_margin": 8.55,
+      "net_margin": -12.38,
       "debt_ratio": 60.68,
       "current_ratio": 1.34,
       "eps": -0.9102,
-      "revenue_growth": -52.75
+      "revenue_growth": -52.75,
+      "profit_growth": -34.99,
+      "ocf_per_share": 0.61
     },
     {
       "date": "2022-03",
       "roe": -2.24,
       "gross_margin": 5.66,
+      "net_margin": -4.44,
       "debt_ratio": 62.36,
       "current_ratio": 1.3,
       "eps": -0.0571,
-      "revenue_growth": -37.65
+      "revenue_growth": -37.65,
+      "profit_growth": -341.33,
+      "ocf_per_share": 0.02
     },
     {
       "date": "2022-06",
       "roe": -10.9,
       "gross_margin": 3.44,
+      "net_margin": -12.71,
       "debt_ratio": 60.37,
       "current_ratio": 1.26,
       "eps": -0.268,
-      "revenue_growth": -33.78
+      "revenue_growth": -33.78,
+      "profit_growth": -2677.73,
+      "ocf_per_share": 0.13
     },
     {
       "date": "2022-09",
       "roe": -48.24,
       "gross_margin": 1.18,
+      "net_margin": -33.37,
       "debt_ratio": 69.41,
       "current_ratio": 1.14,
       "eps": -1.0067,
-      "revenue_growth": -37.06
+      "revenue_growth": -37.06,
+      "profit_growth": -8024.39,
+      "ocf_per_share": 0.34
     },
     {
       "date": "2022-12",
       "roe": -88.6,
       "gross_margin": -0.1,
+      "net_margin": -38.41,
       "debt_ratio": 78.19,
       "current_ratio": 0.84,
       "eps": -1.5876,
-      "revenue_growth": -35.09
+      "revenue_growth": -35.09,
+      "profit_growth": -97.43,
+      "ocf_per_share": 0.57
     },
     {
       "date": "2023-03",
       "roe": -11.67,
       "gross_margin": 2.38,
+      "net_margin": -15.86,
       "debt_ratio": 79.15,
       "current_ratio": 0.82,
       "eps": -0.1099,
-      "revenue_growth": -41.3
+      "revenue_growth": -41.3,
+      "profit_growth": -92.19,
+      "ocf_per_share": 0.0075
     },
     {
       "date": "2023-06",
       "roe": -11.51,
       "gross_margin": 4.85,
+      "net_margin": -7.08,
       "debt_ratio": 79.79,
       "current_ratio": 0.82,
       "eps": -0.1086,
-      "revenue_growth": -18.79
+      "revenue_growth": -18.79,
+      "profit_growth": 59.52,
+      "ocf_per_share": -0.03
     },
     {
       "date": "2023-09",
       "roe": -9.61,
       "gross_margin": 7.73,
+      "net_margin": -3.38,
       "debt_ratio": 78.93,
       "current_ratio": 0.81,
       "eps": -0.0919,
-      "revenue_growth": -0.05
+      "revenue_growth": -0.05,
+      "profit_growth": 90.88,
+      "ocf_per_share": -0.1
     },
     {
       "date": "2023-12",
       "roe": 2.32,
       "gross_margin": 10.02,
+      "net_margin": 0.44,
       "debt_ratio": 79.01,
       "current_ratio": 0.89,
       "eps": 0.0236,
-      "revenue_growth": 13.73
+      "revenue_growth": 13.73,
+      "profit_growth": 101.48,
+      "ocf_per_share": -0.15
     },
     {
       "date": "2024-03",
       "roe": 0.47,
       "gross_margin": 10.49,
+      "net_margin": 0.08,
       "debt_ratio": 78.8,
       "current_ratio": 0.89,
       "eps": 0.0049,
-      "revenue_growth": 72.33
+      "revenue_growth": 72.33,
+      "profit_growth": 104.44,
+      "ocf_per_share": -0.1
     },
     {
       "date": "2024-06",
       "roe": 1.14,
       "gross_margin": 10.88,
+      "net_margin": 0.65,
       "debt_ratio": 77.2,
       "current_ratio": 0.89,
       "eps": 0.012,
-      "revenue_growth": 51.02
+      "revenue_growth": 51.02,
+      "profit_growth": 111.07,
+      "ocf_per_share": 0.1
     },
     {
       "date": "2024-09",
       "roe": 1.36,
       "gross_margin": 11.49,
+      "net_margin": 0.68,
       "debt_ratio": 79.01,
       "current_ratio": 0.96,
       "eps": 0.0144,
-      "revenue_growth": 33.76
+      "revenue_growth": 33.76,
+      "profit_growth": 115.74,
+      "ocf_per_share": 0.05
     },
     {
       "date": "2024-12",
       "roe": 1.66,
       "gross_margin": 11.6,
+      "net_margin": 0.63,
       "debt_ratio": 79.18,
       "current_ratio": 0.96,
       "eps": 0.0178,
-      "revenue_growth": 21.19
+      "revenue_growth": 21.19,
+      "profit_growth": -24.09,
+      "ocf_per_share": 0.02
     },
     {
       "date": "2025-03",
       "roe": -1.62,
       "gross_margin": 10.36,
+      "net_margin": -1.24,
       "debt_ratio": 78.43,
       "current_ratio": 0.95,
       "eps": -0.018,
-      "revenue_growth": 5.07
+      "revenue_growth": 5.07,
+      "profit_growth": -470.51,
+      "ocf_per_share": 0.01
     },
     {
       "date": "2025-06",
       "roe": -2.99,
       "gross_margin": 10.0,
+      "net_margin": -0.98,
       "debt_ratio": 77.97,
       "current_ratio": 0.95,
       "eps": -0.0332,
-      "revenue_growth": 3.15
+      "revenue_growth": 3.15,
+      "profit_growth": -378.13,
+      "ocf_per_share": 0.1
     },
     {
       "date": "2025-09",
       "roe": -1.81,
       "gross_margin": 9.76,
+      "net_margin": -0.13,
       "debt_ratio": 77.86,
       "current_ratio": 0.95,
       "eps": -0.0207,
-      "revenue_growth": 9.29
+      "revenue_growth": 9.29,
+      "profit_growth": -244.42,
+      "ocf_per_share": 0.06
     },
     {
       "date": "2025-12",
       "roe": 1.07,
       "gross_margin": 10.32,
+      "net_margin": 0.75,
       "debt_ratio": 76.92,
       "current_ratio": 0.93,
       "eps": 0.0126,
-      "revenue_growth": 8.38
+      "revenue_growth": 8.38,
+      "profit_growth": -28.69,
+      "ocf_per_share": 0.08
     }
   ],
   "dividends": [

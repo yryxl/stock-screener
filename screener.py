@@ -44,8 +44,11 @@ INDUSTRY_PE = {
     "中药": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer", "complexity": "simple"},
     "家电": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 30, "type": "consumer", "complexity": "simple"},
     "传媒": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "consumer", "complexity": "simple"},
-    "银行": {"low": 5, "fair_low": 6, "fair_high": 9, "high": 12, "type": "mature", "complexity": "simple"},
-    "保险": {"low": 6, "fair_low": 8, "fair_high": 12, "high": 16, "type": "mature", "complexity": "simple"},
+    "银行": {"low": 5, "fair_low": 6, "fair_high": 9, "high": 12, "type": "mature", "complexity": "simple", "high_leverage": True},
+    "保险": {"low": 6, "fair_low": 8, "fair_high": 12, "high": 16, "type": "mature", "complexity": "simple", "high_leverage": True},
+    "证券": {"low": 10, "fair_low": 14, "fair_high": 22, "high": 30, "type": "mature", "complexity": "medium", "high_leverage": True},
+    "券商": {"low": 10, "fair_low": 14, "fair_high": 22, "high": 30, "type": "mature", "complexity": "medium", "high_leverage": True},
+    "多元金融": {"low": 10, "fair_low": 14, "fair_high": 22, "high": 30, "type": "mature", "complexity": "medium", "high_leverage": True},
     "免税": {"low": 18, "fair_low": 25, "fair_high": 40, "high": 50, "type": "consumer", "complexity": "simple"},
     "旅游零售": {"low": 18, "fair_low": 25, "fair_high": 40, "high": 50, "type": "consumer", "complexity": "simple"},
     "医药": {"low": 15, "fair_low": 20, "fair_high": 30, "high": 40, "type": "growth", "complexity": "simple"},
@@ -97,6 +100,29 @@ INDUSTRY_PE = {
     "稀土": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle", "complexity": "complex"},
     "小金属": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle", "complexity": "complex"},
     "矿业": {"low": 8, "fair_low": 10, "fair_high": 18, "high": 25, "type": "cycle", "complexity": "complex"},
+    "石油": {"low": 6, "fair_low": 9, "fair_high": 15, "high": 22, "type": "cycle", "complexity": "complex"},
+    "石油石化": {"low": 6, "fair_low": 9, "fair_high": 15, "high": 22, "type": "cycle", "complexity": "complex"},
+    "油气": {"low": 6, "fair_low": 9, "fair_high": 15, "high": 22, "type": "cycle", "complexity": "complex"},
+    # 高杠杆行业（地产）：豁免负债率>70%规则和杠杆惩罚
+    # 注意：地产 type 用 mature 而非 cycle —— 地产的 ROE 下滑通常反映真实的行业恶化
+    # （不像稀土/煤炭那样是纯周期波动），所以应走普通护城河规则
+    "房地产": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 18, "type": "mature", "complexity": "medium", "high_leverage": True},
+    "地产": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 18, "type": "mature", "complexity": "medium", "high_leverage": True},
+    "房地产开发": {"low": 5, "fair_low": 7, "fair_high": 12, "high": 18, "type": "mature", "complexity": "medium", "high_leverage": True},
+    # 科技/电子
+    "面板": {"low": 12, "fair_low": 18, "fair_high": 30, "high": 45, "type": "tech", "complexity": "complex"},
+    "显示": {"low": 12, "fair_low": 18, "fair_high": 30, "high": 45, "type": "tech", "complexity": "complex"},
+    "光学光电子": {"low": 15, "fair_low": 20, "fair_high": 35, "high": 50, "type": "tech", "complexity": "complex"},
+    "电子": {"low": 15, "fair_low": 22, "fair_high": 35, "high": 50, "type": "tech", "complexity": "medium"},
+    "消费电子": {"low": 15, "fair_low": 22, "fair_high": 35, "high": 50, "type": "tech", "complexity": "medium"},
+    "电子制造": {"low": 15, "fair_low": 22, "fair_high": 35, "high": 50, "type": "tech", "complexity": "medium"},
+    # 互联网
+    "互联网": {"low": 15, "fair_low": 25, "fair_high": 40, "high": 60, "type": "tech", "complexity": "medium"},
+    "互联网服务": {"low": 15, "fair_low": 25, "fair_high": 40, "high": 60, "type": "tech", "complexity": "medium"},
+    # 农业
+    "农业": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle", "complexity": "medium"},
+    "养殖": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle", "complexity": "medium"},
+    "农牧": {"low": 10, "fair_low": 15, "fair_high": 25, "high": 35, "type": "cycle", "complexity": "medium"},
 }
 
 # 默认PE区间（找不到行业时用）
