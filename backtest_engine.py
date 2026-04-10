@@ -103,6 +103,76 @@ _raw_cache = {}
 # 回购数据缓存（全股票池的回购历史）
 _buybacks_cache = None
 
+# 沪深 300 指数 PE 历史缓存（宽基指数温度计）
+_hs300_pe_cache = None
+
+
+def _load_hs300_pe():
+    """懒加载沪深300指数PE历史数据"""
+    global _hs300_pe_cache
+    if _hs300_pe_cache is not None:
+        return _hs300_pe_cache
+    path = os.path.join(SCRIPT_DIR, "backtest_data", "hs300_pe.json")
+    if not os.path.exists(path):
+        _hs300_pe_cache = {}
+        return _hs300_pe_cache
+    with open(path, "r", encoding="utf-8") as f:
+        _hs300_pe_cache = json.load(f)
+    return _hs300_pe_cache
+
+
+def get_hs300_temperature(year, month, lookback_years=10):
+    """
+    沪深300指数温度计（基于中位数市盈率的历史分位）
+    这是真正的"宽基指数温度计"，反映全市场的估值水平
+    不同于"股票池温度计"（仅基于 70 只股票）
+
+    温度分级：
+      极热 (+2): 历史 85% 分位以上 —— 如 2007-10 大顶、2015-06 杠杆牛顶
+      偏热 (+1): 70% 分位以上
+      正常 (0):  30%~70% 分位
+      偏冷 (-1): 30% 分位以下
+      极冷 (-2): 15% 分位以下 —— 如 2008-11 大底、2018-12 熊底
+
+    依据：巴菲特/芒格"别人贪婪时我恐惧，别人恐惧时我贪婪"
+    """
+    data = _load_hs300_pe()
+    if not data:
+        return 0
+    target = f"{year}-{month:02d}"
+    if target not in data:
+        return 0
+    current = data[target].get("pe_median")
+    if current is None:
+        return 0
+
+    # 取过去 lookback_years 年的历史
+    cutoff = f"{year - lookback_years}-{month:02d}"
+    history = [
+        d["pe_median"]
+        for m, d in data.items()
+        if cutoff <= m < target and d.get("pe_median") is not None
+    ]
+    if len(history) < 60:  # 至少 5 年历史
+        return 0
+
+    sorted_hist = sorted(history)
+    n = len(sorted_hist)
+    pct_85 = sorted_hist[int(n * 0.85)]
+    pct_70 = sorted_hist[int(n * 0.70)]
+    pct_30 = sorted_hist[int(n * 0.30)]
+    pct_15 = sorted_hist[int(n * 0.15)]
+
+    if current >= pct_85:
+        return 2
+    if current >= pct_70:
+        return 1
+    if current <= pct_15:
+        return -2
+    if current <= pct_30:
+        return -1
+    return 0
+
 
 def _load_buybacks():
     """懒加载回购数据（仅第一次调用时读盘）"""

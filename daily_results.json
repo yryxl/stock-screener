@@ -405,5 +405,15 @@
       "level": "danger",
       "text": "仓位51.1%≥40%，严重偏重！建议分散"
     }
-  ]
+  ],
+  "market_temperature": {
+    "level": 0,
+    "label": "⚪正常",
+    "description": "市场估值合理，按正常节奏投资",
+    "current_pe_median": 21.69,
+    "percentile": 52.5,
+    "lookback_years": 10,
+    "as_of": "2026-04",
+    "data_points": 120
+  }
 }

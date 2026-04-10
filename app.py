@@ -169,6 +169,38 @@ load_all_data()
 # ============================================
 
 st.title("📊 芒格选股系统")
+
+# 市场温度计 banner（沪深300指数 PE 历史分位）
+_daily = st.session_state.get("daily", {})
+_market_temp = _daily.get("market_temperature") if isinstance(_daily, dict) else None
+if _market_temp:
+    _level = _market_temp.get("level", 0)
+    _label = _market_temp.get("label", "⚪正常")
+    _desc = _market_temp.get("description", "")
+    _pe = _market_temp.get("current_pe_median")
+    _pct = _market_temp.get("percentile")
+    _as_of = _market_temp.get("as_of", "")
+    # 温度档位对应的背景色
+    _bg_colors = {
+        2: "#ffebee",   # 极热-浅红
+        1: "#fff3e0",   # 偏热-浅橙
+        0: "#f5f5f5",   # 正常-灰
+        -1: "#e3f2fd",  # 偏冷-浅蓝
+        -2: "#e8f5e9",  # 极冷-浅绿
+    }
+    _border_colors = {2: "#d32f2f", 1: "#f57c00", 0: "#9e9e9e", -1: "#1976d2", -2: "#388e3c"}
+    _bg = _bg_colors.get(_level, "#f5f5f5")
+    _bd = _border_colors.get(_level, "#9e9e9e")
+    _info = f"沪深300中位数PE={_pe} | 历史10年{_pct}%分位" if _pe else ""
+    st.markdown(
+        f"""<div style="background:{_bg};padding:12px 18px;border-left:5px solid {_bd};
+        border-radius:6px;margin-bottom:15px;">
+        <b style="font-size:18px;">{_label} 市场温度</b> —— {_desc}<br>
+        <span style="color:#666;font-size:13px;">{_info}（数据截至 {_as_of}，沪深300指数）</span>
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
 tab1, tab2, tab3 = st.tabs(["🎯 模型推荐", "📋 持仓管理", "⭐ 重点关注表"])
 
 # ============================================

@@ -30,6 +30,7 @@ from backtest_engine import (
     _get_recent_gm,
     get_annual_reports_before,
     get_cash_flow_warnings,
+    get_hs300_temperature,
 )
 
 
@@ -307,11 +308,26 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
                 month += 1
             continue
 
-        # 0. 更新市场温度计（全股票池中位数 PE）
+        # 0. 更新市场温度计（双温度计融合）
+        # 温度计 1：股票池温度（基于我们 70 只股票的中位数 PE）
+        # 温度计 2：沪深 300 指数温度（基于指数中位数 PE 历史分位）
+        # 融合逻辑：取两者平均，四舍五入到最近档位（偏保守）
         current_market_pe = compute_market_pe_median(signals)
         if current_market_pe is not None:
             market_pe_history.append(current_market_pe)
-        market_temp = get_market_temperature(market_pe_history)
+        pool_temp = get_market_temperature(market_pe_history)
+        index_temp = get_hs300_temperature(year, month)
+        avg_temp = (pool_temp + index_temp) / 2
+        if avg_temp >= 1.5:
+            market_temp = 2
+        elif avg_temp >= 0.5:
+            market_temp = 1
+        elif avg_temp <= -1.5:
+            market_temp = -2
+        elif avg_temp <= -0.5:
+            market_temp = -1
+        else:
+            market_temp = 0
 
         # 1. 分红入账
         div_cash = apply_dividends(holdings, year, month, trade_log)
@@ -410,20 +426,20 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
                 )
 
                 if super_good:
-                    # 超级好公司：按档位减仓
+                    # 超级好公司：按档位减仓（保守版）
                     reduce_ratio = {
-                        "sell_heavy": 0.50,
-                        "sell_medium": 0.30,
-                        "sell_light": 0.15,
+                        "sell_heavy": 0.30,
+                        "sell_medium": 0.20,
+                        "sell_light": 0.10,
                         "sell_watch": 0.0,
                     }.get(sig, 0.0)
                     if reduce_ratio > 0:
                         shares_to_sell = int(holding["shares"] * reduce_ratio / 100) * 100
                         if shares_to_sell >= 100:
                             reason_map = {
-                                "sell_heavy": "超级好公司·大量卖出→减仓50%",
-                                "sell_medium": "超级好公司·中仓卖出→减仓30%",
-                                "sell_light": "超级好公司·适当卖出→减仓15%",
+                                "sell_heavy": "超级好公司·大量卖出→减仓30%",
+                                "sell_medium": "超级好公司·中仓卖出→减仓20%",
+                                "sell_light": "超级好公司·适当卖出→减仓10%",
                             }
                             sids_to_sell.append(
                                 (sid, sdata_match, reason_map[sig], shares_to_sell)

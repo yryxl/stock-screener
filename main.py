@@ -25,6 +25,7 @@ from screener import (
     check_position_sizes, compare_opportunity_cost,
 )
 from notifier import send_daily_report, send_msg, get_access_token
+from market_temperature import get_realtime_market_temperature
 from data_fetcher import get_realtime_quotes, get_pe_ttm, get_dividend_yield, safe_fetch, get_financial_indicator, extract_annual_data
 import akshare as ak
 
@@ -339,6 +340,23 @@ def run_full_scan(config):
     return ai_recs
 
 
+def _inject_market_temperature():
+    """
+    获取实时市场温度并注入 daily_results.json 的 market_temperature 字段
+    在每次保存 daily_results 后调用，统一注入，避免在每个模式里重复代码
+    """
+    try:
+        print("获取市场温度计...")
+        temp = get_realtime_market_temperature()
+        existing = load_json("daily_results.json")
+        if isinstance(existing, dict):
+            existing["market_temperature"] = temp
+            save_json("daily_results.json", existing)
+        print(f"  市场温度：{temp['label']} ({temp['description']})")
+    except Exception as e:
+        print(f"  温度计获取失败: {e}")
+
+
 def main():
     mode = get_mode()
     now = datetime.now()
@@ -574,6 +592,10 @@ def main():
             save_snapshot()
         except Exception as e:
             print(f"快照保存失败（不影响运行）: {e}")
+
+    # 统一在所有模式运行完后注入市场温度（实时沪深300 PE 历史分位）
+    if mode not in ("reanalyze",):
+        _inject_market_temperature()
 
     print(f"\n=== 完成 ===")
 
