@@ -170,36 +170,51 @@ load_all_data()
 
 st.title("📊 芒格选股系统")
 
+
 # 市场温度计 banner（沪深300指数 PE 历史分位）
-_daily = st.session_state.get("daily", {})
-_market_temp = _daily.get("market_temperature") if isinstance(_daily, dict) else None
-if _market_temp:
-    _level = _market_temp.get("level", 0)
-    _label = _market_temp.get("label", "⚪正常")
-    _desc = _market_temp.get("description", "")
-    _pe = _market_temp.get("current_pe_median")
-    _pct = _market_temp.get("percentile")
-    _as_of = _market_temp.get("as_of", "")
-    # 温度档位对应的背景色
-    _bg_colors = {
-        2: "#ffebee",   # 极热-浅红
-        1: "#fff3e0",   # 偏热-浅橙
-        0: "#f5f5f5",   # 正常-灰
-        -1: "#e3f2fd",  # 偏冷-浅蓝
-        -2: "#e8f5e9",  # 极冷-浅绿
-    }
-    _border_colors = {2: "#d32f2f", 1: "#f57c00", 0: "#9e9e9e", -1: "#1976d2", -2: "#388e3c"}
-    _bg = _bg_colors.get(_level, "#f5f5f5")
-    _bd = _border_colors.get(_level, "#9e9e9e")
-    _info = f"沪深300中位数PE={_pe} | 历史10年{_pct}%分位" if _pe else ""
+# 先尝试从 daily_results 读取，没有则实时拉取（缓存 1 小时）
+@st.cache_data(ttl=3600, show_spinner=False)
+def _get_cached_market_temperature():
+    try:
+        from market_temperature import get_realtime_market_temperature
+        return get_realtime_market_temperature()
+    except Exception as e:
+        return {"level": 0, "label": "⚪ 正常市", "description": f"温度计拉取失败: {e}"}
+
+
+def render_market_temperature_banner():
+    """渲染市场温度计 banner（在所有 tab 上方）"""
+    _daily = st.session_state.get("daily", {})
+    _temp = _daily.get("market_temperature") if isinstance(_daily, dict) else None
+    # 如果 daily_results 没有，实时拉
+    if not _temp:
+        _temp = _get_cached_market_temperature()
+    if not _temp:
+        return
+
+    level = _temp.get("level", 0)
+    label = _temp.get("label", "⚪ 正常市")
+    desc = _temp.get("description", "")
+    pe = _temp.get("current_pe_median")
+    pct = _temp.get("percentile")
+    as_of = _temp.get("as_of", "")
+    bg_colors = {2: "#ffebee", 1: "#fff3e0", 0: "#f5f5f5", -1: "#e3f2fd", -2: "#e8f5e9"}
+    bd_colors = {2: "#d32f2f", 1: "#f57c00", 0: "#9e9e9e", -1: "#1976d2", -2: "#388e3c"}
+    bg = bg_colors.get(level, "#f5f5f5")
+    bd = bd_colors.get(level, "#9e9e9e")
+    info = f"沪深300中位数PE={pe} | 历史10年{pct}%分位" if pe else ""
     st.markdown(
-        f"""<div style="background:{_bg};padding:12px 18px;border-left:5px solid {_bd};
+        f"""<div style="background:{bg};padding:14px 20px;border-left:5px solid {bd};
         border-radius:6px;margin-bottom:15px;">
-        <b style="font-size:18px;">{_label} 市场温度</b> —— {_desc}<br>
-        <span style="color:#666;font-size:13px;">{_info}（数据截至 {_as_of}，沪深300指数）</span>
+        <div style="font-size:19px;font-weight:bold;margin-bottom:4px;">{label}</div>
+        <div style="color:#333;font-size:14px;line-height:1.6;">{desc}</div>
+        <div style="color:#888;font-size:12px;margin-top:6px;">{info}（数据截至 {as_of}，沪深300指数）</div>
         </div>""",
         unsafe_allow_html=True,
     )
+
+
+render_market_temperature_banner()
 
 tab1, tab2, tab3 = st.tabs(["🎯 模型推荐", "📋 持仓管理", "⭐ 重点关注表"])
 

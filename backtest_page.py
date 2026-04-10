@@ -116,6 +116,70 @@ def virtual_sell(sid, shares, current_price):
     return False
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _get_realtime_temperature():
+    """缓存 1 小时的实时温度计"""
+    try:
+        from market_temperature import get_realtime_market_temperature
+        return get_realtime_market_temperature()
+    except Exception:
+        return None
+
+
+def _render_temperature_banner_in_backtest(year, month):
+    """回测页面的温度计 banner，分两层显示：
+    - 当前实时温度（顶部，让用户知道真实市场）
+    - 回测当月温度（下方，让用户看到历史时点的温度）
+    """
+    from backtest_engine import get_hs300_temperature
+
+    bg_colors = {2: "#ffebee", 1: "#fff3e0", 0: "#f5f5f5", -1: "#e3f2fd", -2: "#e8f5e9"}
+    bd_colors = {2: "#d32f2f", 1: "#f57c00", 0: "#9e9e9e", -1: "#1976d2", -2: "#388e3c"}
+    labels = {
+        2: "🔴 牛市顶部·极度高估",
+        1: "🔥 偏热市·谨慎",
+        0: "⚪ 正常市",
+        -1: "🧊 偏冷市·机会显现",
+        -2: "❄️ 熊市底部·大机会",
+    }
+
+    # 1. 实时温度（当前市场状态）
+    realtime = _get_realtime_temperature()
+    if realtime:
+        lv = realtime.get("level", 0)
+        lbl = realtime.get("label", "⚪ 正常市")
+        desc = realtime.get("description", "")
+        pe = realtime.get("current_pe_median")
+        pct = realtime.get("percentile")
+        as_of = realtime.get("as_of", "")
+        bg = bg_colors.get(lv, "#f5f5f5")
+        bd = bd_colors.get(lv, "#9e9e9e")
+        st.markdown(
+            f"""<div style="background:{bg};padding:12px 18px;border-left:5px solid {bd};
+            border-radius:6px;margin-bottom:10px;">
+            <div style="font-size:14px;color:#666;">📍 <b>当前真实市场</b></div>
+            <div style="font-size:17px;font-weight:bold;margin:3px 0;">{lbl}</div>
+            <div style="color:#333;font-size:13px;line-height:1.5;">{desc}</div>
+            <div style="color:#888;font-size:11px;margin-top:4px;">沪深300中位数PE={pe} | 历史{pct}%分位（截至 {as_of}）</div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+
+    # 2. 回测当月温度（历史时点的温度）
+    lv_bt = get_hs300_temperature(year, month)
+    lbl_bt = labels.get(lv_bt, "⚪ 正常市")
+    bg_bt = bg_colors.get(lv_bt, "#f5f5f5")
+    bd_bt = bd_colors.get(lv_bt, "#9e9e9e")
+    st.markdown(
+        f"""<div style="background:{bg_bt};padding:10px 18px;border-left:5px solid {bd_bt};
+        border-radius:6px;margin-bottom:15px;">
+        <div style="font-size:14px;color:#666;">🕰️ <b>回测时点市场（{year}年{month}月）</b></div>
+        <div style="font-size:16px;font-weight:bold;">{lbl_bt}</div>
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
+
 def render_backtest_page():
     init_state()
 
@@ -172,6 +236,9 @@ def render_backtest_page():
     # 时间和控制
     yr, mo = st.session_state["bt_year"], st.session_state["bt_month"]
     st.markdown(f"### 📅 {yr}年{mo}月")
+
+    # 温度计 banner（显示当前真实市场温度 + 回测时点温度）
+    _render_temperature_banner_in_backtest(yr, mo)
 
     c1, c2, c3, c4 = st.columns([1, 1, 1, 3])
     with c1:
