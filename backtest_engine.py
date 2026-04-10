@@ -319,14 +319,18 @@ def check_moat_normal(sid, year, month):
         problems.append(f"最新ROE={roe_list[0]:.1f}%（亏损）")
 
     # 规则2：ROE 单年暴跌 ≥6 个百分点
-    # 豁免：跌后 ROE 仍 ≥15% 属于"合格公司"的正常波动
+    # 豁免1：跌后 ROE 仍 ≥15% 属于"合格公司"的正常波动
+    # 豁免2：十年王者的单年冲击豁免（巴菲特"王者暂时摔跤"理念）
+    #       熊市/危机时王者 ROE 短期下滑是常态，不应判松动
     # 依据：巴菲特 1979 年致股东信及伯克希尔自身 KPI —— 15% 是"合格底线"，20% 是"卓越"
-    # 宁可错过原则下，用宽松的 15% 避免误杀合格公司（如五粮液 2014 年跌到 15.4%）
-    # 真正恶化的股票（万科跌到 9%）照样会被抓出来
+    # 真正恶化的股票（万科跌到 9% 且已不是十年王者）照样会被抓出来
     if len(roe_list) >= 2:
         drop = roe_list[1] - roe_list[0]
         if drop >= 6 and roe_list[0] < 15:
-            problems.append(f"ROE单年暴跌{drop:.1f}pp（{roe_list[1]:.1f}%→{roe_list[0]:.1f}%）")
+            # 检查是否为十年王者（豁免暂时冲击）
+            is_king, _, _ = check_10_year_king(sid, year, month)
+            if not is_king:
+                problems.append(f"ROE单年暴跌{drop:.1f}pp（{roe_list[1]:.1f}%→{roe_list[0]:.1f}%）")
 
     # 规则3：ROE 连续3年下滑 且 最新<15%
     if len(roe_list) >= 3:
@@ -617,14 +621,72 @@ def _get_recent_gm(sid, year, month):
     return None
 
 
+def check_10_year_king(sid, year, month):
+    """
+    "十年王者"判定（巴菲特/芒格核心理念）
+
+    巴菲特选股的硬规则："连续 10 年 ROE ≥ 15%" 是他筛选优质公司的起点。
+    熊市时他从不放宽这个"历史记录"要求，只放宽"当下业绩"要求。
+
+    依据：
+    - 巴菲特 1979 年致股东信："判断公司经营好坏的主要依据是净资产收益率"
+    - 搜索资料原文："连续5-10年平均ROE低于15%的企业全部排除"
+    - 2008年金融危机时买高盛/通用电气/富国银行，都是"危机前连续10年高ROE"
+
+    定义（4 个必要条件，严格防止万科式误判）：
+      1. 近 10 年 ROE 均值 ≥ 15%（合格线）
+      2. 近 10 年中至少 7 年 ROE ≥ 15%（排除"偶尔冲高"的公司）
+      3. 最近 2 年 ROE 没有连续低于 10%（排除"王者已死"的公司）
+      4. 最新 1 年 ROE 不为负（排除亏损股）
+
+    返回：(是否王者, 近10年ROE均值, 历史王者年数)
+    """
+    reports = get_annual_reports_before(sid, year, month, lookback_years=11)
+    roes = [r.get("roe") for r in reports if r.get("roe") is not None]
+
+    if len(roes) < 7:  # 至少要 7 年数据才能判定
+        return False, None, 0
+
+    recent_10 = roes[:10]  # 最新在前
+    avg_10y = sum(recent_10) / len(recent_10)
+
+    # 条件 1：10 年均值 ≥ 15%
+    if avg_10y < 15:
+        return False, avg_10y, 0
+
+    # 条件 2：10 年中至少 7 年 ROE ≥ 15%
+    years_above = sum(1 for r in recent_10 if r >= 15)
+    if years_above < 7:
+        return False, avg_10y, years_above
+
+    # 条件 3：最近 2 年 ROE 没有连续低于 10%（王者已死排除）
+    if len(recent_10) >= 2:
+        if recent_10[0] < 10 and recent_10[1] < 10:
+            return False, avg_10y, years_above
+
+    # 条件 4：最新 1 年 ROE 不为负
+    if recent_10[0] < 0:
+        return False, avg_10y, years_above
+
+    return True, avg_10y, years_above
+
+
 def is_good_quality_company(sid, year, month,
                              roe_threshold=20.0, gm_threshold=30.0):
     """
     判定是否为"好公司"（用于"合理价格买好公司"规则）
-    条件：近 5 年 ROE 均值 ≥ 20% 且 最新毛利率 ≥ 30%
+    两种情况下都视为好公司：
+      A. 十年王者（近10年ROE均值≥15%+近期未崩塌）—— 巴菲特核心标准
+      B. 近5年ROE均值≥20%+毛利率≥30% —— 更严格的"卓越"标准
+    任一满足即可触发"合理价格买入"
     """
     if not sid or not year or not month:
         return False
+    # 先查十年王者（优先级高）
+    is_king, _, _ = check_10_year_king(sid, year, month)
+    if is_king:
+        return True
+    # 再查 5 年卓越标准
     roe_avg = _roe_historical_avg(sid, year, month, lookback_years=5)
     if not roe_avg or roe_avg < roe_threshold:
         return False
@@ -760,6 +822,12 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
     if sid and year and month:
         buyback_score, buyback_yi = get_buyback_score(sid, year, month)
 
+    # 十年王者判定（巴菲特核心：熊市/危机时看10年历史而非当下）
+    is_king_flag = False
+    king_avg_roe = None
+    if sid and year and month:
+        is_king_flag, king_avg_roe, _ = check_10_year_king(sid, year, month)
+
     result = {
         "signal": "hold",
         "signal_text": "数据不足",
@@ -768,6 +836,8 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         "is_cycle": is_cycle,
         "buyback_score": buyback_score,
         "buyback_yi": buyback_yi,
+        "is_10y_king": is_king_flag,
+        "king_avg_roe": king_avg_roe,
     }
 
     # 没有价格的（已退市/未上市）
@@ -841,8 +911,15 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         if effective_gm is None and sid and year and month:
             effective_gm = _get_recent_gm(sid, year, month)
 
+        # 十年王者豁免（巴菲特核心理念：熊市/危机时不看当下 ROE，看10年历史记录）
+        # 如果股票是"十年王者"，即使当下 ROE 暂时低于门槛也不降级
+        # 但护城河检查依然在后面兜底，真正恶化的公司（万科式）仍会被拦截
+        # is_king_flag 已在函数顶部计算过
+        is_10y_king = is_king_flag
+
         # ROE检查（限制买入信号上限）
-        if "buy" in signal and effective_roe is not None:
+        # 十年王者全部豁免（不做任何 ROE 门槛降级）
+        if "buy" in signal and effective_roe is not None and not is_10y_king:
             roe = effective_roe  # 后续用兜底后的值
             base_thresh = COMPLEXITY_ROE_ADJUST.get(complexity, COMPLEXITY_ROE_ADJUST["medium"])
             # 高杠杆行业（银行/保险/券商/地产）不做杠杆惩罚 —— 高负债率是行业常态
@@ -1011,6 +1088,8 @@ def get_month_signals(year, month, anon_map=None, industry_map=None):
             "is_cycle": eval_result.get("is_cycle", False),
             "buyback_score": eval_result.get("buyback_score", 0),
             "buyback_yi": eval_result.get("buyback_yi", 0),
+            "is_10y_king": eval_result.get("is_10y_king", False),
+            "king_avg_roe": eval_result.get("king_avg_roe"),
             "events": stock_events,
         }
 

@@ -509,12 +509,14 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             sig_rank = {"buy_heavy": 0, "buy_medium": 1, "buy_light": 2}.get(
                 s.get("signal", ""), 9
             )
+            # 十年王者优先（巴菲特"只买王者"）
+            king_rank = 0 if s.get("is_10y_king") else 1
             comp_rank = {"simple": 0, "medium": 1, "complex": 2}.get(
                 s.get("complexity", "medium"), 1
             )
             buyback_desc = -(s.get("buyback_score") or 0)  # 回购分高的排前
             score_desc = -(s.get("score") or 0)            # 评分高的排前
-            return (sig_rank, comp_rank, buyback_desc, score_desc)
+            return (sig_rank, king_rank, comp_rank, buyback_desc, score_desc)
 
         for anon, sdata in sorted(signals.items(), key=_buy_priority):
             if len(holdings) >= MAX_HOLDINGS:
