@@ -77,9 +77,10 @@ INDUSTRY_PE = {
     "软件": {"low": 30, "fair_low": 40, "fair_high": 60, "high": 80, "type": "tech", "complexity": "medium"},
     "军工": {"low": 25, "fair_low": 35, "fair_high": 55, "high": 70, "type": "tech", "complexity": "complex"},
     "航空航天": {"low": 25, "fair_low": 35, "fair_high": 55, "high": 70, "type": "tech", "complexity": "complex"},
-    "新能源": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "tech", "complexity": "complex"},
-    "锂电": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "tech", "complexity": "complex"},
-    "电池": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "tech", "complexity": "complex"},
+    # 锂电、新能源、电池：归为周期股（锂价大宗商品周期明显，用反向规则而非成长股规则）
+    "新能源": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "cycle", "complexity": "complex"},
+    "锂电": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "cycle", "complexity": "complex"},
+    "电池": {"low": 20, "fair_low": 30, "fair_high": 50, "high": 60, "type": "cycle", "complexity": "complex"},
     "光伏": {"low": 15, "fair_low": 25, "fair_high": 45, "high": 55, "type": "tech", "complexity": "complex"},
     "轨道交通": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle", "complexity": "complex"},
     "轨交设备": {"low": 10, "fair_low": 13, "fair_high": 20, "high": 28, "type": "cycle", "complexity": "complex"},
@@ -484,6 +485,12 @@ def check_holdings_sell_signals(holdings, config):
             signal = "hold_keep"
             signal_text += " →建议持续持有"
 
+        # 8. 消费龙头现金流警示（已豁免但需重点关注）
+        # 对"高ROE+高毛利但现金流异常"的消费龙头，单独标出"重点关注"
+        cf_warning = check_consumer_leader_cash_flow_warning(code)
+        if cf_warning:
+            signal_text += f" | ⚠重点关注：{cf_warning}"
+
         signals.append({
             "code": code, "name": name,
             "shares": h.get("shares", 0), "cost": h.get("cost", 0),
@@ -492,10 +499,116 @@ def check_holdings_sell_signals(holdings, config):
             "signal": signal, "signal_text": signal_text,
             "industry": industry,
             "holding_pnl": holding_pnl if cost_price > 0 and not pd.isna(price) else 0,
+            "cf_warning": cf_warning,  # 前端可单独展示
         })
         time.sleep(0.3)
 
     return signals
+
+
+def check_consumer_leader_cash_flow_warning(code):
+    """
+    消费龙头现金流警示（多维度校验协助判断真假跌）
+    仅对"高ROE + 高毛利 但 现金流异常"的消费龙头返回警示
+    用途：持仓股的重点关注提示（已豁免护城河松动规则，但需要额外警惕）
+
+    多维度线索：
+      1. 当前ROE是否仍强劲（核心判断）
+      2. 毛利率是否稳定（定价权线索）
+      3. 营收是否同步下滑（行业周期线索 vs 单体造假线索）
+      4. 应收账款周转率是否异常（造假典型特征）
+      5. 存货周转率是否异常
+    """
+    df = get_financial_indicator(code)
+    if df is None:
+        return None
+    df_annual = extract_annual_data(df, years=5)
+    if df_annual.empty or len(df_annual) < 2:
+        return None
+
+    # 取最新 ROE 和毛利率
+    roe_series = get_roe_series(df_annual)
+    if roe_series is None or len(roe_series) < 1:
+        return None
+    latest_roe = roe_series.iloc[0]
+    if latest_roe < 15:
+        return None  # 不是高 ROE 公司（巴菲特合格线）
+
+    gm_col = find_column(df_annual, ["销售毛利率", "毛利率"])
+    if not gm_col:
+        return None
+    gm = pd.to_numeric(df_annual[gm_col], errors="coerce").dropna()
+    if len(gm) < 1 or gm.iloc[0] < 50:
+        return None  # 不是高毛利公司
+
+    # 检查现金流 / 净利润比值（近2年）
+    fcf = get_fcf_series(df_annual)
+    profit_col = find_column(df_annual, ["净利润"])
+    if fcf is None or not profit_col or len(fcf) < 2:
+        return None
+    # 简化：用现金流序列与净利润序列对比（前2年）
+    profits = pd.to_numeric(df_annual[profit_col], errors="coerce").dropna()
+    if len(profits) < 2:
+        return None
+
+    try:
+        r0 = float(fcf.iloc[0]) / float(profits.iloc[0]) if profits.iloc[0] > 0 else 0
+        r1 = float(fcf.iloc[1]) / float(profits.iloc[1]) if profits.iloc[1] > 0 else 0
+    except (ValueError, ZeroDivisionError, TypeError):
+        return None
+
+    if not (r0 < 0.3 and r1 < 0.3):
+        return None  # 现金流正常，无需警示
+
+    # 已触发：组装多维度状态说明
+    lines = [
+        f"现金流近2年仅{r1:.0%}、{r0:.0%}（连续异常）",
+        f"ROE={latest_roe:.0f}% 毛利={gm.iloc[0]:.0f}%仍强劲 → 豁免护城河规则",
+    ]
+    # 多维校验 1：ROE 趋势
+    if len(roe_series) >= 2:
+        drop = float(roe_series.iloc[1] - roe_series.iloc[0])
+        if drop >= 5:
+            lines.append(f"ROE单年降{drop:.0f}pp→警惕")
+        else:
+            lines.append(f"ROE稳定")
+    # 多维校验 2：毛利率趋势
+    if len(gm) >= 2:
+        gm_drop = float(gm.iloc[1] - gm.iloc[0])
+        if gm_drop >= 5:
+            lines.append(f"毛利降{gm_drop:.0f}pp→警惕定价权")
+        else:
+            lines.append(f"毛利稳定")
+    # 多维校验 3：应收账款周转率（造假线索）
+    ar_col = find_column(df_annual, ["应收账款周转率"])
+    if ar_col:
+        ar = pd.to_numeric(df_annual[ar_col], errors="coerce").dropna()
+        if len(ar) >= 2:
+            if ar.iloc[0] < ar.iloc[1] * 0.7:
+                lines.append(f"应收周转恶化→警惕造假")
+            else:
+                lines.append(f"应收周转正常")
+    # 多维校验 4：存货周转率（造假线索）
+    inv_col = find_column(df_annual, ["存货周转率"])
+    if inv_col:
+        inv = pd.to_numeric(df_annual[inv_col], errors="coerce").dropna()
+        if len(inv) >= 2:
+            if inv.iloc[0] < inv.iloc[1] * 0.7:
+                lines.append(f"存货周转恶化→警惕")
+    # 多维校验 5：营收是否同步下滑（行业周期线索）
+    rev_col = find_column(df_annual, ["营业总收入增长率", "主营业务收入增长率"])
+    if rev_col:
+        rev = pd.to_numeric(df_annual[rev_col], errors="coerce").dropna()
+        if len(rev) >= 1:
+            r0_rev = float(rev.iloc[0])
+            if r0_rev < -5:
+                lines.append(f"营收同步下滑{r0_rev:.0f}%→疑似行业周期")
+            elif r0_rev < 0:
+                lines.append(f"营收轻微下滑")
+            else:
+                lines.append(f"营收仍增长{r0_rev:.0f}%→警惕造假")
+
+    return " | ".join(lines)
 
 
 # ============================================

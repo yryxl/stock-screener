@@ -12,6 +12,13 @@ from screener import match_industry_pe, COMPLEXITY_ROE_ADJUST
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# ===== 策略开关 =====
+# 巴菲特/芒格核心理念：不参与周期股
+# "时间是优秀企业的朋友，平庸企业的敌人" —— 周期股盈利大幅波动，
+# 股价跟随大宗商品/行业周期起伏，不符合"长期持有优质企业"的逻辑
+# 设为 False 则所有周期股信号降级为"继续观望"，既不买入也不操作
+CYCLE_STOCKS_ENABLED = False
+
 # 30只回测股票的行业映射（手工标注）
 # 行业字符串会经 match_industry_pe 模糊匹配到 INDUSTRY_PE 的对应条目
 STOCK_INDUSTRY = {
@@ -222,11 +229,24 @@ def check_moat_normal(sid, year, month):
     # 规则7：盈利质量恶化（巴菲特核心 —— 现金流不会骗人）
     # 经营现金流与每股收益的比值反映"账面利润多少变成了真金白银"
     # 连续2年比值<0.3 → 盈利严重虚化（典型：万科2021-2022，比值从0.18跌到0.12）
-    # 豁免：只豁免银行/保险/证券（经营现金流含存款/保费/客户保证金波动）
-    # 地产不豁免 —— 地产的"预售款减少"本身就是重要风险信号
+    # 豁免条件：
+    #   A. 银行/保险/证券：经营现金流含存款/保费/客户保证金波动
+    #   B. 消费龙头豁免：ROE 仍 ≥ 20% 且 毛利率 ≥ 50%（白酒等）
+    #      —— 五粮液2013-2014现金流差是三公消费限制导致的经销商去库存+延期付款，
+    #         不是财务造假。这类"高ROE+高毛利"的消费龙头，护城河（品牌+定价权）
+    #         没受损，短期现金流异常应豁免
     industry = STOCK_INDUSTRY.get(sid, "")
-    skip_cash_check = any(k in industry for k in ["银行", "保险", "证券", "券商"])
-    if not skip_cash_check and len(cash_ratio_list) >= 2:
+    skip_cash_check_bank = any(k in industry for k in ["银行", "保险", "证券", "券商"])
+    # 消费龙头判定：最新 ROE ≥ 15%（巴菲特合格线）且 毛利率 ≥ 50%
+    # 高毛利 50% 是关键过滤器 —— 康美、万科等都没这么高的毛利
+    # 15% 对应巴菲特"合格公司"下限，避免误杀五粮液这类暂时跌破 20% 的龙头
+    is_consumer_leader = (
+        len(roe_list) >= 1
+        and len(gm_list) >= 1
+        and roe_list[0] >= 15
+        and gm_list[0] >= 50
+    )
+    if not skip_cash_check_bank and not is_consumer_leader and len(cash_ratio_list) >= 2:
         latest = cash_ratio_list[0]
         prev = cash_ratio_list[1]
         if latest < 0.3 and prev < 0.3:
@@ -240,6 +260,84 @@ def check_moat_normal(sid, year, month):
             )
 
     return len(problems) == 0, problems
+
+
+def get_cash_flow_warnings(sid, year, month):
+    """
+    消费龙头现金流警示（已豁免但需重点关注）
+    返回 warnings 列表（字符串），空列表=无警示
+
+    背景：消费龙头（ROE≥20% 且 毛利率≥50%）的现金流连续2年<30% 时，
+    按护城河规则会触发松动。但按巴菲特/芒格理念，高ROE+高毛利的消费龙头
+    的现金流短期异常通常是行业周期扰动（如白酒塑化剂+三公消费），而非
+    真正的财务造假。因此规则7对消费龙头做了豁免。
+
+    豁免带来的风险：如果确实是造假或真恶化，豁免会导致未能及时识别。
+    因此对已豁免的持仓股票，应该输出警示，用多维度线索协助判断：
+      1. 毛利率是否仍稳定（定价权没丢）
+      2. ROE 是否仍保持高位
+      3. 净利润是否持续为正（而非极端虚高但崩塌在即）
+      4. 营收是否同步下滑（行业性证据）
+    """
+    reports = get_annual_reports_before(sid, year, month, lookback_years=5)
+    if len(reports) < 2:
+        return []
+
+    roe_list = [r.get("roe") for r in reports if r.get("roe") is not None]
+    gm_list = [r.get("gross_margin") for r in reports if r.get("gross_margin") is not None]
+    rev_list = [r.get("revenue_growth") for r in reports if r.get("revenue_growth") is not None]
+    cash_ratio_list = []
+    for r in reports:
+        eps = r.get("eps")
+        ocf = r.get("ocf_per_share")
+        if eps is not None and ocf is not None and eps > 0:
+            cash_ratio_list.append(ocf / eps)
+
+    industry = STOCK_INDUSTRY.get(sid, "")
+    skip_bank = any(k in industry for k in ["银行", "保险", "证券", "券商"])
+    if skip_bank or len(cash_ratio_list) < 2 or len(roe_list) < 1 or len(gm_list) < 1:
+        return []
+
+    # 只对被豁免的消费龙头产生警示（阈值与 check_moat_normal 保持一致）
+    is_consumer_leader = roe_list[0] >= 15 and gm_list[0] >= 50
+    latest = cash_ratio_list[0]
+    prev = cash_ratio_list[1]
+    cash_flow_bad = (latest < 0.3 and prev < 0.3) or (latest < 0.2 and prev < 0.5)
+
+    if not (is_consumer_leader and cash_flow_bad):
+        return []
+
+    # 触发警示：多维度状态说明
+    warnings = []
+    status_lines = [
+        f"消费龙头现金流异常（连续2年仅 {prev:.0%}、{latest:.0%}）已豁免",
+        f"但需重点关注：ROE {roe_list[0]:.0f}% 毛利 {gm_list[0]:.0f}% 仍强劲",
+    ]
+    # 多维校验 1：ROE 是否稳定（非急剧下滑）
+    if len(roe_list) >= 2:
+        roe_drop = roe_list[1] - roe_list[0]
+        if roe_drop >= 5:
+            status_lines.append(f"ROE单年跌{roe_drop:.0f}pp 需警惕")
+        else:
+            status_lines.append(f"ROE稳定（降{roe_drop:.1f}pp）")
+    # 多维校验 2：毛利率是否稳定
+    if len(gm_list) >= 2:
+        gm_drop = gm_list[1] - gm_list[0]
+        if gm_drop >= 5:
+            status_lines.append(f"毛利率降{gm_drop:.0f}pp 需警惕")
+        else:
+            status_lines.append(f"毛利率稳定（降{gm_drop:.1f}pp）")
+    # 多维校验 3：营收同步下滑（行业周期证据）
+    if len(rev_list) >= 1:
+        if rev_list[0] < -5:
+            status_lines.append(f"营收同步下滑{rev_list[0]:.0f}%→疑似行业周期扰动")
+        elif rev_list[0] < 0:
+            status_lines.append(f"营收轻微下滑{rev_list[0]:.0f}%")
+        else:
+            status_lines.append(f"营收仍增长{rev_list[0]:.0f}%→警惕造假可能")
+
+    warnings.append(" | ".join(status_lines))
+    return warnings
 
 
 def check_moat_cycle(sid, year, month):
@@ -469,12 +567,18 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         result["signal_text"] = "该证券已停止交易"
         return result
 
-    # 周期股走反向规则
+    # 周期股：按巴菲特/芒格理念直接过滤
     if is_cycle:
+        if not CYCLE_STOCKS_ENABLED:
+            # 周期股直接降级为观望：既不买入也不触发自动卖出
+            result["signal"] = "hold"
+            result["signal_text"] = "周期股·不参与（巴菲特/芒格：不投大宗商品周期）"
+            result["score"] = 0
+            return result
+        # === 以下为周期股详细判定（已禁用，保留代码以便未来启用）===
         cycle_result = evaluate_cycle_stock(stock_data, sid, year, month, pe_range)
         cycle_result["complexity"] = complexity
         cycle_result["is_cycle"] = True
-        # 周期股对 buy 信号也要做护城河检查（用周期股版）
         if "buy" in cycle_result.get("signal", "") and sid and year and month:
             is_intact, probs = check_moat(sid, year, month)
             if not is_intact:
@@ -563,6 +667,32 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
                 result["signal"] = "hold"
                 result["signal_text"] = f"护城河松动：{'; '.join(moat_problems[:2])}"
 
+        # 筛选第二关：盈利下降趋势检查（避免"价值陷阱"式买入）
+        # 避免"卖对买错"：原因是只看当月PE便宜，没看净资产收益率是否在走下坡
+        # 宁可错过一些"真便宜"，也不买"看起来便宜但趋势向下"的公司
+        if "buy" in result["signal"] and sid and year and month:
+            reports = get_annual_reports_before(sid, year, month, lookback_years=4)
+            roes = [r.get("roe") for r in reports[:3] if r.get("roe") is not None]
+            if len(roes) >= 3:
+                # 近3年ROE是否单调下降
+                monotonic_down = roes[0] < roes[1] < roes[2]
+                if monotonic_down:
+                    drop_pp = roes[2] - roes[0]  # 总跌幅
+                    # 下降超过3个百分点就降级
+                    if drop_pp >= 3:
+                        old_signal = result["signal"]
+                        if old_signal == "buy_heavy":
+                            result["signal"] = "buy_light"  # 重仓降到轻仓
+                        elif old_signal == "buy_medium":
+                            result["signal"] = "buy_light"  # 中仓降到轻仓
+                        elif old_signal == "buy_light":
+                            result["signal"] = "hold"       # 轻仓降到观望
+                        if old_signal != result["signal"]:
+                            result["signal_text"] += (
+                                f" 但ROE 3年连降"
+                                f"（{roes[2]:.0f}→{roes[1]:.0f}→{roes[0]:.0f}%）降级"
+                            )
+
     # 简单评分（展示用）
     score = 0
     if roe and roe >= 20: score += 8
@@ -609,6 +739,11 @@ def get_month_signals(year, month, anon_map=None, industry_map=None):
 
         # 评估信号（含护城河趋势检查）
         eval_result = evaluate_stock(sdata, industry_hint=industry, sid=sid, year=year, month=month)
+
+        # 周期股直接从推荐中过滤（巴菲特/芒格不参与周期股）
+        # 不返回任何信号 —— 用户的选股清单里根本不会出现周期股
+        if eval_result.get("is_cycle") and not CYCLE_STOCKS_ENABLED:
+            continue
 
         # 获取当月事件
         stock_events = []

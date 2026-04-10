@@ -27,6 +27,7 @@ from backtest_engine import (
     load_stock_list,
     check_moat,
     _roe_historical_avg,
+    get_cash_flow_warnings,
 )
 
 # 好公司定义：历史净资产收益率均值 ≥ 15%（巴菲特合格线）
@@ -238,6 +239,25 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
         cash += div_cash
         total_dividends += div_cash
 
+        # 1.5 消费龙头现金流警示（已豁免但需重点关注）
+        # 只在每年4月（年报披露期）检查一次，避免日志嘈杂
+        # 且只在警示状态变化时输出（首次触发 / 警示解除）
+        if month == 4:
+            for sid, h in holdings.items():
+                warnings = get_cash_flow_warnings(sid, year, month)
+                was_warned = h.get("cf_warned", False)
+                if warnings and not was_warned:
+                    for w in warnings:
+                        trade_log.append(
+                            f"{year}-{month:02d} ⚠重点关注 {h['anon']}：{w}"
+                        )
+                    h["cf_warned"] = True
+                elif not warnings and was_warned:
+                    trade_log.append(
+                        f"{year}-{month:02d} ✓警示解除 {h['anon']}：现金流恢复正常"
+                    )
+                    h["cf_warned"] = False
+
         # 2. 计算当前总资产
         portfolio_value = 0
         for sid, h in holdings.items():
@@ -273,11 +293,11 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
 
             # 规则2：明确卖出信号
             # - 大量卖出（远超行业上限）：一律清仓
-            # - 适当卖出（明显偏高）：好公司豁免（巴菲特从不因市盈率偏高卖可口可乐），
-            #                         非好公司才卖
+            # - 适当卖出（明显偏高）：好公司豁免（巴菲特从不因市盈率偏高卖可口可乐）
             if sig == "sell_heavy":
                 sids_to_sell.append((sid, sdata_match, "大量卖出(远超行业上限)"))
                 continue
+
             if sig == "sell_medium":
                 hist_avg_roe = _roe_historical_avg(sid, year, month)
                 is_good_company = (
