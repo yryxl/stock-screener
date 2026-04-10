@@ -27,8 +27,29 @@ from backtest_engine import (
     load_stock_list,
     check_moat,
     _roe_historical_avg,
+    _get_recent_gm,
+    get_annual_reports_before,
     get_cash_flow_warnings,
 )
+
+
+def is_super_good_company(sid, year, month):
+    """
+    超级好公司判定（用于"永恒持有"豁免）
+    条件：近 5 年 ROE 均值 ≥ 25%（远超卓越线 20%） 且 近 3 年毛利率均值 ≥ 40%
+    典型代表：贵州茅台、五粮液、海天味业、片仔癀、恒瑞医药
+    这类公司"大量卖出"信号也豁免，只在真正护城河松动时才卖
+    依据：巴菲特从不因 PE 偏高卖可口可乐，也不因"远超行业上限"卖可口可乐
+    """
+    roe_avg = _roe_historical_avg(sid, year, month, lookback_years=5)
+    if not roe_avg or roe_avg < SUPER_GOOD_ROE_THRESHOLD:
+        return False
+    reports = get_annual_reports_before(sid, year, month, lookback_years=3)
+    gms = [r.get("gross_margin") for r in reports if r.get("gross_margin") is not None]
+    if not gms:
+        return False
+    avg_gm = sum(gms) / len(gms)
+    return avg_gm >= SUPER_GOOD_GM_THRESHOLD
 
 # 好公司定义：历史净资产收益率均值 ≥ 15%（巴菲特合格线）
 # 好公司只在"大量卖出（远超行业上限）"时才自动清仓，
@@ -36,13 +57,18 @@ from backtest_engine import (
 GOOD_COMPANY_ROE_THRESHOLD = 15.0
 
 # 回测参数
-MAX_HOLDINGS = 5          # 同时最多持有数量
+MAX_HOLDINGS = 10         # 同时最多持有数量（原 5，早期机会少不够铺开）
 CASH_RESERVE = 0.05       # 预留 5% 现金
 
 # 首次建仓比例（按信号强度）
-BUDGET_HEAVY = 0.30       # 重仓买入：占可投资金 30%
-BUDGET_MEDIUM = 0.15      # 中仓买入：15%
-BUDGET_LIGHT = 0.08       # 轻仓买入：8%
+BUDGET_HEAVY = 0.40       # 重仓买入：占可投资金 40%（原 30%）
+BUDGET_MEDIUM = 0.20      # 中仓买入：20%（原 15%）
+BUDGET_LIGHT = 0.10       # 轻仓买入：10%（原 8%）
+
+# 超级好公司门槛（用于"永恒持有"豁免）
+# 近 5 年 ROE 均值 ≥ 25%（超过卓越线 20%）且 毛利率 ≥ 40%
+SUPER_GOOD_ROE_THRESHOLD = 25.0
+SUPER_GOOD_GM_THRESHOLD = 40.0
 
 # ============ A股真实交易费用 ============
 # 佣金：双向收取，万2.5（互联网券商主流水平），最低5元
@@ -211,6 +237,52 @@ def apply_dividends(holdings, year, month, trade_log):
     return total_div
 
 
+def get_market_temperature(market_pe_history):
+    """
+    返回市场温度（-2 极冷 / -1 偏冷 / 0 正常 / 1 偏热 / 2 极热）
+    基于历史全股票池中位数 PE 的分位。
+    至少需要 12 个月的历史才能判定，否则返回 0。
+
+    极热 (2)：当前中位数 PE 高于历史 80% 分位
+    偏热 (1)：高于 65% 分位
+    偏冷 (-1)：低于 35% 分位
+    极冷 (-2)：低于 20% 分位
+
+    依据：巴菲特/芒格"别人贪婪时我恐惧，别人恐惧时我贪婪"
+    """
+    if len(market_pe_history) < 12:
+        return 0
+    current = market_pe_history[-1]
+    sorted_hist = sorted(market_pe_history)
+    n = len(sorted_hist)
+    pct_80 = sorted_hist[int(n * 0.80)]
+    pct_65 = sorted_hist[int(n * 0.65)]
+    pct_35 = sorted_hist[int(n * 0.35)]
+    pct_20 = sorted_hist[int(n * 0.20)]
+    if current >= pct_80:
+        return 2
+    if current >= pct_65:
+        return 1
+    if current <= pct_20:
+        return -2
+    if current <= pct_35:
+        return -1
+    return 0
+
+
+def compute_market_pe_median(signals):
+    """计算当前月份全股票池的市盈率中位数"""
+    pes = [
+        s.get("pe_ttm")
+        for s in signals.values()
+        if s.get("pe_ttm") and s.get("pe_ttm") > 0
+    ]
+    if len(pes) < 5:
+        return None
+    pes.sort()
+    return pes[len(pes) // 2]
+
+
 def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
     """严格按选股模型执行，返回统计结果"""
     stocks = load_stock_list()
@@ -223,6 +295,7 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
     total_fees = 0
     total_dividends = 0
     monthly_values = []
+    market_pe_history = []  # 历史中位数 PE 序列（市场温度计）
 
     year, month = start_year, start_month
     while year < 2025 or (year == 2025 and month <= 12):
@@ -233,6 +306,12 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             else:
                 month += 1
             continue
+
+        # 0. 更新市场温度计（全股票池中位数 PE）
+        current_market_pe = compute_market_pe_median(signals)
+        if current_market_pe is not None:
+            market_pe_history.append(current_market_pe)
+        market_temp = get_market_temperature(market_pe_history)
 
         # 1. 分红入账
         div_cash = apply_dividends(holdings, year, month, trade_log)
@@ -274,6 +353,27 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
 
         # 3. 卖出检查：严格按模型信号
         sids_to_sell = []
+
+        # 系统性减仓：市场极热时，对所有持仓触发一次额外减仓
+        # 每个持仓每年最多系统性减仓 1 次（用状态避免连续触发）
+        if market_temp == 2:
+            for sid, h in list(holdings.items()):
+                if h.get("sys_reduce_year") == year:
+                    continue  # 今年已经减过了
+                shares_cut = (h["shares"] // 400) * 100  # 减仓 25%（向下取整到100股）
+                if shares_cut >= 100:
+                    # 构造一个"市场极热"的虚拟卖出条目
+                    sdata_match = None
+                    for a, sdata in signals.items():
+                        if sdata.get("sid") == sid:
+                            sdata_match = sdata
+                            break
+                    if sdata_match:
+                        sids_to_sell.append(
+                            (sid, sdata_match, "市场极热系统性减仓25%(别人贪婪我恐惧)", shares_cut)
+                        )
+                        h["sys_reduce_year"] = year
+
         for sid, h in list(holdings.items()):
             sdata_match = None
             for a, sdata in signals.items():
@@ -288,36 +388,76 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
 
             # 规则1：退市 → 必须清仓
             if sig == "delisted" or price <= 0:
-                sids_to_sell.append((sid, sdata_match, "退市清仓"))
+                sids_to_sell.append((sid, sdata_match, "退市清仓", None))
                 continue
 
-            # 规则2：明确卖出信号
-            # - 大量卖出（远超行业上限）：一律清仓
-            # - 适当卖出（明显偏高）：好公司豁免（巴菲特从不因市盈率偏高卖可口可乐）
-            if sig == "sell_heavy":
-                sids_to_sell.append((sid, sdata_match, "大量卖出(远超行业上限)"))
-                continue
-
-            if sig == "sell_medium":
+            # 规则2：明确卖出信号（按模型档位 + 公司质量分级处理）
+            # 超级好公司（茅台式，ROE均值≥25%+毛利≥40%）：按档位减仓，永不清仓
+            #   * 大量卖出 → 减 50%
+            #   * 中仓卖出 → 减 30%
+            #   * 适当卖出 → 减 15%
+            #   * 关注卖出 → 不动（仅提示）
+            # 好公司（ROE均值≥15%）：大量卖出才清仓，其他档位不动
+            # 普通公司：大量卖出/中仓卖出都清仓
+            # 依据：巴菲特不因 PE 偏高清仓可口可乐，但极端高估时减仓合理
+            if sig in ("sell_heavy", "sell_medium", "sell_light", "sell_watch"):
+                holding = holdings[sid]
+                super_good = is_super_good_company(sid, year, month)
                 hist_avg_roe = _roe_historical_avg(sid, year, month)
                 is_good_company = (
                     hist_avg_roe is not None
                     and hist_avg_roe >= GOOD_COMPANY_ROE_THRESHOLD
                 )
-                if not is_good_company:
-                    sids_to_sell.append((sid, sdata_match, "适当卖出(明显偏高)"))
-                    continue
-                # 好公司继续持有，不卖
+
+                if super_good:
+                    # 超级好公司：按档位减仓
+                    reduce_ratio = {
+                        "sell_heavy": 0.50,
+                        "sell_medium": 0.30,
+                        "sell_light": 0.15,
+                        "sell_watch": 0.0,
+                    }.get(sig, 0.0)
+                    if reduce_ratio > 0:
+                        shares_to_sell = int(holding["shares"] * reduce_ratio / 100) * 100
+                        if shares_to_sell >= 100:
+                            reason_map = {
+                                "sell_heavy": "超级好公司·大量卖出→减仓50%",
+                                "sell_medium": "超级好公司·中仓卖出→减仓30%",
+                                "sell_light": "超级好公司·适当卖出→减仓15%",
+                            }
+                            sids_to_sell.append(
+                                (sid, sdata_match, reason_map[sig], shares_to_sell)
+                            )
+                elif is_good_company:
+                    # 好公司：只在大量卖出时清仓，其他不动
+                    if sig == "sell_heavy":
+                        sids_to_sell.append(
+                            (sid, sdata_match, "好公司·大量卖出→清仓", None)
+                        )
+                else:
+                    # 普通公司：大量卖出 + 中仓卖出 都清仓
+                    if sig == "sell_heavy":
+                        sids_to_sell.append(
+                            (sid, sdata_match, "大量卖出(远超行业上限)", None)
+                        )
+                    elif sig == "sell_medium":
+                        sids_to_sell.append(
+                            (sid, sdata_match, "适当卖出(明显偏高)", None)
+                        )
+                continue
 
             # 规则3：护城河松动（基本面持续校验）
             is_intact, probs = check_moat(sid, year, month)
             if not is_intact:
                 reason = f"护城河松动({'; '.join(probs[:2])})"
-                sids_to_sell.append((sid, sdata_match, reason))
+                sids_to_sell.append((sid, sdata_match, reason, None))
                 continue
 
-        for sid, sdata, reason in sids_to_sell:
+        for sid, sdata, reason, sell_shares in sids_to_sell:
             h = holdings[sid]
+            # None 表示全部卖出
+            if sell_shares is None or sell_shares > h["shares"]:
+                sell_shares = h["shares"]
             quote_price = sdata.get("price", 0) or h["cost"]
             if quote_price <= 0:
                 # 退市无价，直接清空
@@ -326,17 +466,20 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
                 continue
             # 滑点：卖出实际成交价低于挂单价 0.2%
             exec_price = quote_price * (1 - SLIPPAGE_RATE)
-            revenue, fee = calc_sell_revenue(exec_price, h["shares"], h["code"], year, month)
+            revenue, fee = calc_sell_revenue(exec_price, sell_shares, h["code"], year, month)
             cash += revenue
             total_fees += fee
             pnl_pct = (exec_price / h["cost"] - 1) * 100 if h["cost"] > 0 else 0
             trade_log.append(
-                f"{year}-{month:02d} 卖出 {h['anon']} {h['shares']}股 @¥{exec_price:.2f} "
+                f"{year}-{month:02d} 卖出 {h['anon']} {sell_shares}股 @¥{exec_price:.2f} "
                 f"到手¥{revenue:.0f} 盈亏{pnl_pct:+.1f}% ({reason})"
             )
             # 换股事件识别用：记录卖出方向
             swap_log.append((year, month, "sell", h["anon"], exec_price, revenue, reason))
-            del holdings[sid]
+            # 减仓（部分卖出保留剩余持仓）
+            h["shares"] -= sell_shares
+            if h["shares"] <= 0:
+                del holdings[sid]
 
         # 4. 买入检查：未持仓的股票收到买入信号就建仓
         # 排序优先级：信号强度 > 简单生意 > 回购加分 > 高评分
@@ -371,15 +514,27 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             if price <= 0:
                 continue
 
-            # 按信号强度分配预算
+            # 按信号强度分配预算，结合市场温度微调
+            # 市场极冷（别人恐惧时我贪婪）→ 预算上浮 30%
+            # 市场偏冷 → 上浮 15%
+            # 市场正常 → 不变
+            # 市场偏热 → 预算下浮 20%
+            # 市场极热（别人贪婪时我恐惧）→ 预算下浮 40%
+            temp_multiplier = {
+                -2: 1.30,
+                -1: 1.15,
+                0: 1.0,
+                1: 0.80,
+                2: 0.60,
+            }.get(market_temp, 1.0)
             if sig == "buy_heavy":
-                budget = investable_cash * BUDGET_HEAVY
+                budget = investable_cash * BUDGET_HEAVY * temp_multiplier
                 sig_name = "重仓买入"
             elif sig == "buy_medium":
-                budget = investable_cash * BUDGET_MEDIUM
+                budget = investable_cash * BUDGET_MEDIUM * temp_multiplier
                 sig_name = "中仓买入"
             else:
-                budget = investable_cash * BUDGET_LIGHT
+                budget = investable_cash * BUDGET_LIGHT * temp_multiplier
                 sig_name = "轻仓买入"
 
             # 滑点：买入实际成交价高于挂单价 0.2%

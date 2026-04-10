@@ -520,6 +520,50 @@ def _roe_historical_avg(sid, year, month, lookback_years=7):
     return sum(roes) / len(roes)
 
 
+def _get_recent_roe(sid, year, month):
+    """
+    当月快照 ROE 缺失时的兜底：从最近可见年报取最新有效 ROE
+    用于早期数据不完整时，避免因"数据缺失"误杀买入机会
+    """
+    if not sid or not year or not month:
+        return None
+    reports = get_annual_reports_before(sid, year, month, lookback_years=3)
+    for r in reports:
+        roe = r.get("roe")
+        if roe is not None:
+            return roe
+    return None
+
+
+def _get_recent_gm(sid, year, month):
+    """毛利率兜底：取最近可见年报的毛利率"""
+    if not sid or not year or not month:
+        return None
+    reports = get_annual_reports_before(sid, year, month, lookback_years=3)
+    for r in reports:
+        gm = r.get("gross_margin")
+        if gm is not None:
+            return gm
+    return None
+
+
+def is_good_quality_company(sid, year, month,
+                             roe_threshold=20.0, gm_threshold=30.0):
+    """
+    判定是否为"好公司"（用于"合理价格买好公司"规则）
+    条件：近 5 年 ROE 均值 ≥ 20% 且 最新毛利率 ≥ 30%
+    """
+    if not sid or not year or not month:
+        return False
+    roe_avg = _roe_historical_avg(sid, year, month, lookback_years=5)
+    if not roe_avg or roe_avg < roe_threshold:
+        return False
+    gm = _get_recent_gm(sid, year, month)
+    if not gm or gm < gm_threshold:
+        return False
+    return True
+
+
 def evaluate_cycle_stock(stock_data, sid, year, month, pe_range):
     """
     周期股评分（反向规则）
@@ -717,8 +761,19 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         result["signal"] = signal
         result["signal_text"] = signal_text
 
+        # 数据兜底：当月快照缺失 ROE 时，从历史年报取最近有效值
+        # 避免早期数据不完整导致的"数据不足"误杀
+        effective_roe = roe
+        if effective_roe is None and sid and year and month:
+            effective_roe = _get_recent_roe(sid, year, month)
+        effective_debt = debt_ratio
+        effective_gm = gross_margin
+        if effective_gm is None and sid and year and month:
+            effective_gm = _get_recent_gm(sid, year, month)
+
         # ROE检查（限制买入信号上限）
-        if "buy" in signal and roe is not None:
+        if "buy" in signal and effective_roe is not None:
+            roe = effective_roe  # 后续用兜底后的值
             base_thresh = COMPLEXITY_ROE_ADJUST.get(complexity, COMPLEXITY_ROE_ADJUST["medium"])
             # 高杠杆行业（银行/保险/券商/地产）不做杠杆惩罚 —— 高负债率是行业常态
             leverage_adj = 0
@@ -747,12 +802,36 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         # 高杠杆行业豁免"负债率>70%"和"毛利率<15%"两条规则
         # —— 银行/保险负债率天然90%+；银行无毛利率概念；地产薄毛利是常态
         if "buy" in result["signal"] and not high_leverage:
-            if debt_ratio and debt_ratio > 70:
+            if effective_debt and effective_debt > 70:
                 result["signal"] = "hold"
-                result["signal_text"] += f" 负债率{debt_ratio:.0f}%过高"
-            if gross_margin and gross_margin < 15:
+                result["signal_text"] += f" 负债率{effective_debt:.0f}%过高"
+            if effective_gm and effective_gm < 15:
                 result["signal"] = "hold"
-                result["signal_text"] += f" 毛利率{gross_margin:.0f}%过低"
+                result["signal_text"] += f" 毛利率{effective_gm:.0f}%过低"
+
+        # 巴菲特"合理价格买好公司"规则（1989 年致股东信）
+        # 原话："以合理价格买入好公司，远胜于以便宜价格买入平庸公司"
+        # 执行：好公司在"合理区间"内也可以买入，不必等到极端低估
+        # 条件：近5年ROE均值≥20% + 毛利率≥30% + 护城河完好
+        if result["signal"] in ("hold", "buy_watch", "sell_watch") and pe and pe > 0:
+            if is_good_quality_company(sid, year, month):
+                # PE 在合理区间（fair_low ~ fair_high）内
+                mid = (pe_range["fair_low"] + pe_range["fair_high"]) / 2
+                if pe <= pe_range["fair_low"]:
+                    # 已经被上面的 PE 分支处理过（buy_light）
+                    pass
+                elif pe <= mid:
+                    # 合理偏低：好公司可以轻仓买入（即使 PE 不算便宜）
+                    result["signal"] = "buy_light"
+                    result["signal_text"] = (
+                        f"好公司合理价（PE={pe:.1f} 合理区间偏低，ROE均值≥20%+毛利率≥30%）→ 轻仓买入"
+                    )
+                elif pe <= pe_range["fair_high"]:
+                    # 合理偏高：好公司给关注信号
+                    result["signal"] = "buy_watch"
+                    result["signal_text"] = (
+                        f"好公司（PE={pe:.1f} 合理区间偏高）→ 关注买入"
+                    )
 
         # 筛选第一关：护城河趋势检查（基于多年财务序列）
         # 只要趋势显示护城河松动，买入信号一律降级为hold，无论PE多低
