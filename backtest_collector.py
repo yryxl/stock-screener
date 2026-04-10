@@ -37,7 +37,7 @@ def load_stock_list():
     return stocks
 
 
-def collect_monthly_prices(code, start="20100101", end="20251231"):
+def collect_monthly_prices(code, start="20010101", end="20251231"):
     """采集月度价格（从新浪日K线中提取每月15日附近的数据）"""
     for attempt in range(3):
         try:
@@ -257,9 +257,9 @@ def build_monthly_snapshots(all_data, stocks):
     """
     print("\n=== 构建月度快照 ===")
 
-    # 生成2010-01到2025-12的所有月份
+    # 生成2001-01到2025-12的所有月份（部分股票上市晚，早期月份会跳过）
     months = []
-    for y in range(2010, 2026):
+    for y in range(2001, 2026):
         for m in range(1, 13):
             months.append(f"{y}-{m:02d}")
 

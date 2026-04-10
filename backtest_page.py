@@ -150,12 +150,12 @@ def render_backtest_page():
             st.rerun()
 
         st.markdown("---")
-        st.caption("📅 数据范围：2010年1月 ~ 2025年12月")
+        st.caption("📅 数据范围：2001年1月 ~ 2025年12月（部分股票上市晚，早期月份无数据会自动跳过）")
         c1, c2 = st.columns(2)
         with c1:
             st.session_state["bt_year"] = st.number_input(
-                "年", 2010, 2025, st.session_state["bt_year"], key="bty",
-                help="回测数据从 2010 年开始"
+                "年", 2001, 2025, st.session_state["bt_year"], key="bty",
+                help="回测数据从 2001 年开始（茅台等老股票）"
             )
         with c2:
             st.session_state["bt_month"] = st.number_input("月", 1, 12, st.session_state["bt_month"], key="btm")

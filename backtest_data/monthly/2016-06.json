@@ -4,7 +4,7 @@
     "S01": {
       "price": 276.49,
       "change_pct": 9.99,
-      "pe_ttm": 22.59,
+      "pe_ttm": 21.48,
       "roe": 26.23,
       "gross_margin": 92.23,
       "net_margin": 50.38,
@@ -20,7 +20,7 @@
     "S02": {
       "price": 31.35,
       "change_pct": 8.43,
-      "pe_ttm": 17.81,
+      "pe_ttm": 16.78,
       "roe": 14.93,
       "gross_margin": 69.2,
       "net_margin": 29.6,
@@ -36,7 +36,7 @@
     "S03": {
       "price": 62.27,
       "change_pct": 3.16,
-      "pe_ttm": 22.76,
+      "pe_ttm": 22.7,
       "roe": 22.43,
       "gross_margin": 30.53,
       "net_margin": 13.29,
@@ -52,7 +52,7 @@
     "S04": {
       "price": 46.2,
       "change_pct": -12.44,
-      "pe_ttm": 41.24,
+      "pe_ttm": 39.57,
       "roe": 24.37,
       "gross_margin": 85.28,
       "net_margin": 23.87,
@@ -84,7 +84,7 @@
     "S32": {
       "price": 9.04,
       "change_pct": -3.06,
-      "pe_ttm": 11.05,
+      "pe_ttm": 10.95,
       "roe": 16.22,
       "gross_margin": 27.96,
       "net_margin": 6.6,
@@ -116,7 +116,7 @@
     "S34": {
       "price": 33.53,
       "change_pct": 11.03,
-      "pe_ttm": 73.97,
+      "pe_ttm": 75.58,
       "roe": 19.66,
       "gross_margin": 46.59,
       "net_margin": 13.79,
@@ -132,7 +132,7 @@
     "S06": {
       "price": 7.22,
       "change_pct": -1.77,
-      "pe_ttm": 83.6,
+      "pe_ttm": 82.91,
       "roe": 3.0,
       "gross_margin": 24.63,
       "net_margin": 2.46,
@@ -148,7 +148,7 @@
     "S08": {
       "price": 2.32,
       "change_pct": -2.53,
-      "pe_ttm": 105.95,
+      "pe_ttm": 105.03,
       "roe": 2.13,
       "gross_margin": 20.3,
       "net_margin": 3.37,
@@ -180,7 +180,7 @@
     "S36": {
       "price": 9.56,
       "change_pct": -1.48,
-      "pe_ttm": 10.37,
+      "pe_ttm": 9.91,
       "roe": 12.41,
       "gross_margin": 11.45,
       "net_margin": 2.23,
@@ -196,7 +196,7 @@
     "S37": {
       "price": 3.18,
       "change_pct": -1.25,
-      "pe_ttm": 10.89,
+      "pe_ttm": 11.0,
       "roe": 10.0,
       "gross_margin": 26.88,
       "net_margin": 9.25,
@@ -212,7 +212,7 @@
     "S11": {
       "price": 31.98,
       "change_pct": -1.99,
-      "pe_ttm": 10.65,
+      "pe_ttm": 10.5,
       "roe": 17.12,
       "gross_margin": null,
       "net_margin": 10.51,
@@ -228,7 +228,7 @@
     "S12": {
       "price": 15.37,
       "change_pct": -6.04,
-      "pe_ttm": 5.72,
+      "pe_ttm": 5.68,
       "roe": 18.89,
       "gross_margin": null,
       "net_margin": 32.82,
@@ -244,7 +244,7 @@
     "S14": {
       "price": 44.77,
       "change_pct": -0.59,
-      "pe_ttm": 27.56,
+      "pe_ttm": 27.66,
       "roe": 14.15,
       "gross_margin": 24.43,
       "net_margin": 8.09,
@@ -260,7 +260,7 @@
     "S15": {
       "price": 17.39,
       "change_pct": -3.26,
-      "pe_ttm": 7.41,
+      "pe_ttm": 7.5,
       "roe": 17.09,
       "gross_margin": null,
       "net_margin": 28.8,
@@ -292,7 +292,7 @@
     "S39": {
       "price": 20.35,
       "change_pct": -0.29,
-      "pe_ttm": 7.39,
+      "pe_ttm": 7.35,
       "roe": 17.91,
       "gross_margin": 11.42,
       "net_margin": 6.06,
@@ -308,7 +308,7 @@
     "S40": {
       "price": 26.99,
       "change_pct": -6.13,
-      "pe_ttm": 19.72,
+      "pe_ttm": 20.25,
       "roe": 13.05,
       "gross_margin": 45.94,
       "net_margin": 42.71,
@@ -324,7 +324,7 @@
     "S41": {
       "price": 9.23,
       "change_pct": -4.97,
-      "pe_ttm": 19.5,
+      "pe_ttm": 19.33,
       "roe": 12.47,
       "gross_margin": 20.21,
       "net_margin": 5.83,
@@ -340,7 +340,7 @@
     "S16": {
       "price": 21.27,
       "change_pct": -1.25,
-      "pe_ttm": 42.76,
+      "pe_ttm": 44.47,
       "roe": 66.42,
       "gross_margin": 88.48,
       "net_margin": 65.72,
@@ -356,7 +356,7 @@
     "S18": {
       "price": 19.31,
       "change_pct": -31.05,
-      "pe_ttm": 31.41,
+      "pe_ttm": 33.26,
       "roe": 21.02,
       "gross_margin": 22.88,
       "net_margin": 11.16,
@@ -372,7 +372,7 @@
     "S19": {
       "price": 14.12,
       "change_pct": -12.03,
-      "pe_ttm": 189.59,
+      "pe_ttm": 193.98,
       "roe": 3.93,
       "gross_margin": 23.48,
       "net_margin": 0.88,
@@ -388,7 +388,7 @@
     "S20": {
       "price": 59.14,
       "change_pct": 1.87,
-      "pe_ttm": 42.51,
+      "pe_ttm": 41.19,
       "roe": 10.22,
       "gross_margin": 16.87,
       "net_margin": 3.92,
@@ -404,7 +404,7 @@
     "S42": {
       "price": 13.96,
       "change_pct": -4.76,
-      "pe_ttm": 13.29,
+      "pe_ttm": 13.27,
       "roe": 18.88,
       "gross_margin": 42.43,
       "net_margin": 19.21,
@@ -436,7 +436,7 @@
     "S44": {
       "price": 51.28,
       "change_pct": -3.38,
-      "pe_ttm": 26.54,
+      "pe_ttm": 25.48,
       "roe": 26.63,
       "gross_margin": 24.62,
       "net_margin": 19.84,
@@ -452,7 +452,7 @@
     "S45": {
       "price": 68.38,
       "change_pct": -47.78,
-      "pe_ttm": 117.2,
+      "pe_ttm": 114.85,
       "roe": 7.86,
       "gross_margin": 21.78,
       "net_margin": 9.22,
@@ -468,7 +468,7 @@
     "S46": {
       "price": 44.45,
       "change_pct": -3.85,
-      "pe_ttm": 85.3,
+      "pe_ttm": 84.15,
       "roe": 8.24,
       "gross_margin": 46.94,
       "net_margin": 22.81,
@@ -484,7 +484,7 @@
     "S23": {
       "price": 28.19,
       "change_pct": 0.99,
-      "pe_ttm": 55.1,
+      "pe_ttm": 58.71,
       "roe": 8.22,
       "gross_margin": 12.84,
       "net_margin": 2.59,
@@ -500,7 +500,7 @@
     "S24": {
       "price": 15.42,
       "change_pct": 1.13,
-      "pe_ttm": 22.71,
+      "pe_ttm": 23.08,
       "roe": 18.54,
       "gross_margin": 28.34,
       "net_margin": 15.26,
@@ -532,7 +532,7 @@
     "S26": {
       "price": 29.56,
       "change_pct": 1.95,
-      "pe_ttm": 32.25,
+      "pe_ttm": 30.78,
       "roe": 32.0,
       "gross_margin": 41.94,
       "net_margin": 22.22,
@@ -612,7 +612,7 @@
     "S55": {
       "price": 4.74,
       "change_pct": -2.28,
-      "pe_ttm": 15.57,
+      "pe_ttm": 15.47,
       "roe": 5.04,
       "gross_margin": 21.11,
       "net_margin": 2.15,
@@ -628,7 +628,7 @@
     "S56": {
       "price": 5.07,
       "change_pct": -7.02,
-      "pe_ttm": 81.15,
+      "pe_ttm": 82.65,
       "roe": 0.9,
       "gross_margin": 8.87,
       "net_margin": 0.44,
@@ -644,7 +644,7 @@
     "S57": {
       "price": 7.32,
       "change_pct": 0.13,
-      "pe_ttm": 9.0,
+      "pe_ttm": 8.69,
       "roe": 19.29,
       "gross_margin": 29.0,
       "net_margin": 13.61,
@@ -660,7 +660,7 @@
     "S58": {
       "price": 4.49,
       "change_pct": 16.97,
-      "pe_ttm": -18.89,
+      "pe_ttm": -18.35,
       "roe": -10.22,
       "gross_margin": 32.2,
       "net_margin": -7.23,
@@ -692,7 +692,7 @@
     "S60": {
       "price": 14.28,
       "change_pct": -5.05,
-      "pe_ttm": 24.47,
+      "pe_ttm": 23.9,
       "roe": 11.95,
       "gross_margin": 60.01,
       "net_margin": 39.86,
@@ -724,7 +724,7 @@
     "S62": {
       "price": 15.92,
       "change_pct": -3.34,
-      "pe_ttm": 11.16,
+      "pe_ttm": 10.77,
       "roe": 16.63,
       "gross_margin": null,
       "net_margin": 36.35,
@@ -740,7 +740,7 @@
     "S63": {
       "price": 17.54,
       "change_pct": 2.38,
-      "pe_ttm": 13.2,
+      "pe_ttm": 13.48,
       "roe": 17.09,
       "gross_margin": null,
       "net_margin": 41.12,
@@ -772,7 +772,7 @@
     "S65": {
       "price": 9.05,
       "change_pct": -2.08,
-      "pe_ttm": 7.02,
+      "pe_ttm": 7.09,
       "roe": 16.98,
       "gross_margin": null,
       "net_margin": 30.45,

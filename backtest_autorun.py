@@ -591,7 +591,8 @@ if __name__ == "__main__":
         time_points = []
         used = set()
         while len(time_points) < n_points:
-            y = random.randint(2011, 2020)
+            # 数据范围 2001-2025，为了保证至少 5 年回测窗口，起点取 2001-2020
+            y = random.randint(2001, 2020)
             m = random.randint(1, 12)
             if (y, m) not in used:
                 time_points.append((y, m))
