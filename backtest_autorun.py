@@ -34,13 +34,44 @@ from backtest_engine import (
 )
 
 
+# ============================================================
+# 1. 参数常量
+# ============================================================
+# -------- 仓位参数 --------
+MAX_HOLDINGS = 10         # 同时最多持有数量
+CASH_RESERVE = 0.05       # 预留现金比例
+
+# -------- 首次建仓预算（按信号档位，占可投资金比例）--------
+BUDGET_HEAVY = 0.40       # 重仓买入
+BUDGET_MEDIUM = 0.20      # 中仓买入
+BUDGET_LIGHT = 0.10       # 轻仓买入
+
+# -------- 公司质量门槛 --------
+# 好公司：ROE 均值 ≥ 15%（巴菲特合格线），大量卖出才清仓
+# 超级好公司：ROE 均值 ≥ 25% + 毛利率 ≥ 40%（茅台式），永不清仓只减仓
+GOOD_COMPANY_ROE_THRESHOLD = 15.0
+SUPER_GOOD_ROE_THRESHOLD = 25.0
+SUPER_GOOD_GM_THRESHOLD = 40.0
+
+# -------- A 股真实交易费用 --------
+COMMISSION_RATE = 0.00025  # 佣金：双向万 2.5
+COMMISSION_MIN = 5.0       # 佣金最低 5 元
+STAMP_TAX_OLD = 0.001      # 印花税旧规则：卖出万十
+STAMP_TAX_NEW = 0.0005     # 印花税新规则：2023-08 起万五
+SLIPPAGE_RATE = 0.002      # 滑点：实际成交价偏离挂单价 0.2%
+
+
+# ============================================================
+# 2. 公司质量判定
+# ============================================================
+
 def is_super_good_company(sid, year, month):
     """
-    超级好公司判定（用于"永恒持有"豁免）
-    条件：近 5 年 ROE 均值 ≥ 25%（远超卓越线 20%） 且 近 3 年毛利率均值 ≥ 40%
-    典型代表：贵州茅台、五粮液、海天味业、片仔癀、恒瑞医药
-    这类公司"大量卖出"信号也豁免，只在真正护城河松动时才卖
-    依据：巴菲特从不因 PE 偏高卖可口可乐，也不因"远超行业上限"卖可口可乐
+    超级好公司判定（永恒持有豁免）
+    条件：近 5 年 ROE 均值 ≥ 25% 且 近 3 年毛利率均值 ≥ 40%
+    典型：茅台、五粮液、海天味业、片仔癀、恒瑞医药
+    作用：大量卖出信号也不清仓，按档位减仓 30/20/10%
+    依据：巴菲特从不因 PE 偏高清仓可口可乐
     """
     roe_avg = _roe_historical_avg(sid, year, month, lookback_years=5)
     if not roe_avg or roe_avg < SUPER_GOOD_ROE_THRESHOLD:
@@ -49,39 +80,7 @@ def is_super_good_company(sid, year, month):
     gms = [r.get("gross_margin") for r in reports if r.get("gross_margin") is not None]
     if not gms:
         return False
-    avg_gm = sum(gms) / len(gms)
-    return avg_gm >= SUPER_GOOD_GM_THRESHOLD
-
-# 好公司定义：历史净资产收益率均值 ≥ 15%（巴菲特合格线）
-# 好公司只在"大量卖出（远超行业上限）"时才自动清仓，
-# 轻度/明显偏高这两档不触发回测自动卖出 —— 好公司市盈率偏高是常态
-GOOD_COMPANY_ROE_THRESHOLD = 15.0
-
-# 回测参数
-MAX_HOLDINGS = 10         # 同时最多持有数量（原 5，早期机会少不够铺开）
-CASH_RESERVE = 0.05       # 预留 5% 现金
-
-# 首次建仓比例（按信号强度）
-BUDGET_HEAVY = 0.40       # 重仓买入：占可投资金 40%（原 30%）
-BUDGET_MEDIUM = 0.20      # 中仓买入：20%（原 15%）
-BUDGET_LIGHT = 0.10       # 轻仓买入：10%（原 8%）
-
-# 超级好公司门槛（用于"永恒持有"豁免）
-# 近 5 年 ROE 均值 ≥ 25%（超过卓越线 20%）且 毛利率 ≥ 40%
-SUPER_GOOD_ROE_THRESHOLD = 25.0
-SUPER_GOOD_GM_THRESHOLD = 40.0
-
-# ============ A股真实交易费用 ============
-# 佣金：双向收取，万2.5（互联网券商主流水平），最低5元
-COMMISSION_RATE = 0.00025
-COMMISSION_MIN = 5.0
-
-# 印花税：只在卖出时征收，2023-08-28 起降为万五，此前万十
-STAMP_TAX_OLD = 0.001
-STAMP_TAX_NEW = 0.0005
-
-# 滑点：实际成交价比挂单价差 0.2%（主动买入追价、主动卖出让价）
-SLIPPAGE_RATE = 0.002
+    return sum(gms) / len(gms) >= SUPER_GOOD_GM_THRESHOLD
 
 
 def _transfer_fee_rate(code, year, month):
@@ -238,6 +237,44 @@ def apply_dividends(holdings, year, month, trade_log):
     return total_div
 
 
+def _combine_temperatures(pool_temp, index_temp):
+    """
+    融合股票池温度计和沪深 300 指数温度计
+    取两者平均后四舍五入到最近档位（偏保守）
+    返回：-2（极冷）~ +2（极热）
+    """
+    avg = (pool_temp + index_temp) / 2
+    if avg >= 1.5: return 2
+    if avg >= 0.5: return 1
+    if avg <= -1.5: return -2
+    if avg <= -0.5: return -1
+    return 0
+
+
+def _check_cash_flow_warnings(holdings, year, month, trade_log):
+    """
+    消费龙头现金流警示（已豁免规则 7 但需重点关注）
+    只在 4 月（年报披露期）检查，且只在状态变化时输出
+    直接修改 holdings[sid]["cf_warned"] 状态
+    """
+    if month != 4:
+        return
+    for sid, h in holdings.items():
+        warnings = get_cash_flow_warnings(sid, year, month)
+        was_warned = h.get("cf_warned", False)
+        if warnings and not was_warned:
+            for w in warnings:
+                trade_log.append(
+                    f"{year}-{month:02d} ⚠重点关注 {h['anon']}：{w}"
+                )
+            h["cf_warned"] = True
+        elif not warnings and was_warned:
+            trade_log.append(
+                f"{year}-{month:02d} ✓警示解除 {h['anon']}：现金流恢复正常"
+            )
+            h["cf_warned"] = False
+
+
 def get_market_temperature(market_pe_history):
     """
     返回市场温度（-2 极冷 / -1 偏冷 / 0 正常 / 1 偏热 / 2 极热）
@@ -308,50 +345,19 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
                 month += 1
             continue
 
-        # 0. 更新市场温度计（双温度计融合）
-        # 温度计 1：股票池温度（基于我们 70 只股票的中位数 PE）
-        # 温度计 2：沪深 300 指数温度（基于指数中位数 PE 历史分位）
-        # 融合逻辑：取两者平均，四舍五入到最近档位（偏保守）
+        # ---- 0. 双温度计融合（股票池温度 + 沪深300指数温度）----
         current_market_pe = compute_market_pe_median(signals)
         if current_market_pe is not None:
             market_pe_history.append(current_market_pe)
         pool_temp = get_market_temperature(market_pe_history)
         index_temp = get_hs300_temperature(year, month)
-        avg_temp = (pool_temp + index_temp) / 2
-        if avg_temp >= 1.5:
-            market_temp = 2
-        elif avg_temp >= 0.5:
-            market_temp = 1
-        elif avg_temp <= -1.5:
-            market_temp = -2
-        elif avg_temp <= -0.5:
-            market_temp = -1
-        else:
-            market_temp = 0
+        market_temp = _combine_temperatures(pool_temp, index_temp)
 
-        # 1. 分红入账
+        # ---- 1. 分红入账 + 消费龙头现金流警示 ----
         div_cash = apply_dividends(holdings, year, month, trade_log)
         cash += div_cash
         total_dividends += div_cash
-
-        # 1.5 消费龙头现金流警示（已豁免但需重点关注）
-        # 只在每年4月（年报披露期）检查一次，避免日志嘈杂
-        # 且只在警示状态变化时输出（首次触发 / 警示解除）
-        if month == 4:
-            for sid, h in holdings.items():
-                warnings = get_cash_flow_warnings(sid, year, month)
-                was_warned = h.get("cf_warned", False)
-                if warnings and not was_warned:
-                    for w in warnings:
-                        trade_log.append(
-                            f"{year}-{month:02d} ⚠重点关注 {h['anon']}：{w}"
-                        )
-                    h["cf_warned"] = True
-                elif not warnings and was_warned:
-                    trade_log.append(
-                        f"{year}-{month:02d} ✓警示解除 {h['anon']}：现金流恢复正常"
-                    )
-                    h["cf_warned"] = False
+        _check_cash_flow_warnings(holdings, year, month, trade_log)
 
         # 2. 计算当前总资产
         portfolio_value = 0
@@ -367,11 +373,16 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
         total = cash + portfolio_value
         monthly_values.append({"date": f"{year}-{month:02d}", "total": total})
 
-        # 3. 卖出检查：严格按模型信号
+        # ---- 3. 卖出检查（严格按模型信号）----
+        # 触发条件：退市、大量/中仓/适当/关注卖出信号、护城河松动
+        # 决策规则：
+        #   超级好公司（ROE均值≥25%+毛利≥40%）：按档位减仓（30/20/10%），永不清仓
+        #   好公司（ROE均值≥15%）：只在大量卖出时清仓
+        #   普通公司：大量卖出 + 中仓卖出 都清仓
+        #   市场极热：所有持仓额外系统性减仓 25%（每年最多一次）
         sids_to_sell = []
 
-        # 系统性减仓：市场极热时，对所有持仓触发一次额外减仓
-        # 每个持仓每年最多系统性减仓 1 次（用状态避免连续触发）
+        # 市场极热系统性减仓（每持仓每年一次）
         if market_temp == 2:
             for sid, h in list(holdings.items()):
                 if h.get("sys_reduce_year") == year:
@@ -402,20 +413,12 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             sig = sdata_match.get("signal", "")
             price = sdata_match.get("price", 0) or 0
 
-            # 规则1：退市 → 必须清仓
+            # 退市 → 清仓
             if sig == "delisted" or price <= 0:
                 sids_to_sell.append((sid, sdata_match, "退市清仓", None))
                 continue
 
-            # 规则2：明确卖出信号（按模型档位 + 公司质量分级处理）
-            # 超级好公司（茅台式，ROE均值≥25%+毛利≥40%）：按档位减仓，永不清仓
-            #   * 大量卖出 → 减 50%
-            #   * 中仓卖出 → 减 30%
-            #   * 适当卖出 → 减 15%
-            #   * 关注卖出 → 不动（仅提示）
-            # 好公司（ROE均值≥15%）：大量卖出才清仓，其他档位不动
-            # 普通公司：大量卖出/中仓卖出都清仓
-            # 依据：巴菲特不因 PE 偏高清仓可口可乐，但极端高估时减仓合理
+            # 卖出信号分级处理（超级好公司减仓 / 好公司清仓 / 普通公司清仓）
             if sig in ("sell_heavy", "sell_medium", "sell_light", "sell_watch"):
                 holding = holdings[sid]
                 super_good = is_super_good_company(sid, year, month)
@@ -462,7 +465,7 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
                         )
                 continue
 
-            # 规则3：护城河松动（基本面持续校验）
+            # 护城河松动 → 清仓（兜底检查，防止基本面恶化）
             is_intact, probs = check_moat(sid, year, month)
             if not is_intact:
                 reason = f"护城河松动({'; '.join(probs[:2])})"
@@ -497,11 +500,10 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             if h["shares"] <= 0:
                 del holdings[sid]
 
-        # 4. 买入检查：未持仓的股票收到买入信号就建仓
-        # 排序优先级：信号强度 > 简单生意 > 回购加分 > 高评分
-        # 理由：同样的便宜机会里，
-        #   1) 优先买"一看就懂"的简单生意（巴菲特：能力圈）
-        #   2) 其次优先买"有大额回购历史"的公司（巴菲特：回购是伟大公司的标志）
+        # ---- 4. 买入检查 ----
+        # 排序优先级：信号强度 > 十年王者 > 简单生意 > 回购加分 > 高评分
+        # 预算按信号档位分配（重仓40% / 中仓20% / 轻仓10% × 温度系数）
+        # 兜底：算出不够 100 股但手头钱够，买 1 手（小资金友好）
         investable_cash = cash * (1 - CASH_RESERVE)
 
         def _buy_priority(item):
@@ -532,19 +534,9 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             if price <= 0:
                 continue
 
-            # 按信号强度分配预算，结合市场温度微调
-            # 市场极冷（别人恐惧时我贪婪）→ 预算上浮 30%
-            # 市场偏冷 → 上浮 15%
-            # 市场正常 → 不变
-            # 市场偏热 → 预算下浮 20%
-            # 市场极热（别人贪婪时我恐惧）→ 预算下浮 40%
-            temp_multiplier = {
-                -2: 1.30,
-                -1: 1.15,
-                0: 1.0,
-                1: 0.80,
-                2: 0.60,
-            }.get(market_temp, 1.0)
+            # 按信号强度分配预算 × 温度系数（别人贪婪时我恐惧）
+            # 极冷 +30%、偏冷 +15%、正常 0%、偏热 -20%、极热 -40%
+            temp_multiplier = {-2: 1.30, -1: 1.15, 0: 1.0, 1: 0.80, 2: 0.60}.get(market_temp, 1.0)
             if sig == "buy_heavy":
                 budget = investable_cash * BUDGET_HEAVY * temp_multiplier
                 sig_name = "重仓买入"
@@ -555,14 +547,11 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
                 budget = investable_cash * BUDGET_LIGHT * temp_multiplier
                 sig_name = "轻仓买入"
 
-            # 滑点：买入实际成交价高于挂单价 0.2%
-            exec_price = price * (1 + SLIPPAGE_RATE)
-
+            exec_price = price * (1 + SLIPPAGE_RATE)  # 买入滑点 +0.2%
             shares = int(budget / exec_price // 100) * 100
             code = stocks[sid]["code"]
 
-            # 兜底：比例算出来<100股，但手头现金够买1手就买1手
-            # 这样小资金遇到好机会也能建仓，不错过
+            # 小资金兜底：比例不够 100 股但手头钱够就买 1 手
             if shares < 100:
                 tentative_cost, _ = calc_buy_cost(exec_price, 100, code, year, month)
                 if cash >= tentative_cost:

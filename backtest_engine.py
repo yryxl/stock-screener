@@ -1,6 +1,15 @@
 """
 回测引擎 - 用历史月度数据跑模型，输出买卖信号
-复用 screener.py 的行业PE区间和评估逻辑
+复用 screener.py 的行业 PE 区间和评估逻辑
+
+文件结构（按逻辑分层）：
+  1. 策略开关与股票行业映射
+  2. 数据加载层    - 月度快照、原始数据、回购、指数 PE、年报序列
+  3. 指标工具层    - ROE 历史均值、十年王者、好公司判定、回购加分
+  4. 宏观温度计    - 沪深 300 指数 PE 历史分位
+  5. 护城河检查    - 分周期股/非周期股两套规则，含消费龙头豁免
+  6. 股票评分      - 周期股反向评分、非周期股主流程
+  7. 月度信号入口  - get_month_signals()
 """
 
 import json
@@ -12,15 +21,22 @@ from screener import match_industry_pe, COMPLEXITY_ROE_ADJUST
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ===== 策略开关 =====
-# 巴菲特/芒格核心理念：不参与周期股
-# "时间是优秀企业的朋友，平庸企业的敌人" —— 周期股盈利大幅波动，
-# 股价跟随大宗商品/行业周期起伏，不符合"长期持有优质企业"的逻辑
-# 设为 False 则所有周期股信号降级为"继续观望"，既不买入也不操作
+
+# ============================================================
+# 1. 策略开关
+# ============================================================
+# 巴菲特/芒格核心理念：不参与大宗商品周期股
+# "时间是优秀企业的朋友，平庸企业的敌人"
+# 设为 False 时，所有周期股信号从 get_month_signals 的输出中过滤
+# 保留开关以便未来重新启用（evaluate_cycle_stock 代码仍然可用）
 CYCLE_STOCKS_ENABLED = False
 
-# 30只回测股票的行业映射（手工标注）
-# 行业字符串会经 match_industry_pe 模糊匹配到 INDUSTRY_PE 的对应条目
+# 股票池行业映射（手工标注，经 match_industry_pe 模糊匹配到 INDUSTRY_PE）
+# 70 只股票按上市时间 + 类型分布：
+#   S01-S30：初始 30 只（6 个类别）
+#   S31-S50：多样化扩充（好公司/烂公司/周期股/退市股）
+#   S51-S58：低价高分红蓝筹（小资金友好）
+#   S59-S70：低价多样化（覆盖更多行业/上市时间）
 STOCK_INDUSTRY = {
     "S01": "白酒",          # 贵州茅台
     "S02": "白酒",          # 五粮液
@@ -97,18 +113,18 @@ STOCK_INDUSTRY = {
     "S70": "新能源",        # 三峡能源
 }
 
-# 原始数据缓存（financial_data历史序列，用于护城河趋势检查）
-_raw_cache = {}
-
-# 回购数据缓存（全股票池的回购历史）
-_buybacks_cache = None
-
-# 沪深 300 指数 PE 历史缓存（宽基指数温度计）
-_hs300_pe_cache = None
+# ============================================================
+# 2. 数据加载层
+# ============================================================
+# 所有文件 I/O + 模块级缓存都在这里
+# 模块级缓存避免重复读盘（月度回测会反复查同一个文件）
+_raw_cache = {}           # 股票原始数据（financial_data 历史序列）
+_buybacks_cache = None    # 全股票池的历史回购记录
+_hs300_pe_cache = None    # 沪深 300 指数 PE 历史（宽基温度计用）
 
 
 def _load_hs300_pe():
-    """懒加载沪深300指数PE历史数据"""
+    """懒加载沪深 300 指数 PE 历史数据（数据加载层）"""
     global _hs300_pe_cache
     if _hs300_pe_cache is not None:
         return _hs300_pe_cache
@@ -121,9 +137,15 @@ def _load_hs300_pe():
     return _hs300_pe_cache
 
 
+# ============================================================
+# 4. 宏观温度计（沪深 300 历史 PE 分位）
+# ============================================================
+# 巴菲特/芒格："别人贪婪时我恐惧，别人恐惧时我贪婪"
+# 关键判定：极冷(-2)、偏冷(-1)、正常(0)、偏热(+1)、极热(+2)
+
 def get_hs300_temperature(year, month, lookback_years=10):
     """
-    沪深300指数温度计（基于中位数市盈率的历史分位）
+    沪深 300 指数温度计（基于中位数市盈率的历史分位）
     这是真正的"宽基指数温度计"，反映全市场的估值水平
     不同于"股票池温度计"（仅基于 70 只股票）
 
@@ -175,7 +197,7 @@ def get_hs300_temperature(year, month, lookback_years=10):
 
 
 def _load_buybacks():
-    """懒加载回购数据（仅第一次调用时读盘）"""
+    """懒加载全股票池的回购历史（数据加载层）"""
     global _buybacks_cache
     if _buybacks_cache is not None:
         return _buybacks_cache
@@ -188,6 +210,12 @@ def _load_buybacks():
         _buybacks_cache = json.load(f)
     return _buybacks_cache
 
+
+# ============================================================
+# 3. 指标工具层（部分）—— 回购加分
+# ============================================================
+# 其余工具（_roe_historical_avg、_get_recent_roe、check_10_year_king、
+# is_good_quality_company）见下方的"指标工具层"段落
 
 def get_buyback_score(sid, year, month, lookback_years=5):
     """
@@ -238,7 +266,7 @@ def get_buyback_score(sid, year, month, lookback_years=5):
 
 
 def load_raw_data(sid):
-    """加载某只股票的完整raw数据（含多年财务序列），带缓存"""
+    """加载某股票的完整原始数据（含多年财务序列），带缓存（数据加载层）"""
     if sid in _raw_cache:
         return _raw_cache[sid]
     path = os.path.join(SCRIPT_DIR, "backtest_data", f"raw_{sid}.json")
@@ -275,12 +303,20 @@ def get_annual_reports_before(sid, year, month, lookback_years=5):
     return visible[:lookback_years]
 
 
+# ============================================================
+# 5. 护城河检查层
+# ============================================================
+# 筛选清单"第一关"——任一规则触发则买入降级为 hold、持仓触发卖出
+# 对外统一入口 check_moat()，内部按行业分发：
+#   - 周期股（type=cycle）→ check_moat_cycle：只看"连续亏损/营收暴跌"
+#   - 非周期股 → check_moat_normal：8 条规则综合判断
+# 另外 get_cash_flow_warnings() 给"消费龙头被豁免时"输出重点关注警示
+
 def check_moat(sid, year, month):
     """
-    护城河趋势检查（筛选清单第一关）
-    根据股票所属行业自动分发到不同规则：
-      - 周期股（cycle）：ROE 本就波动，不用"ROE下滑"判松动，只看"连续亏损/营收暴跌"
-      - 非周期股：ROE/毛利率/营收/负债率综合判断
+    护城河趋势检查（筛选第一关）
+    按行业分发到 cycle / normal 两套规则
+    返回 (is_intact, problems) —— intact=True 表示护城河完好
     """
     industry = STOCK_INDUSTRY.get(sid, "")
     pe_range = match_industry_pe(industry)
@@ -531,8 +567,12 @@ def check_moat_cycle(sid, year, month):
     return len(problems) == 0, problems
 
 
+# ============================================================
+# 2. 数据加载层（续）—— 月度快照与股票列表
+# ============================================================
+
 def load_month_data(year, month):
-    """加载某月的历史快照"""
+    """加载某月的历史快照（数据加载层）"""
     path = os.path.join(SCRIPT_DIR, "backtest_data", "monthly", f"{year}-{month:02d}.json")
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
@@ -585,8 +625,17 @@ def generate_anonymous_map(stock_ids, seed=None):
     return mapping
 
 
+# ============================================================
+# 3. 指标工具层
+# ============================================================
+# 财务指标计算 + 好公司判定
+# - _roe_historical_avg: ROE 多年均值（周期股和好公司判定用）
+# - _get_recent_roe / _get_recent_gm: 数据兜底（当月缺失时用历史）
+# - check_10_year_king: 十年王者（巴菲特熊市选股核心）
+# - is_good_quality_company: 好公司判定（合理价格买入规则用）
+
 def _roe_historical_avg(sid, year, month, lookback_years=7):
-    """返回股票最近 N 年可见年报的 ROE 平均值（用于周期股相对高低判定）"""
+    """返回最近 N 年可见年报的 ROE 平均值（周期股相对高低判定）"""
     reports = get_annual_reports_before(sid, year, month, lookback_years=lookback_years)
     roes = [r.get("roe") for r in reports if r.get("roe") is not None]
     if len(roes) < 3:
@@ -696,9 +745,15 @@ def is_good_quality_company(sid, year, month,
     return True
 
 
+# ============================================================
+# 6. 股票评分层
+# ============================================================
+# 核心决策函数。evaluate_stock 是主入口，根据行业类型分发到
+# evaluate_cycle_stock（周期股反向规则，当前默认禁用）或非周期股主流程
+
 def evaluate_cycle_stock(stock_data, sid, year, month, pe_range):
     """
-    周期股评分（反向规则）
+    周期股评分（反向规则，当前默认禁用）
     核心思想：周期股的 ROE 和 PE 都跟随行业周期起伏，高低都是正常的
       - ROE 远高于历史均值 → 周期顶部 → 卖出
       - ROE 远低于历史均值 → 周期底部 → 买入（此时 PE 往往高或负）
@@ -800,9 +855,12 @@ def evaluate_cycle_stock(stock_data, sid, year, month, pe_range):
 
 def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None):
     """
-    用模型逻辑评估单只股票
-    输入：某月的股票数据（price, pe_ttm, roe, etc）+ sid/年月（用于护城河趋势检查）
-    输出：信号 + 评分 + 复杂度
+    评估单只股票，输出信号 + 评分 + 辅助标签
+    流程：
+      1. 行业定位 → 回购/王者预判
+      2. 退市检查 → 周期股分支 → PE 信号主流程
+      3. ROE 门槛（十年王者豁免）→ 财务风险 → 合理价格买好公司
+      4. 护城河检查 → ROE 下降趋势检查 → 简单评分
     """
     pe = stock_data.get("pe_ttm")
     roe = stock_data.get("roe")
@@ -811,21 +869,18 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
     div_yield = stock_data.get("dividend_yield", 0)
     price = stock_data.get("price", 0)
 
-    # 先拿到行业 PE 区间
+    # 行业定位
     pe_range = match_industry_pe(industry_hint)
     complexity = pe_range.get("complexity", "medium")
     is_cycle = pe_range.get("type") == "cycle"
     high_leverage = pe_range.get("high_leverage", False)
 
-    # 回购加分（巴菲特："大量回购的公司是伟大公司的标志"）
+    # 回购加分 + 十年王者预判（两者都依赖历史数据）
     buyback_score, buyback_yi = (0, 0.0)
-    if sid and year and month:
-        buyback_score, buyback_yi = get_buyback_score(sid, year, month)
-
-    # 十年王者判定（巴菲特核心：熊市/危机时看10年历史而非当下）
     is_king_flag = False
     king_avg_roe = None
     if sid and year and month:
+        buyback_score, buyback_yi = get_buyback_score(sid, year, month)
         is_king_flag, king_avg_roe, _ = check_10_year_king(sid, year, month)
 
     result = {
@@ -840,21 +895,21 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         "king_avg_roe": king_avg_roe,
     }
 
-    # 没有价格的（已退市/未上市）
+    # ---- 退市检查 ----
     if not price or price <= 0:
         result["signal"] = "delisted"
         result["signal_text"] = "该证券已停止交易"
         return result
 
-    # 周期股：按巴菲特/芒格理念直接过滤
+    # ---- 周期股分支 ----
+    # 默认禁用（CYCLE_STOCKS_ENABLED=False），直接降级为观望
+    # 保留 evaluate_cycle_stock 代码以便未来重启
     if is_cycle:
         if not CYCLE_STOCKS_ENABLED:
-            # 周期股直接降级为观望：既不买入也不触发自动卖出
             result["signal"] = "hold"
-            result["signal_text"] = "周期股·不参与（巴菲特/芒格：不投大宗商品周期）"
+            result["signal_text"] = "周期股·不参与（巴菲特/芒格理念）"
             result["score"] = 0
             return result
-        # === 以下为周期股详细判定（已禁用，保留代码以便未来启用）===
         cycle_result = evaluate_cycle_stock(stock_data, sid, year, month, pe_range)
         cycle_result["complexity"] = complexity
         cycle_result["is_cycle"] = True
@@ -865,7 +920,7 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
                 cycle_result["signal_text"] = f"周期股·{'; '.join(probs[:2])}"
         return cycle_result
 
-    # PE信号（非周期股逻辑，pe_range / complexity / high_leverage 已在开头准备）
+    # ---- PE 信号主流程（非周期股）----
     if pe and pe > 0:
 
         if pe <= pe_range["low"]:
@@ -901,28 +956,17 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         result["signal"] = signal
         result["signal_text"] = signal_text
 
-        # 数据兜底：当月快照缺失 ROE 时，从历史年报取最近有效值
-        # 避免早期数据不完整导致的"数据不足"误杀
-        effective_roe = roe
-        if effective_roe is None and sid and year and month:
-            effective_roe = _get_recent_roe(sid, year, month)
+        # ---- 数据兜底：当月快照缺失时用最近年报 ----
+        effective_roe = roe if roe is not None else _get_recent_roe(sid, year, month)
+        effective_gm = gross_margin if gross_margin is not None else _get_recent_gm(sid, year, month)
         effective_debt = debt_ratio
-        effective_gm = gross_margin
-        if effective_gm is None and sid and year and month:
-            effective_gm = _get_recent_gm(sid, year, month)
 
-        # 十年王者豁免（巴菲特核心理念：熊市/危机时不看当下 ROE，看10年历史记录）
-        # 如果股票是"十年王者"，即使当下 ROE 暂时低于门槛也不降级
-        # 但护城河检查依然在后面兜底，真正恶化的公司（万科式）仍会被拦截
-        # is_king_flag 已在函数顶部计算过
-        is_10y_king = is_king_flag
-
-        # ROE检查（限制买入信号上限）
-        # 十年王者全部豁免（不做任何 ROE 门槛降级）
-        if "buy" in signal and effective_roe is not None and not is_10y_king:
-            roe = effective_roe  # 后续用兜底后的值
+        # ---- ROE 门槛检查（十年王者豁免）----
+        # 非王者按行业复杂度 + 杠杆调整后的阈值降级
+        # 王者完全豁免（护城河检查在后面兜底）
+        if "buy" in signal and effective_roe is not None and not is_king_flag:
+            roe = effective_roe
             base_thresh = COMPLEXITY_ROE_ADJUST.get(complexity, COMPLEXITY_ROE_ADJUST["medium"])
-            # 高杠杆行业（银行/保险/券商/地产）不做杠杆惩罚 —— 高负债率是行业常态
             leverage_adj = 0
             if not high_leverage:
                 if debt_ratio and debt_ratio < 30:
@@ -945,9 +989,8 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
                     result["signal"] = "buy_light"
                     result["signal_text"] += f" (ROE={roe:.1f}%限制)"
 
-        # 财务风险检查
-        # 高杠杆行业豁免"负债率>70%"和"毛利率<15%"两条规则
-        # —— 银行/保险负债率天然90%+；银行无毛利率概念；地产薄毛利是常态
+        # ---- 财务风险检查 ----
+        # 高杠杆行业（银行/保险/券商/地产）豁免负债率和毛利率检查
         if "buy" in result["signal"] and not high_leverage:
             if effective_debt and effective_debt > 70:
                 result["signal"] = "hold"
@@ -956,63 +999,52 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
                 result["signal"] = "hold"
                 result["signal_text"] += f" 毛利率{effective_gm:.0f}%过低"
 
-        # 巴菲特"合理价格买好公司"规则（1989 年致股东信）
-        # 原话："以合理价格买入好公司，远胜于以便宜价格买入平庸公司"
-        # 执行：好公司在"合理区间"内也可以买入，不必等到极端低估
-        # 条件：近5年ROE均值≥20% + 毛利率≥30% + 护城河完好
+        # ---- 合理价格买好公司（巴菲特 1989 年致股东信）----
+        # 好公司在合理区间内也可以买入，不必等极端低估
         if result["signal"] in ("hold", "buy_watch", "sell_watch") and pe and pe > 0:
             if is_good_quality_company(sid, year, month):
-                # PE 在合理区间（fair_low ~ fair_high）内
                 mid = (pe_range["fair_low"] + pe_range["fair_high"]) / 2
                 if pe <= pe_range["fair_low"]:
-                    # 已经被上面的 PE 分支处理过（buy_light）
-                    pass
+                    pass  # 已被 PE 主流程处理
                 elif pe <= mid:
-                    # 合理偏低：好公司可以轻仓买入（即使 PE 不算便宜）
                     result["signal"] = "buy_light"
                     result["signal_text"] = (
-                        f"好公司合理价（PE={pe:.1f} 合理区间偏低，ROE均值≥20%+毛利率≥30%）→ 轻仓买入"
+                        f"好公司合理价（PE={pe:.1f} 合理区间偏低）→ 轻仓买入"
                     )
                 elif pe <= pe_range["fair_high"]:
-                    # 合理偏高：好公司给关注信号
                     result["signal"] = "buy_watch"
                     result["signal_text"] = (
                         f"好公司（PE={pe:.1f} 合理区间偏高）→ 关注买入"
                     )
 
-        # 筛选第一关：护城河趋势检查（基于多年财务序列）
-        # 只要趋势显示护城河松动，买入信号一律降级为hold，无论PE多低
+        # ---- 护城河趋势检查（兜底）----
+        # 任一规则触发就降级为 hold，无论 PE 多低
         if "buy" in result["signal"] and sid and year and month:
             is_intact, moat_problems = check_moat(sid, year, month)
             if not is_intact:
                 result["signal"] = "hold"
                 result["signal_text"] = f"护城河松动：{'; '.join(moat_problems[:2])}"
 
-        # 筛选第二关：盈利下降趋势检查（避免"价值陷阱"式买入）
-        # 避免"卖对买错"：原因是只看当月PE便宜，没看净资产收益率是否在走下坡
-        # 宁可错过一些"真便宜"，也不买"看起来便宜但趋势向下"的公司
+        # ---- ROE 下降趋势检查（防价值陷阱）----
+        # 近 3 年 ROE 单调下降且累计跌幅 ≥3pp → 降级
         if "buy" in result["signal"] and sid and year and month:
             reports = get_annual_reports_before(sid, year, month, lookback_years=4)
             roes = [r.get("roe") for r in reports[:3] if r.get("roe") is not None]
-            if len(roes) >= 3:
-                # 近3年ROE是否单调下降
-                monotonic_down = roes[0] < roes[1] < roes[2]
-                if monotonic_down:
-                    drop_pp = roes[2] - roes[0]  # 总跌幅
-                    # 下降超过3个百分点就降级
-                    if drop_pp >= 3:
-                        old_signal = result["signal"]
-                        if old_signal == "buy_heavy":
-                            result["signal"] = "buy_light"  # 重仓降到轻仓
-                        elif old_signal == "buy_medium":
-                            result["signal"] = "buy_light"  # 中仓降到轻仓
-                        elif old_signal == "buy_light":
-                            result["signal"] = "hold"       # 轻仓降到观望
-                        if old_signal != result["signal"]:
-                            result["signal_text"] += (
-                                f" 但ROE 3年连降"
-                                f"（{roes[2]:.0f}→{roes[1]:.0f}→{roes[0]:.0f}%）降级"
-                            )
+            if len(roes) >= 3 and roes[0] < roes[1] < roes[2]:
+                drop_pp = roes[2] - roes[0]
+                if drop_pp >= 3:
+                    old_signal = result["signal"]
+                    if old_signal == "buy_heavy":
+                        result["signal"] = "buy_light"
+                    elif old_signal == "buy_medium":
+                        result["signal"] = "buy_light"
+                    elif old_signal == "buy_light":
+                        result["signal"] = "hold"
+                    if old_signal != result["signal"]:
+                        result["signal_text"] += (
+                            f" 但ROE 3年连降"
+                            f"（{roes[2]:.0f}→{roes[1]:.0f}→{roes[0]:.0f}%）降级"
+                        )
 
     # 简单评分（展示用）
     score = 0
@@ -1034,10 +1066,15 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
     return result
 
 
+# ============================================================
+# 7. 月度信号入口
+# ============================================================
+
 def get_month_signals(year, month, anon_map=None, industry_map=None):
     """
-    获取某月所有股票的模型信号（匿名化）
-    返回：{匿名编号: {price, pe, signal, signal_text, score, events}}
+    获取某月全股票池的模型信号（匿名化输出）
+    周期股会被直接过滤（CYCLE_STOCKS_ENABLED=False 时）
+    返回：{匿名编号: {price, pe_ttm, signal, signal_text, score, ...}}
     """
     data = load_month_data(year, month)
     if not data:
