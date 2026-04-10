@@ -158,7 +158,8 @@ def check_moat_normal(sid, year, month):
     非周期股的护城河检查
     数据不足时返回 (True, []) —— 疑罪从无
     """
-    reports = get_annual_reports_before(sid, year, month, lookback_years=5)
+    # 取 6 年数据确保规则 8（5 年趋势检查）有充足样本
+    reports = get_annual_reports_before(sid, year, month, lookback_years=6)
     if len(reports) < 2:
         return True, []
 
@@ -224,6 +225,27 @@ def check_moat_normal(sid, year, month):
         if debt_rising and roe_falling:
             problems.append(
                 f"负债率3年升{d[0]-d[2]:.1f}pp至{d[0]:.1f}% + ROE跌至{r[0]:.1f}%（双重恶化）"
+            )
+
+    # 规则8：ROE 长期单调下降 且 跌破"卓越线"（"温水煮青蛙"式护城河缩小）
+    # 近5年 ROE 连续下降 + 累计跌幅 ≥ 10pp + 最新 < 20%（巴菲特卓越线） → 松动
+    # 三个条件缺一不可：
+    #   1) 单调下降 —— 证明是趋势性恶化而非波动
+    #   2) 累计 ≥10pp —— 幅度够大才有统计意义
+    #   3) 最新 <20% —— 从卓越级跌到合格级才算护城河"缩小"
+    # 豁免案例（不触发）：
+    #   - 茅台 2017：45→39→32→26→24%（累计降21pp 但最新24%仍≥20%，规模扩大后自然正常化）
+    #   - 某公司 30→27→24→21→20（累计降10pp 但最新20%刚好在卓越线，算稳定）
+    # 触发案例：
+    #   - 平安 2024：24→20→13→10→10%（累计降15pp + 最新10% <20%）
+    if len(roe_list) >= 5:
+        r = roe_list[:5]
+        monotone_down = r[0] < r[1] < r[2] < r[3] < r[4]
+        total_drop = r[4] - r[0]
+        if monotone_down and total_drop >= 10 and r[0] < 20:
+            problems.append(
+                f"ROE近5年持续下降且跌破卓越线（{r[4]:.0f}→{r[3]:.0f}→{r[2]:.0f}→{r[1]:.0f}→{r[0]:.0f}%，"
+                f"累计降{total_drop:.0f}pp，最新仅{r[0]:.0f}%）→ 护城河在缩小"
             )
 
     # 规则7：盈利质量恶化（巴菲特核心 —— 现金流不会骗人）
