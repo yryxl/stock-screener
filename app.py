@@ -85,40 +85,34 @@ SIGNAL_LABELS = {
 
 BUY_SIGNALS = ["buy_heavy", "buy_medium", "buy_light", "buy_watch"]
 
-# 行业PE区间（和screener.py保持一致，用于页面展示）
-INDUSTRY_PE_DISPLAY = {
-    "银行": "6-9", "保险": "8-12", "煤炭": "7-12", "煤炭开采": "7-12",
-    "电力": "10-18", "铁路公路": "10-16", "交通运输": "12-16",
-    "白酒": "20-30", "食品饮料": "20-30", "调味品": "22-35", "调味发酵品": "22-35",
-    "乳制品": "15-25", "饮料乳品": "15-25",
-    "中药": "20-30", "医药": "20-30", "医疗器械": "22-35", "生物制品": "20-30",
-    "半导体": "40-65", "芯片": "40-65", "通信": "20-35", "通信服务": "20-35",
-    "军工": "35-55", "航空航天": "35-55",
-    "锂电": "30-50", "电池": "30-50", "新能源": "30-50",
-    "化工": "12-20", "化学制品": "12-20", "农化制品": "12-20",
-    "有色金属": "12-20", "工业金属": "12-20", "小金属": "15-25",
-    "稀土": "15-25", "矿业": "10-18",
-    "免税": "25-40", "旅游零售": "25-40",
-    "家电": "15-25", "汽车零部件": "14-22",
-    "轨交设备": "13-20", "铁路设备": "13-20", "铁路装备": "13-20",
-    "传媒": "20-30", "机械制造": "15-25",
-}
+# 行业 PE 区间和复杂度：从 screener.INDUSTRY_PE 动态生成，避免两处硬编码不同步
+# 单一真相源：screener.INDUSTRY_PE
+# 以前是 app.py 自己维护一份 INDUSTRY_PE_DISPLAY 和 INDUSTRY_COMPLEXITY，
+# 改 screener 时漏改 app.py 会导致分类标题和 signal_text 展示出不一致的区间。
+_COMPLEXITY_LABELS = {"simple": "简单", "medium": "中等", "complex": "复杂"}
 
-INDUSTRY_COMPLEXITY = {
-    "白酒": "简单", "食品饮料": "简单", "调味品": "简单", "调味发酵品": "简单",
-    "乳制品": "简单", "饮料乳品": "简单", "中药": "简单", "家电": "简单",
-    "传媒": "简单", "银行": "简单", "保险": "简单", "免税": "简单",
-    "旅游零售": "简单", "医药": "简单", "生物制品": "简单",
-    "电力": "中等", "公用事业": "中等", "交通运输": "中等", "铁路公路": "中等",
-    "通信": "中等", "通信服务": "中等", "医疗器械": "中等", "软件": "中等",
-    "半导体": "复杂", "芯片": "复杂", "军工": "复杂", "航空航天": "复杂",
-    "新能源": "复杂", "锂电": "复杂", "电池": "复杂", "光伏": "复杂",
-    "轨交设备": "复杂", "铁路设备": "复杂", "机械制造": "复杂",
-    "汽车零部件": "复杂", "建筑": "复杂", "钢铁": "复杂",
-    "煤炭": "复杂", "煤炭开采": "复杂", "化工": "复杂", "化学制品": "复杂",
-    "农化制品": "复杂", "有色金属": "复杂", "工业金属": "复杂",
-    "稀土": "复杂", "小金属": "复杂", "矿业": "复杂",
-}
+
+def _build_industry_display():
+    """从 screener.INDUSTRY_PE 构建 {行业名: (PE区间文字, 复杂度文字)}"""
+    try:
+        from screener import INDUSTRY_PE
+    except Exception:
+        return {}, {}
+    pe_display = {}
+    complexity_display = {}
+    for key, cfg in INDUSTRY_PE.items():
+        fl = cfg.get("fair_low")
+        fh = cfg.get("fair_high")
+        if fl is not None and fh is not None:
+            pe_display[key] = f"{fl}-{fh}"
+        cplx = cfg.get("complexity", "")
+        if cplx in _COMPLEXITY_LABELS:
+            complexity_display[key] = _COMPLEXITY_LABELS[cplx]
+    return pe_display, complexity_display
+
+
+INDUSTRY_PE_DISPLAY, INDUSTRY_COMPLEXITY = _build_industry_display()
+
 
 def get_pe_range(category):
     if not category:
@@ -127,6 +121,7 @@ def get_pe_range(category):
         if key in category:
             return val
     return ""
+
 
 def get_complexity(category):
     if not category:

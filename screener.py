@@ -19,6 +19,7 @@ from data_fetcher import (
     get_batch_roe_data,
     get_pe_ttm,
     find_column,
+    get_stock_industry,
 )
 
 
@@ -317,11 +318,8 @@ def screen_single_stock(code, config, quotes_df):
     # ---- 第二关：完整 8 条护城河检查（从 live_rules 同步 backtest_engine 规则）----
     try:
         from live_rules import check_moat_live, check_10_year_king_live, is_good_quality_live
-        industry_for_moat = ""
-        if quotes_df is not None and not quotes_df.empty:
-            _row = quotes_df[quotes_df["代码"] == code]
-            if not _row.empty:
-                industry_for_moat = str(_row.iloc[0].get("所属行业", ""))
+        # 行业必须走 get_stock_industry（带缓存），quotes_df 没有行业列
+        industry_for_moat = get_stock_industry(code)
         moat_intact, moat_problems = check_moat_live(df_annual, industry=industry_for_moat)
         if not moat_intact:
             result["checks"]["moat"] = {"passed": False, "detail": "; ".join(moat_problems[:2])}
@@ -355,7 +353,8 @@ def screen_single_stock(code, config, quotes_df):
                 pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
             result["pe"] = pe
 
-            industry = str(row.get("所属行业", "")) if "所属行业" in quotes_df.columns else ""
+            # 行业：stock_zh_a_spot_em 不含行业字段，必须走 get_stock_industry
+            industry = get_stock_industry(code)
             signal, signal_text = get_pe_signal(pe, industry)
 
             # 合理价格买好公司（巴菲特 1989）：好公司在合理区间内也可以买入
@@ -466,10 +465,10 @@ def check_holdings_sell_signals(holdings, config):
 
         price = pd.to_numeric(row.get("最新价"), errors="coerce")
 
-        # 1. 自动获取真实行业
-        industry = ""
-        if "所属行业" in quotes_df.columns:
-            industry = str(row.get("所属行业", ""))
+        # 1. 自动获取真实行业（多层 fallback）
+        # quotes_df 的 stock_zh_a_spot_em 不含行业字段，必须另外走 get_stock_industry。
+        # 最终兜底 holdings.json 里用户手填的 category，确保永远不为空。
+        industry = get_stock_industry(code, fallback=h.get("category", ""))
 
         # 2. 获取PE(TTM)
         pe = None
@@ -517,12 +516,11 @@ def check_holdings_sell_signals(holdings, config):
                     print(f"  {name} 十年王者·豁免自动清仓")
                 else:
                     # 非王者：正常 PE 卖出信号
-                    if industry:
-                        peers = quotes_df[quotes_df.get("所属行业", pd.Series()) == industry]
-                        if len(peers) > 3:
-                            peer_changes = pd.to_numeric(peers.get("涨跌幅", pd.Series()), errors="coerce").dropna()
-                            if peer_changes.mean() < -1:
-                                signal_text += "（同行业普跌，市场因素）"
+                    # quotes_df 不含行业字段，这里用大盘整体涨跌幅做代理提示
+                    if not quotes_df.empty and "涨跌幅" in quotes_df.columns:
+                        market_change = pd.to_numeric(quotes_df["涨跌幅"], errors="coerce").dropna()
+                        if len(market_change) > 100 and market_change.mean() < -1:
+                            signal_text += "（大盘普跌，市场因素）"
                     print(f"  {name} PE卖出信号: {signal}")
 
         # 5. 护城河消失止损（芒格：宁可错过也不犯错）
@@ -941,18 +939,16 @@ def check_decline_signals(stock_list, quotes_df):
         if is_healthy is None:
             continue
 
-        # 检查同行业是否也在跌
-        industry = ""
-        if "所属行业" in quotes_df.columns:
-            industry = str(row.get("所属行业", ""))
+        # 真实行业（quotes_df 不含行业字段，必须走 get_stock_industry）
+        industry = get_stock_industry(code, fallback=category)
 
+        # 同行业涨跌对比：quotes_df 不携带行业列，这里用大盘整体涨跌幅做代理
+        # （真要按行业过滤需要另外维护 code→industry 的全市场映射，成本过高，暂缓）
         industry_also_down = False
-        if industry:
-            peers = quotes_df[quotes_df.get("所属行业", pd.Series()) == industry]
-            if len(peers) > 3:
-                peer_changes = pd.to_numeric(peers["涨跌幅"], errors="coerce").dropna()
-                avg_peer_change = peer_changes.mean()
-                industry_also_down = avg_peer_change < -1
+        if not quotes_df.empty and "涨跌幅" in quotes_df.columns:
+            market_change = pd.to_numeric(quotes_df["涨跌幅"], errors="coerce").dropna()
+            if len(market_change) > 100:
+                industry_also_down = market_change.mean() < -1
 
         stock_info = {
             "code": code,

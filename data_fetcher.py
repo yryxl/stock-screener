@@ -3,10 +3,16 @@
 优化版：使用批量接口，避免逐个股票查询
 """
 
+import json
+import os
 import time
 import akshare as ak
 import pandas as pd
 import numpy as np
+
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_INDUSTRY_CACHE_FILE = os.path.join(_SCRIPT_DIR, "stock_industry_cache.json")
+_industry_cache_mem = None  # 进程内存缓存，避免反复读文件
 
 
 def safe_fetch(func, *args, retry=2, delay=2, **kwargs):
@@ -33,11 +39,92 @@ def get_all_stocks():
 
 
 def get_realtime_quotes():
-    """获取全A股实时行情"""
+    """获取全A股实时行情（不含行业字段，行业请用 get_stock_industry）"""
     df = safe_fetch(ak.stock_zh_a_spot_em)
     if df is None:
         return pd.DataFrame()
     return df
+
+
+def _load_industry_cache():
+    """读本地行业缓存到内存"""
+    global _industry_cache_mem
+    if _industry_cache_mem is not None:
+        return _industry_cache_mem
+    if os.path.exists(_INDUSTRY_CACHE_FILE):
+        try:
+            with open(_INDUSTRY_CACHE_FILE, "r", encoding="utf-8") as f:
+                _industry_cache_mem = json.load(f)
+        except Exception:
+            _industry_cache_mem = {}
+    else:
+        _industry_cache_mem = {}
+    return _industry_cache_mem
+
+
+def _save_industry_cache():
+    """把内存缓存写回文件"""
+    if _industry_cache_mem is None:
+        return
+    try:
+        with open(_INDUSTRY_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(_industry_cache_mem, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"  行业缓存写入失败: {e}")
+
+
+def get_stock_industry(code, fallback=""):
+    """
+    获取 A 股个股的真实行业（带本地持久化缓存）
+
+    数据源：ak.stock_individual_info_em 的"行业"字段（如"中药Ⅱ"、"白酒"、"银行"等）
+    缓存：stock_industry_cache.json，结构 {code: {"industry": str, "name": str, "updated": "YYYY-MM-DD"}}
+
+    Args:
+      code: 股票代码（6位）
+      fallback: 查不到时返回的兜底值（通常传用户在 holdings.json 手填的 category）
+
+    Returns:
+      行业字符串（永不返回 None）
+
+    注意：
+      - 只对 A 股个股有效；ETF/基金代码直接返回 fallback，不会调接口
+      - 行业变化极慢，缓存永久有效（手动删 cache 文件触发刷新）
+    """
+    code = str(code).zfill(6)
+
+    # ETF/基金（1/5 开头）和北交所等不走这个接口
+    if not code or not code[0].isdigit():
+        return fallback
+    if code[0] in ("1", "5"):
+        return fallback  # ETF，不需要行业
+    if not code.startswith(("00", "30", "60", "68")):
+        return fallback  # 只处理沪深主板/创业板/科创
+
+    cache = _load_industry_cache()
+    if code in cache and cache[code].get("industry"):
+        return cache[code]["industry"]
+
+    # 未命中缓存，调接口
+    try:
+        df = safe_fetch(ak.stock_individual_info_em, symbol=code)
+        if df is None or df.empty:
+            return fallback
+        kv = dict(zip(df["item"].astype(str), df["value"].astype(str)))
+        industry = kv.get("行业", "").strip()
+        name = kv.get("股票简称", "").strip()
+        if not industry:
+            return fallback
+        cache[code] = {
+            "industry": industry,
+            "name": name,
+            "updated": time.strftime("%Y-%m-%d"),
+        }
+        _save_industry_cache()
+        return industry
+    except Exception as e:
+        print(f"  获取 {code} 行业失败: {e}")
+        return fallback
 
 
 def get_batch_roe_data(date="20241231"):
