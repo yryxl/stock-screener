@@ -407,5 +407,180 @@
     "lookback_years": 10,
     "as_of": "2026-04",
     "data_points": 120
-  }
+  },
+  "etf_signals": [
+    {
+      "code": "159326",
+      "name": "电网设备etf华夏",
+      "shares": 500,
+      "cost": 2.097,
+      "index_code": "931494",
+      "index_name": "中证全指电网设备",
+      "kind": "sector",
+      "temperature": {
+        "level": 0,
+        "percentile": null,
+        "current_pe": 54.27,
+        "current_dividend_yield": 0.58,
+        "as_of": "2026-04-10",
+        "data_points": 20,
+        "note": "数据积累不足（20条，需≥60条才能判定历史分位）"
+      },
+      "signal": "hold",
+      "signal_text": "数据积累中（20条）",
+      "new_records": 0
+    },
+    {
+      "code": "510330",
+      "name": "沪深300etf",
+      "shares": 700,
+      "cost": 4.915,
+      "index_code": "000300",
+      "index_name": "沪深300",
+      "kind": "broad",
+      "temperature": {
+        "level": 1,
+        "label": "🔥 偏热市·谨慎",
+        "description": "市场进入偏热区间，估值处于历史 70%-85% 分位。谨慎买入，只考虑最低估的好公司，可以对部分高估持仓减仓。",
+        "percentile": 82.0,
+        "current_pe": 13.52,
+        "current_dividend_yield": null,
+        "as_of": "2026-04-10",
+        "data_points": 2429,
+        "lookback_years": 10
+      },
+      "signal": "sell_light",
+      "signal_text": "PE分位82.0%·偏热·减仓",
+      "new_records": 0
+    },
+    {
+      "code": "512890",
+      "name": "红利低波etf华泰",
+      "shares": 10800,
+      "cost": 1.191,
+      "index_code": "H30269",
+      "index_name": "中证红利低波动",
+      "kind": "strategy_dividend",
+      "temperature": {
+        "level": 0,
+        "percentile": null,
+        "current_pe": 8.14,
+        "current_dividend_yield": 4.97,
+        "as_of": "2026-04-10",
+        "data_points": 20,
+        "note": "数据积累不足（20条，需≥60条才能判定历史分位）"
+      },
+      "signal": "hold",
+      "signal_text": "数据积累中（20条）",
+      "new_records": 0
+    },
+    {
+      "code": "510550",
+      "name": "中证500etf",
+      "shares": 100,
+      "cost": 8.502,
+      "index_code": "000905",
+      "index_name": "中证500",
+      "kind": "broad",
+      "temperature": {
+        "level": 1,
+        "label": "🔥 偏热市·谨慎",
+        "description": "市场进入偏热区间，估值处于历史 70%-85% 分位。谨慎买入，只考虑最低估的好公司，可以对部分高估持仓减仓。",
+        "percentile": 82.0,
+        "current_pe": 28.11,
+        "current_dividend_yield": null,
+        "as_of": "2026-04-10",
+        "data_points": 2429,
+        "lookback_years": 10
+      },
+      "signal": "sell_light",
+      "signal_text": "PE分位82.0%·偏热·减仓",
+      "new_records": 0
+    },
+    {
+      "code": "510880",
+      "name": "红利etf华泰",
+      "shares": 400,
+      "cost": 3.353,
+      "index_code": "000015",
+      "index_name": "上证红利",
+      "kind": "strategy_dividend",
+      "temperature": {
+        "level": 0,
+        "percentile": null,
+        "current_pe": 9.14,
+        "current_dividend_yield": 5.3,
+        "as_of": "2026-04-10",
+        "data_points": 20,
+        "note": "数据积累不足（20条，需≥60条才能判定历史分位）"
+      },
+      "signal": "hold",
+      "signal_text": "数据积累中（20条）",
+      "new_records": 0
+    }
+  ],
+  "portfolio_classification": {
+    "total_value": 25183.2,
+    "defensive_value": 4290.7,
+    "offensive_value": 20892.5,
+    "defensive_pct": 17.03794593220877,
+    "offensive_pct": 82.96205406779123,
+    "buckets": {
+      "broad_etf": {
+        "value": 4290.7,
+        "items": [
+          {
+            "code": "510330",
+            "name": "沪深300etf",
+            "value": 3440.5
+          },
+          {
+            "code": "510550",
+            "name": "中证500etf",
+            "value": 850.2
+          }
+        ],
+        "pct": 17.03794593220877
+      },
+      "strategy_etf": {
+        "value": 14204.000000000002,
+        "items": [
+          {
+            "code": "512890",
+            "name": "红利低波etf华泰",
+            "value": 12862.800000000001
+          },
+          {
+            "code": "510880",
+            "name": "红利etf华泰",
+            "value": 1341.2
+          }
+        ],
+        "pct": 56.402681152514376
+      },
+      "sector_etf": {
+        "value": 1048.5,
+        "items": [
+          {
+            "code": "159326",
+            "name": "电网设备etf华夏",
+            "value": 1048.5
+          }
+        ],
+        "pct": 4.16348994567807
+      },
+      "single_stock": {
+        "value": 5640.0,
+        "items": [
+          {
+            "code": "000538",
+            "name": "云南白药",
+            "value": 5640.0
+          }
+        ],
+        "pct": 22.39588296959878
+      }
+    }
+  },
+  "etf_unmapped": []
 }

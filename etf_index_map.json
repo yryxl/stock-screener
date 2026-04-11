@@ -1,0 +1,35 @@
+{
+  "_comment": "ETF 代码 -> 跟踪指数映射表。index 为中证代码，kind 分 broad(宽基)/strategy(策略)/sector(行业)。broad 可用乐股网冷启动全历史，其余靠中证官方每日积累。",
+  "_legu_broad_names": {
+    "000300": "沪深300",
+    "000016": "上证50",
+    "000905": "中证500",
+    "000852": "中证1000",
+    "000903": "中证100",
+    "000010": "上证180"
+  },
+  "map": {
+    "510300": {"index": "000300", "name": "沪深300", "kind": "broad"},
+    "510310": {"index": "000300", "name": "沪深300", "kind": "broad"},
+    "510330": {"index": "000300", "name": "沪深300", "kind": "broad"},
+    "159919": {"index": "000300", "name": "沪深300", "kind": "broad"},
+    "510050": {"index": "000016", "name": "上证50", "kind": "broad"},
+    "510500": {"index": "000905", "name": "中证500", "kind": "broad"},
+    "510510": {"index": "000905", "name": "中证500", "kind": "broad"},
+    "510550": {"index": "000905", "name": "中证500", "kind": "broad"},
+    "159922": {"index": "000905", "name": "中证500", "kind": "broad"},
+    "512100": {"index": "000852", "name": "中证1000", "kind": "broad"},
+    "159845": {"index": "000852", "name": "中证1000", "kind": "broad"},
+    "510180": {"index": "000010", "name": "上证180", "kind": "broad"},
+    "512880": {"index": "399975", "name": "证券公司", "kind": "sector"},
+    "512890": {"index": "H30269", "name": "中证红利低波动", "kind": "strategy_dividend"},
+    "515080": {"index": "000922", "name": "中证红利", "kind": "strategy_dividend"},
+    "510880": {"index": "000015", "name": "上证红利", "kind": "strategy_dividend"},
+    "512100": {"index": "000852", "name": "中证1000", "kind": "broad"},
+    "159326": {"index": "931494", "name": "中证全指电网设备", "kind": "sector"},
+    "512170": {"index": "399989", "name": "中证医疗", "kind": "sector"},
+    "159928": {"index": "000932", "name": "中证主要消费", "kind": "sector"},
+    "512660": {"index": "399973", "name": "中证军工", "kind": "sector"},
+    "515790": {"index": "931456", "name": "中证光伏产业", "kind": "sector"}
+  }
+}

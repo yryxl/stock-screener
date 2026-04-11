@@ -26,6 +26,7 @@ from screener import (
 )
 from notifier import send_daily_report, send_msg, get_access_token
 from market_temperature import get_realtime_market_temperature
+from etf_monitor import scan_and_update_holdings_etfs, classify_portfolio
 from data_fetcher import get_realtime_quotes, get_pe_ttm, get_dividend_yield, safe_fetch, get_financial_indicator, extract_annual_data
 import akshare as ak
 
@@ -357,6 +358,40 @@ def _inject_market_temperature():
         print(f"  温度计获取失败: {e}")
 
 
+def _inject_etf_monitor():
+    """
+    对持仓中的 ETF 做估值监测并注入 daily_results.json
+    - etf_signals: 每只 ETF 的温度/分位/买卖信号
+    - portfolio_classification: 组合按宽基/策略/行业/个股分类
+    - etf_unmapped: 未在映射表里的 ETF（提示用户补充）
+
+    注意：宽基 ETF 仍计入股票总仓位，不会被当成"类固收"剔除。
+    """
+    try:
+        print("ETF 估值监测...")
+        holdings = load_json("holdings.json")
+        if not holdings:
+            return
+        etf_results, unmapped = scan_and_update_holdings_etfs(holdings)
+        portfolio_cls = classify_portfolio(holdings)
+
+        existing = load_json("daily_results.json")
+        if isinstance(existing, dict):
+            existing["etf_signals"] = etf_results
+            existing["portfolio_classification"] = portfolio_cls
+            existing["etf_unmapped"] = unmapped
+            save_json("daily_results.json", existing)
+
+        hot_etfs = [r for r in etf_results
+                    if r.get("signal") in ("sell_heavy", "sell_light")]
+        if hot_etfs:
+            print(f"  ⚠ {len(hot_etfs)} 只 ETF 进入偏热/高估区间：")
+            for r in hot_etfs:
+                print(f"    {r['code']} {r['name']} → {r.get('signal_text','')}")
+    except Exception as e:
+        print(f"  ETF 监测失败: {e}")
+
+
 def main():
     mode = get_mode()
     now = datetime.now()
@@ -596,6 +631,8 @@ def main():
     # 统一在所有模式运行完后注入市场温度（实时沪深300 PE 历史分位）
     if mode not in ("reanalyze",):
         _inject_market_temperature()
+        # ETF 持仓估值监测（增量积累，新买的 ETF 第二天自动开始积累）
+        _inject_etf_monitor()
 
     print(f"\n=== 完成 ===")
 

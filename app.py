@@ -226,7 +226,7 @@ def render_market_temperature_banner():
 
 render_market_temperature_banner()
 
-tab1, tab2, tab3 = st.tabs(["🎯 模型推荐", "📋 持仓管理", "⭐ 重点关注表"])
+tab1, tab2, tab3, tab4 = st.tabs(["🎯 模型推荐", "📋 持仓管理", "⭐ 重点关注表", "🧊 ETF 监测"])
 
 # ============================================
 # Tab1: 模型推荐（只来自全市场扫描）
@@ -398,6 +398,35 @@ with tab2:
         # 总计
         total_cost_all = sum(h.get("shares", 0) * h.get("cost", 0) for h in holdings)
         st.markdown(f"**持仓总成本：¥{total_cost_all:,.0f}** | 共{len(holdings)}只")
+
+        # 组合分类简报（宽基 / 策略 / 行业 / 个股）
+        # 重要提醒：宽基 ETF 仍计入股票总仓位，不是类固收
+        cls = daily.get("portfolio_classification") if isinstance(daily, dict) else None
+        if cls and cls.get("total_value", 0) > 0:
+            buckets = cls.get("buckets", {})
+            bucket_labels = [
+                ("broad_etf", "🛡 宽基ETF", "#e8f5e9"),
+                ("strategy_etf", "💎 策略ETF", "#e3f2fd"),
+                ("sector_etf", "⚡ 行业ETF", "#fff3e0"),
+                ("single_stock", "📌 个股", "#fce4ec"),
+            ]
+            cols = st.columns(4)
+            for (bkey, blabel, bcolor), col in zip(bucket_labels, cols):
+                b = buckets.get(bkey, {"value": 0, "pct": 0, "items": []})
+                items_count = len(b.get("items", []))
+                with col:
+                    st.markdown(
+                        f"""<div style="background:{bcolor};padding:10px;border-radius:6px;text-align:center;">
+                        <div style="font-size:13px;color:#666;">{blabel}</div>
+                        <div style="font-size:20px;font-weight:bold;">{b.get('pct',0):.1f}%</div>
+                        <div style="font-size:11px;color:#888;">{items_count}只 · ¥{b.get('value',0):,.0f}</div>
+                        </div>""",
+                        unsafe_allow_html=True,
+                    )
+            st.caption(
+                f"⚠ 提醒：宽基 ETF 是低波动权益资产，不是类固收。历史上沪深300也出现过单年跌 40% 的情况。"
+                f"防御型占比 {cls.get('defensive_pct',0):.1f}% | 进攻型占比 {cls.get('offensive_pct',0):.1f}%"
+            )
 
         # 仓位警告
         pos_warnings = daily.get("position_warnings", []) if isinstance(daily, dict) else []
@@ -610,6 +639,105 @@ with tab3:
                     st.session_state["watchlist_sha"] = new_sha
                     st.success(f"已添加 {wname}")
                     st.rerun()
+
+# ============================================
+# Tab4: ETF 监测（持仓里每只 ETF 的估值/分位/买卖信号）
+# ============================================
+with tab4:
+    st.header("🧊 ETF 监测")
+    st.caption("持仓中每只 ETF 的跟踪指数估值、历史分位和买卖信号")
+
+    daily = st.session_state.get("daily", {})
+    etf_signals = daily.get("etf_signals", []) if isinstance(daily, dict) else []
+    etf_unmapped = daily.get("etf_unmapped", []) if isinstance(daily, dict) else []
+
+    if not etf_signals and not etf_unmapped:
+        st.info(
+            "暂无 ETF 监测数据。在持仓里加入 ETF（5/1 开头代码）后，下一次"
+            "系统运行会自动开始采集跟踪指数的估值。"
+        )
+    else:
+        # 价值观提示（永久固定）
+        st.warning(
+            "⚠ **宽基 ETF 不是类固收**。它仍然是权益资产，2008 年标普 500 跌 37%，"
+            "2015 年沪深 300 半年跌 43%。本页面只帮你判断估值高低，不代表"
+            "ETF 可以零风险持有。"
+        )
+
+        # 按温度档位分组展示
+        by_level = {2: [], 1: [], 0: [], -1: [], -2: [], None: []}
+        for r in etf_signals:
+            level = r.get("temperature", {}).get("level")
+            pct = r.get("temperature", {}).get("percentile")
+            if pct is None:
+                by_level[None].append(r)
+            else:
+                by_level[level].append(r)
+
+        level_meta = [
+            (2, "🔴 高估/偏热（建议减仓）", "#ffebee"),
+            (1, "🔥 偏热（谨慎）", "#fff3e0"),
+            (0, "⚪ 正常", "#f5f5f5"),
+            (-1, "🧊 偏冷（可加仓）", "#e3f2fd"),
+            (-2, "❄️ 低估（大机会）", "#e8f5e9"),
+            (None, "📊 数据积累中（新 ETF 首次采集，需 ≥60 条才能判分位）", "#fafafa"),
+        ]
+
+        for level, title, bg in level_meta:
+            items = by_level[level]
+            if not items:
+                continue
+            st.markdown(f"### {title}")
+            for r in items:
+                temp = r.get("temperature", {})
+                cost = r.get("cost", 0) or 0
+                shares = r.get("shares", 0) or 0
+                value = cost * shares
+                kind_cn = {
+                    "broad": "宽基",
+                    "strategy_dividend": "策略·红利",
+                    "strategy": "策略",
+                    "sector": "行业",
+                }.get(r.get("kind", ""), "-")
+                pe = temp.get("current_pe")
+                pct = temp.get("percentile")
+                div = temp.get("current_dividend_yield")
+                dp = temp.get("data_points", 0)
+                note = temp.get("note", "")
+                signal_text = r.get("signal_text", "")
+
+                info_parts = []
+                if pe is not None:
+                    info_parts.append(f"PE={pe}")
+                if div is not None:
+                    info_parts.append(f"股息率={div}%")
+                if pct is not None:
+                    info_parts.append(f"历史分位={pct}%")
+                info_parts.append(f"数据点={dp}")
+                info_line = " | ".join(info_parts)
+
+                st.markdown(
+                    f"""<div style="background:{bg};padding:12px 16px;border-radius:6px;margin-bottom:8px;">
+                    <div style="font-weight:bold;font-size:15px;">
+                    {r.get('name','')} ({r.get('code','')}) <span style="color:#888;font-size:12px;font-weight:normal;">· {kind_cn} · 跟踪 {r.get('index_name','')}</span>
+                    </div>
+                    <div style="color:#444;font-size:13px;margin-top:4px;">{info_line}</div>
+                    <div style="color:#666;font-size:12px;margin-top:4px;">持仓：{shares:,} 股 · 成本 ¥{cost} · 市值 ¥{value:,.0f}</div>
+                    <div style="color:#1976d2;font-size:13px;margin-top:6px;font-weight:bold;">{signal_text}</div>
+                    {f'<div style="color:#999;font-size:11px;margin-top:4px;">{note}</div>' if note else ''}
+                    </div>""",
+                    unsafe_allow_html=True,
+                )
+
+        if etf_unmapped:
+            st.divider()
+            st.warning(
+                f"**以下 {len(etf_unmapped)} 只 ETF 未在 etf_index_map.json 中映射**，"
+                f"需要手工补充才能开始估值监测："
+            )
+            for e in etf_unmapped:
+                st.write(f"- {e.get('code','')} {e.get('name','')}")
+            st.caption("补充方式：在 etf_index_map.json 的 map 字段里追加条目，格式：`\"510300\": {\"index\": \"000300\", \"name\": \"沪深300\", \"kind\": \"broad\"}`")
 
 st.divider()
 st.caption("💡 模型推荐来自全市场扫描 | 关注表和持仓每日更新PE和信号 | 系统每交易日下午5点自动运行")

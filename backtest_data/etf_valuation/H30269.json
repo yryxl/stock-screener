@@ -1,0 +1,128 @@
+{
+  "index_code": "H30269",
+  "index_name": "中证红利低波动",
+  "kind": "strategy_dividend",
+  "data": [
+    {
+      "date": "2026-03-16",
+      "pe": 8.31,
+      "dividend_yield": 4.86,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-17",
+      "pe": 8.33,
+      "dividend_yield": 4.85,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-18",
+      "pe": 8.3,
+      "dividend_yield": 4.87,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-19",
+      "pe": 8.27,
+      "dividend_yield": 4.89,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-20",
+      "pe": 8.24,
+      "dividend_yield": 4.9,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-23",
+      "pe": 7.96,
+      "dividend_yield": 5.08,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-24",
+      "pe": 8.12,
+      "dividend_yield": 4.98,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-25",
+      "pe": 8.18,
+      "dividend_yield": 4.94,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-26",
+      "pe": 8.17,
+      "dividend_yield": 4.95,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-27",
+      "pe": 8.14,
+      "dividend_yield": 4.96,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-30",
+      "pe": 8.22,
+      "dividend_yield": 4.92,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-03-31",
+      "pe": 8.25,
+      "dividend_yield": 4.9,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-01",
+      "pe": 8.26,
+      "dividend_yield": 4.9,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-02",
+      "pe": 8.29,
+      "dividend_yield": 4.88,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-03",
+      "pe": 8.17,
+      "dividend_yield": 4.94,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-06",
+      "pe": 8.17,
+      "dividend_yield": 4.94,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-07",
+      "pe": 8.13,
+      "dividend_yield": 4.97,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-08",
+      "pe": 8.21,
+      "dividend_yield": 4.92,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-09",
+      "pe": 8.15,
+      "dividend_yield": 4.96,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-10",
+      "pe": 8.14,
+      "dividend_yield": 4.97,
+      "source": "csindex"
+    }
+  ],
+  "last_updated": "2026-04-11 11:33"
+}
