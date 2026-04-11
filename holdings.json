@@ -35,5 +35,11 @@
     "shares": 100,
     "cost": 56.4,
     "category": "医药"
+  },
+  {
+    "code": "510500",
+    "name": "中证500etf南方",
+    "shares": 100,
+    "cost": 8.502
   }
 ]
