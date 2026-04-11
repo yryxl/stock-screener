@@ -385,7 +385,8 @@ def _inject_etf_monitor():
         hot_etfs = [r for r in etf_results
                     if r.get("signal") in ("sell_heavy", "sell_light")]
         if hot_etfs:
-            print(f"  ⚠ {len(hot_etfs)} 只 ETF 进入偏热/高估区间：")
+            # 措辞按巴菲特理念：高位是"暂停加仓"而非"要卖"
+            print(f"  ⚠ {len(hot_etfs)} 只 ETF 估值偏高，建议暂停加仓：")
             for r in hot_etfs:
                 print(f"    {r['code']} {r['name']} → {r.get('signal_text','')}")
     except Exception as e:

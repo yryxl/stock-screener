@@ -285,24 +285,39 @@ def compute_etf_temperature(store, lookback_years=10):
 
 def get_etf_action_signal(temp):
     """
-    基于温度档位给出 ETF 买卖建议
-    返回 (signal, signal_text)
+    基于温度档位给出 ETF 买卖建议（按巴菲特/芒格理念调整文案）
+
+    文案原则：
+    - 70-85% 分位：只说"暂停加仓"，不说"卖" —— 巴菲特的做法是停止加码而非减仓
+    - >85% 分位：说"卖盈利保底仓"，不说"全部清仓" —— 芒格的"贵到不舒服"做法
+    - <15% 分位：说"全力加仓"，呼应 2008 年巴菲特"我在买入美国"
+
+    signal key 保持 sell_heavy / sell_light / buy_heavy / buy_light / hold 不变，
+    避免影响个股/回测系统的下游判断。仅改 signal_text 的表达。
     """
     level = temp.get("level", 0)
     pct = temp.get("percentile")
 
     if pct is None:
-        return "hold", f"数据积累中（{temp.get('data_points',0)}条）"
+        return "hold", f"数据积累中（{temp.get('data_points',0)}条，需≥60条才能判分位）"
 
     if level == 2:
-        return "sell_heavy", f"PE分位{pct}%·高估·分批卖出"
+        return "sell_heavy", (
+            f"PE分位{pct}%·泡沫区·卖盈利部分·保留底仓"
+        )
     if level == 1:
-        return "sell_light", f"PE分位{pct}%·偏热·减仓"
+        return "sell_light", (
+            f"PE分位{pct}%·偏热·暂停加仓·新钱转便宜标的"
+        )
     if level == -2:
-        return "buy_heavy", f"PE分位{pct}%·低估·积极加仓"
+        return "buy_heavy", (
+            f"PE分位{pct}%·低估区·全力加仓"
+        )
     if level == -1:
-        return "buy_light", f"PE分位{pct}%·偏冷·可加仓"
-    return "hold", f"PE分位{pct}%·正常·持有"
+        return "buy_light", (
+            f"PE分位{pct}%·偏冷·重点加仓"
+        )
+    return "hold", f"PE分位{pct}%·正常·按节奏"
 
 
 # ============================================================
