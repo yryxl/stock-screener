@@ -514,16 +514,18 @@
       "index_name": "中证红利低波动",
       "kind": "strategy_dividend",
       "temperature": {
-        "level": 0,
-        "percentile": null,
+        "level": 2,
+        "label": "🔴 泡沫区·贵到不舒服",
+        "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
+        "percentile": 86.3,
         "current_pe": 8.14,
         "current_dividend_yield": 4.97,
         "as_of": "2026-04-10",
-        "data_points": 20,
-        "note": "数据积累不足（20条，需≥60条才能判定历史分位）"
+        "data_points": 1212,
+        "lookback_years": 10
       },
-      "signal": "hold",
-      "signal_text": "数据积累中（20条，需≥60条才能判分位）",
+      "signal": "sell_heavy",
+      "signal_text": "PE分位86.3%·泡沫区·卖盈利部分·保留底仓",
       "new_records": 0
     },
     {
@@ -558,16 +560,18 @@
       "index_name": "上证红利",
       "kind": "strategy_dividend",
       "temperature": {
-        "level": 0,
-        "percentile": null,
+        "level": 2,
+        "label": "🔴 泡沫区·贵到不舒服",
+        "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
+        "percentile": 94.4,
         "current_pe": 9.14,
         "current_dividend_yield": 5.3,
         "as_of": "2026-04-10",
-        "data_points": 20,
-        "note": "数据积累不足（20条，需≥60条才能判定历史分位）"
+        "data_points": 1212,
+        "lookback_years": 10
       },
-      "signal": "hold",
-      "signal_text": "数据积累中（20条，需≥60条才能判分位）",
+      "signal": "sell_heavy",
+      "signal_text": "PE分位94.4%·泡沫区·卖盈利部分·保留底仓",
       "new_records": 0
     }
   ],
