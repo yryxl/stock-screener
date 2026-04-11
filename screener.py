@@ -727,7 +727,10 @@ def check_watchlist_financial_health(code, industry=""):
         if (fcf.head(2) <= 0).all():
             warnings.append("现金流连续为负")
 
-    has_risk = any(w for w in warnings if "负债率" in w or "流动比率" in w or "现金流" in w or "利润率" in w)
+    # has_risk 只匹配"明确的风险词"，不能用"负债率"/"流动比率"这种中性词
+    # 否则会误判 "ROE=10.2% 负债率26%" 这种纯展示 note（负债率 26% 其实很健康）
+    RISK_KEYWORDS = ("偏高", "偏低", "连续为负", "持续下滑", "过高", "过低")
+    has_risk = any(any(k in w for k in RISK_KEYWORDS) for w in warnings)
     return not has_risk, "、".join(warnings) if warnings else "", roe_level
 
 

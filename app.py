@@ -172,14 +172,16 @@ st.title("📊 芒格选股系统")
 
 
 # 市场温度计 banner（沪深300指数 PE 历史分位）
-# 先尝试从 daily_results 读取，没有则实时拉取（缓存 1 小时）
+# 先尝试从 daily_results 读取（快）, 没有则实时拉取（缓存 1 小时）
+# 重要：label/description 总是从 market_temperature.TEMP_LEVELS 动态查找
+# 这样即使 daily_results.json 里缓存的是旧文案，前端也会用最新版
 @st.cache_data(ttl=3600, show_spinner=False)
 def _get_cached_market_temperature():
     try:
         from market_temperature import get_realtime_market_temperature
         return get_realtime_market_temperature()
     except Exception as e:
-        return {"level": 0, "label": "⚪ 正常市", "description": f"温度计拉取失败: {e}"}
+        return {"level": 0, "current_pe_median": None, "percentile": None, "as_of": ""}
 
 
 def render_market_temperature_banner():
@@ -193,11 +195,19 @@ def render_market_temperature_banner():
         return
 
     level = _temp.get("level", 0)
-    label = _temp.get("label", "⚪ 正常市")
-    desc = _temp.get("description", "")
     pe = _temp.get("current_pe_median")
     pct = _temp.get("percentile")
     as_of = _temp.get("as_of", "")
+
+    # 从 market_temperature.TEMP_LEVELS 动态查最新 label 和 description
+    # 而不是用 daily_results 里可能过时的文案
+    try:
+        from market_temperature import TEMP_LEVELS
+        label, desc = TEMP_LEVELS.get(level, ("⚪ 正常市", ""))
+    except Exception:
+        label = _temp.get("label", "⚪ 正常市")
+        desc = _temp.get("description", "")
+
     bg_colors = {2: "#ffebee", 1: "#fff3e0", 0: "#f5f5f5", -1: "#e3f2fd", -2: "#e8f5e9"}
     bd_colors = {2: "#d32f2f", 1: "#f57c00", 0: "#9e9e9e", -1: "#1976d2", -2: "#388e3c"}
     bg = bg_colors.get(level, "#f5f5f5")

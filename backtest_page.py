@@ -143,12 +143,17 @@ def _render_temperature_banner_in_backtest(year, month):
         -2: "❄️ 熊市底部·大机会",
     }
 
+    # label 和 description 从 TEMP_LEVELS 动态查（保证总是最新文案）
+    try:
+        from market_temperature import TEMP_LEVELS as _RT_LEVELS
+    except Exception:
+        _RT_LEVELS = {}
+
     # 1. 实时温度（当前市场状态）
     realtime = _get_realtime_temperature()
     if realtime:
         lv = realtime.get("level", 0)
-        lbl = realtime.get("label", "⚪ 正常市")
-        desc = realtime.get("description", "")
+        lbl, desc = _RT_LEVELS.get(lv, (labels.get(lv, "⚪ 正常市"), ""))
         pe = realtime.get("current_pe_median")
         pct = realtime.get("percentile")
         as_of = realtime.get("as_of", "")
