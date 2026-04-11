@@ -46,6 +46,63 @@ def get_realtime_quotes():
     return df
 
 
+_etf_quotes_cache = {"data": None, "fetched_at": 0}
+
+
+def get_etf_realtime_quotes(ttl_sec=1800):
+    """
+    获取全 A 股 ETF 实时行情（用 ak.fund_etf_spot_em）
+
+    注意：stock_zh_a_spot_em 只含个股，不含 ETF。ETF 的最新价、昨收、
+    涨跌幅必须走这个独立接口。
+
+    返回 DataFrame，列包括：代码、名称、最新价、涨跌幅、昨收、开盘价 等
+
+    进程内缓存 ttl_sec 秒（默认 30 分钟），避免同一次 main.py 运行里
+    被持仓检查、ETF 监测等多次调用时反复拉取（这个接口比较慢，要 1-2 分钟）
+    """
+    global _etf_quotes_cache
+    now = time.time()
+    if (_etf_quotes_cache["data"] is not None
+            and now - _etf_quotes_cache["fetched_at"] < ttl_sec):
+        return _etf_quotes_cache["data"]
+
+    df = safe_fetch(ak.fund_etf_spot_em)
+    if df is None or df.empty:
+        return pd.DataFrame()
+
+    _etf_quotes_cache["data"] = df
+    _etf_quotes_cache["fetched_at"] = now
+    return df
+
+
+def get_etf_price(code, etf_quotes_df=None):
+    """
+    获取单只 ETF 的最新价
+    Args:
+      code: 6 位 ETF 代码
+      etf_quotes_df: 可选，传入已拉好的 get_etf_realtime_quotes 结果
+                     避免对每只 ETF 都调接口
+    Returns:
+      float 最新价，没数据返回 None
+    """
+    if etf_quotes_df is None:
+        etf_quotes_df = get_etf_realtime_quotes()
+    if etf_quotes_df is None or etf_quotes_df.empty:
+        return None
+    code = str(code).zfill(6)
+    row = etf_quotes_df[etf_quotes_df["代码"] == code]
+    if row.empty:
+        return None
+    try:
+        price = float(row.iloc[0]["最新价"])
+        if price > 0:
+            return price
+    except (ValueError, TypeError):
+        pass
+    return None
+
+
 def _load_industry_cache():
     """读本地行业缓存到内存"""
     global _industry_cache_mem

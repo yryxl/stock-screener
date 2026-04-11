@@ -466,6 +466,13 @@
       "name": "电网设备etf华夏",
       "shares": 500,
       "cost": 2.097,
+      "current_price": 1.89,
+      "pnl_pct": -9.87,
+      "pnl_label": "浮亏中",
+      "pnl_advice": "",
+      "pnl_override": false,
+      "must_sell": false,
+      "bull_top_alert": false,
       "index_code": "931494",
       "index_name": "中证全指电网设备",
       "kind": "sector",
@@ -487,6 +494,13 @@
       "name": "沪深300etf",
       "shares": 700,
       "cost": 4.915,
+      "current_price": 4.834,
+      "pnl_pct": -1.65,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_override": true,
+      "must_sell": false,
+      "bull_top_alert": false,
       "index_code": "000300",
       "index_name": "沪深300",
       "kind": "broad",
@@ -502,7 +516,7 @@
         "lookback_years": 10
       },
       "signal": "sell_light",
-      "signal_text": "PE分位82.0%·偏热·暂停加仓·新钱转便宜标的",
+      "signal_text": "PE分位82.0%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但持仓浮盈仅 -1.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 0
     },
     {
@@ -510,6 +524,13 @@
       "name": "红利低波etf华泰",
       "shares": 10800,
       "cost": 1.191,
+      "current_price": 1.181,
+      "pnl_pct": -0.84,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -0.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_override": true,
+      "must_sell": false,
+      "bull_top_alert": false,
       "index_code": "H30269",
       "index_name": "中证红利低波动",
       "kind": "strategy_dividend",
@@ -525,14 +546,21 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位86.3%·泡沫区·卖盈利部分·保留底仓",
+      "signal_text": "PE分位86.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 0
     },
     {
-      "code": "510550",
-      "name": "中证500etf",
+      "code": "510500",
+      "name": "中证500etf南方",
       "shares": 100,
       "cost": 8.502,
+      "current_price": 8.035,
+      "pnl_pct": -5.49,
+      "pnl_label": "浮亏中",
+      "pnl_advice": "⚠ 估值偏高但已浮亏 -5.5%，卖出即割肉。注意区分：如果是估值（市场情绪），继续持有；如果是基本面（ROE 下滑、营收下跌），应该止损。",
+      "pnl_override": true,
+      "must_sell": false,
+      "bull_top_alert": false,
       "index_code": "000905",
       "index_name": "中证500",
       "kind": "broad",
@@ -548,7 +576,7 @@
         "lookback_years": 10
       },
       "signal": "sell_light",
-      "signal_text": "PE分位82.0%·偏热·暂停加仓·新钱转便宜标的",
+      "signal_text": "PE分位82.0%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但已浮亏 -5.5%，卖出即割肉。注意区分：如果是估值（市场情绪），继续持有；如果是基本面（ROE 下滑、营收下跌），应该止损。",
       "new_records": 0
     },
     {
@@ -556,6 +584,13 @@
       "name": "红利etf华泰",
       "shares": 400,
       "cost": 3.353,
+      "current_price": 3.218,
+      "pnl_pct": -4.03,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -4.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_override": true,
+      "must_sell": false,
+      "bull_top_alert": false,
       "index_code": "000015",
       "index_name": "上证红利",
       "kind": "strategy_dividend",
@@ -571,7 +606,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位94.4%·泡沫区·卖盈利部分·保留底仓",
+      "signal_text": "PE分位94.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -4.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 0
     }
   ],
@@ -591,8 +626,8 @@
             "value": 3440.5
           },
           {
-            "code": "510550",
-            "name": "中证500etf",
+            "code": "510500",
+            "name": "中证500etf南方",
             "value": 850.2
           }
         ],

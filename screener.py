@@ -438,13 +438,17 @@ def screen_all_stocks(config):
     return passed
 
 
-def check_holdings_sell_signals(holdings, config):
+def check_holdings_sell_signals(holdings, config, market_temp_level=0):
     """
     检查持仓信号：
     1. 自动获取真实行业
     2. 判断真跌/假跌
     3. 真跌→基本面恶化警告
     4. 假跌或判定不清→按PE给关注/适当/中仓/大量卖出信号
+
+    Args:
+      market_temp_level: 大盘温度等级 (-2~2)，传给 evaluate_sell_meaningfulness
+                        用于判断"整体市场到牛顶 → 主动减仓"
     """
     if not holdings:
         return []
@@ -568,6 +572,21 @@ def check_holdings_sell_signals(holdings, config):
         if cf_warning:
             signal_text += f" | ⚠重点关注：{cf_warning}"
 
+        # 浮盈评估：三维综合
+        #   1. "卖出是否有意义"（防止平本/浮亏时被机械减仓）
+        #   2. "是否必须割肉"（基本面恶化 true_decline）
+        #   3. "大盘是否到牛顶"（market_temp_level=1/2 时主动减仓提醒）
+        from etf_monitor import evaluate_sell_meaningfulness
+        pnl_eval = evaluate_sell_meaningfulness(
+            cost=cost_price,
+            current_price=price if not pd.isna(price) else None,
+            signal=signal,
+            market_temp_level=market_temp_level,
+        )
+        # 致命信号/牛顶提醒的建议追加到 signal_text
+        if pnl_eval.get("override_signal") and pnl_eval.get("advice"):
+            signal_text = f"{signal_text} | {pnl_eval['advice']}"
+
         signals.append({
             "code": code, "name": name,
             "shares": h.get("shares", 0), "cost": h.get("cost", 0),
@@ -576,7 +595,12 @@ def check_holdings_sell_signals(holdings, config):
             "signal": signal, "signal_text": signal_text,
             "industry": industry,
             "holding_pnl": holding_pnl if cost_price > 0 and not pd.isna(price) else 0,
-            "cf_warning": cf_warning,  # 前端可单独展示
+            "pnl_pct": pnl_eval.get("pnl_pct"),
+            "pnl_label": pnl_eval.get("label"),
+            "pnl_advice": pnl_eval.get("advice"),
+            "must_sell": pnl_eval.get("must_sell", False),
+            "bull_top_alert": pnl_eval.get("bull_top_alert", False),
+            "cf_warning": cf_warning,
         })
         time.sleep(0.3)
 

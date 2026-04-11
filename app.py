@@ -481,10 +481,9 @@ with tab2:
 
                 # ETF 与个股分开取数据
                 is_etf = code in etf_data
+                sig_data = {}  # 个股情况下会被覆盖
                 if is_etf:
                     # ETF 行：数据来自 etf_signals（PE 是跟踪指数的 PE）
-                    # 信号文案直接用 temperature.label，不走 SIGNAL_LABELS
-                    # （SIGNAL_LABELS 是个股文案，"可以适当卖出" 对 ETF 不合适）
                     e = etf_data[code]
                     temp = e.get("temperature", {}) or {}
                     pe = temp.get("current_pe")
@@ -492,7 +491,12 @@ with tab2:
                     percentile = temp.get("percentile")
                     signal_label = temp.get("label") or "📊 数据积累中"
                     signal_text = e.get("signal_text", "") or temp.get("note", "数据积累中")
-                    price = 0
+                    # ETF 用 current_price 做盈亏
+                    current_price = e.get("current_price") or 0
+                    pnl_pct = e.get("pnl_pct")
+                    pnl_label = e.get("pnl_label", "")
+                    pnl_advice = e.get("pnl_advice", "")
+                    must_sell = e.get("must_sell", False)
                     index_name = e.get("index_name", "")
                 else:
                     # 个股行：数据来自 holding_signals
@@ -502,9 +506,13 @@ with tab2:
                     signal_text = sig_data.get("signal_text", "等待下次运行更新")
                     pe = sig_data.get("pe", 0)
                     pe_label = "PE(TTM)"
-                    price = sig_data.get("price", 0)
+                    current_price = sig_data.get("price", 0)
                     percentile = None
                     index_name = ""
+                    pnl_pct = sig_data.get("pnl_pct")
+                    pnl_label = sig_data.get("pnl_label", "")
+                    pnl_advice = sig_data.get("pnl_advice", "")
+                    must_sell = sig_data.get("must_sell", False)
 
                 col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 1.2, 3, 0.8])
                 with col1:
@@ -514,7 +522,12 @@ with tab2:
                         caption += f" | 跟踪 {index_name}"
                     st.caption(caption)
                 with col2:
-                    st.metric("股数", f"{h.get('shares', 0):,}")
+                    # 现价 + 浮盈百分比（Streamlit 会自动上涨绿色、下跌红色）
+                    if current_price and current_price > 0:
+                        delta_str = f"{pnl_pct:+.1f}%" if pnl_pct is not None else None
+                        st.metric("现价", f"¥{current_price:.3f}", delta_str)
+                    else:
+                        st.metric("现价", "—")
                 with col3:
                     st.metric("成本价", f"¥{h.get('cost', 0):.3f}")
                 with col4:
@@ -523,13 +536,11 @@ with tab2:
                             st.metric(pe_label, f"{pe:.1f}", f"分位{percentile:.0f}%")
                         else:
                             st.metric(pe_label, f"{pe:.1f}")
-                    elif price and price > 0:
-                        st.metric("现价", f"¥{price:.2f}")
                     else:
                         st.metric(pe_label, "—")
                 with col5:
                     st.markdown(f"{signal_label}")
-                    st.caption(signal_text[:80])
+                    st.caption(signal_text[:120])
                 with col6:
                     if st.button("🗑️", key=f"del_h_{i}"):
                         holdings.pop(i)
@@ -538,8 +549,17 @@ with tab2:
                             st.session_state["holdings_sha"] = new_sha
                             st.rerun()
 
+                # 🚨 "必须卖"警告（基本面恶化触发，即使割肉也要卖）
+                if must_sell:
+                    st.error(
+                        f"🚨 **{h.get('name', '未知')} 必须卖出**\n\n{pnl_advice}"
+                    )
+                # ⚠ "卖出无意义" 软提示（持仓几乎平本或浮亏但只是估值偏高）
+                elif pnl_advice and ("⚠" in pnl_advice or "无意义" in pnl_advice):
+                    st.info(f"💡 {h.get('name', '未知')}：{pnl_advice}")
+
                 # 消费龙头现金流警示（已豁免护城河规则但需重点关注）
-                cf_warning = sig_data.get("cf_warning")
+                cf_warning = sig_data.get("cf_warning") if not is_etf else None
                 if cf_warning:
                     st.warning(
                         f"⚠️ **{h.get('name', '未知')} 重点关注**：该股触发现金流异常但因高ROE+高毛利被豁免，"
@@ -749,6 +769,12 @@ with tab4:
                 dp = temp.get("data_points", 0)
                 note = temp.get("note", "")
                 signal_text = r.get("signal_text", "")
+                # 浮盈字段
+                current_price = r.get("current_price")
+                pnl_pct = r.get("pnl_pct")
+                pnl_label = r.get("pnl_label", "")
+                pnl_advice = r.get("pnl_advice", "")
+                must_sell = r.get("must_sell", False)
 
                 info_parts = []
                 if pe is not None:
@@ -760,12 +786,22 @@ with tab4:
                 info_parts.append(f"数据点={dp}")
                 info_line = " | ".join(info_parts)
 
-                # 注意：这里 HTML 必须顶格无缩进
-                # Markdown 规则：4 格以上缩进会被当成代码块，会导致 `</div>`
-                # 之类的字面值漏到页面上（曾出现"</div>"显示在 ETF 卡片末尾的 bug）
+                # 浮盈行
+                if current_price and pnl_pct is not None:
+                    pnl_color = "#d32f2f" if pnl_pct < 0 else "#388e3c"
+                    pnl_line = (
+                        f'现价 ¥{current_price:.3f} · '
+                        f'<span style="color:{pnl_color};font-weight:bold;">浮盈 {pnl_pct:+.1f}%</span> · '
+                        f'<span style="color:#888;">{pnl_label}</span>'
+                    )
+                else:
+                    pnl_line = ""
+
+                # HTML 必须顶格无缩进（Markdown 4 格缩进陷阱，见历史 bug）
                 name_str = f"{r.get('name','')} ({r.get('code','')})"
                 sub_str = f"· {kind_cn} · 跟踪 {r.get('index_name','')}"
                 note_html = f'<div style="color:#999;font-size:11px;margin-top:4px;">{note}</div>' if note else ''
+                pnl_html = f'<div style="color:#555;font-size:12px;margin-top:4px;">{pnl_line}</div>' if pnl_line else ''
                 card_html = (
                     f'<div style="background:{bg};padding:12px 16px;border-radius:6px;margin-bottom:8px;">'
                     f'<div style="font-weight:bold;font-size:15px;">{name_str} '
@@ -773,11 +809,16 @@ with tab4:
                     f'<div style="color:#444;font-size:13px;margin-top:4px;">{info_line}</div>'
                     f'<div style="color:#666;font-size:12px;margin-top:4px;">'
                     f'持仓：{shares:,} 股 · 成本 ¥{cost} · 市值 ¥{value:,.0f}</div>'
+                    f'{pnl_html}'
                     f'<div style="color:#1976d2;font-size:13px;margin-top:6px;font-weight:bold;">{signal_text}</div>'
                     f'{note_html}'
                     f'</div>'
                 )
                 st.markdown(card_html, unsafe_allow_html=True)
+
+                # "必须卖"红色警告框（基本面恶化，即使割肉也卖）
+                if must_sell:
+                    st.error(f"🚨 **{r.get('name','')} 必须卖出**\n\n{pnl_advice}")
 
         if etf_unmapped:
             st.divider()

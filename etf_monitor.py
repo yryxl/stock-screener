@@ -347,12 +347,195 @@ def extract_etfs_from_holdings(holdings):
     return etfs
 
 
-def scan_and_update_holdings_etfs(holdings):
+def evaluate_sell_meaningfulness(cost, current_price, signal, market_temp_level=0):
+    """
+    评估"此时卖出是否有意义"
+
+    核心原则（巴菲特哲学，三向）：
+      1. 别被单股分位数吓到机械减仓：浮盈接近零时"估值高位卖出"无意义
+      2. 但遇到基本面恶化/护城河消失，**即使割肉也要止损**
+         —— 这是巴菲特 2020 清空航空股的做法，亏 50% 也卖
+         —— 原话："The only thing worse than losing money is losing more."
+      3. 市场整体到牛顶 (大盘温度=2 或快到 =1) + 浮盈丰厚，主动提醒减仓锁利
+         —— 巴菲特 1969/1999 整体减仓都是基于"整体市场贵"，不是基于单股
+
+    判定优先级（从高到低）：
+      Level 1: 致命信号 (true_decline/moat_broken) → must_sell=True，无论浮盈
+      Level 2: 大盘温度 = 2 (泡沫) + 浮盈 ≥ 10% → 主动减仓提醒
+      Level 3: 大盘温度 = 1 (偏热) + 浮盈 ≥ 30% → 考虑部分减仓
+      Level 4: 单股估值偏高 sell_* 信号 → 原有浮盈矩阵判断
+
+    Args:
+      cost: 成本价
+      current_price: 当前价
+      signal: ETF/个股的原信号
+      market_temp_level: 大盘温度等级 (-2 / -1 / 0 / 1 / 2)
+                        0=正常/偏冷时不触发牛顶规则
+
+    Returns:
+      dict: {
+        "pnl_pct": 浮盈百分比,
+        "label": 浮盈区间可读标签,
+        "advice": 具体建议文案,
+        "override_signal": bool，前端是否用 advice 追加原信号文案,
+        "must_sell": bool，是否"必须卖"（含割肉），对应致命信号,
+        "bull_top_alert": bool，是否触发牛顶减仓提醒,
+      }
+    """
+    if not cost or cost <= 0 or not current_price or current_price <= 0:
+        return {
+            "pnl_pct": None,
+            "label": "",
+            "advice": "",
+            "override_signal": False,
+            "must_sell": False,
+            "bull_top_alert": False,
+        }
+
+    pnl_pct = (current_price / cost - 1) * 100
+
+    # 判定浮盈区间
+    if pnl_pct >= 30:
+        label = "盈利丰厚"
+    elif pnl_pct >= 10:
+        label = "中度盈利"
+    elif pnl_pct >= -5:
+        label = "几乎平本"
+    else:
+        label = "浮亏中"
+
+    advice = ""
+    override = False
+    must_sell = False
+    bull_top_alert = False
+
+    # ==================== Level 1：致命信号，必须卖（包括割肉）====================
+    is_fatal_signal = signal and signal in ("true_decline", "moat_broken")
+
+    if is_fatal_signal:
+        must_sell = True
+        override = True
+        if pnl_pct >= 0:
+            advice = (
+                f"🚨 基本面恶化 + 浮盈 {pnl_pct:+.1f}%。"
+                f"立即清仓，不要等情绪市反弹。"
+                f"巴菲特 2020 清空航空股时也是浮盈不大就果断卖。"
+            )
+        else:
+            advice = (
+                f"🚨 基本面恶化 + 浮亏 {pnl_pct:.1f}%。"
+                f"即使割肉也要卖，拿着只会亏更多。"
+                f"巴菲特原话：'失去金钱的唯一更糟的事，是继续失去更多金钱。'"
+            )
+        return {
+            "pnl_pct": round(pnl_pct, 2),
+            "label": label,
+            "advice": advice,
+            "override_signal": override,
+            "must_sell": must_sell,
+            "bull_top_alert": False,
+        }
+
+    # ==================== Level 2：大盘温度 = 2 (泡沫) → 牛顶减仓提醒 ====================
+    # 巴菲特 1969 道指 1000 清盘合伙基金、1999 攥 400 亿现金，都是基于"整体市场贵"
+    # 只要大盘到牛顶（温度=2），浮盈 ≥10% 的仓位就提醒落袋，不需要等单股信号
+    if market_temp_level == 2 and pnl_pct >= 10:
+        bull_top_alert = True
+        override = True
+        if pnl_pct >= 30:
+            advice = (
+                f"🔴 大盘已到牛顶泡沫区 + 本仓浮盈 {pnl_pct:+.1f}%。"
+                f"建议卖出盈利部分（≥ 50%）锁定利润，留底仓。"
+                f"巴菲特 1969/1999 都是这种时候减仓的。"
+            )
+        else:
+            advice = (
+                f"🔴 大盘已到牛顶泡沫区 + 本仓浮盈 {pnl_pct:+.1f}%。"
+                f"建议减仓 1/3 锁定部分利润，新钱等跌了再买。"
+            )
+        return {
+            "pnl_pct": round(pnl_pct, 2),
+            "label": label,
+            "advice": advice,
+            "override_signal": override,
+            "must_sell": must_sell,
+            "bull_top_alert": bull_top_alert,
+        }
+
+    # ==================== Level 3：大盘温度 = 1 (偏热) + 浮盈丰厚 → 预警 ====================
+    # 巴菲特 1999 年开始警告，到 2000 才真正减仓。这个阶段是"准备期"，不是"行动期"
+    if market_temp_level == 1 and pnl_pct >= 30:
+        bull_top_alert = True
+        override = True
+        advice = (
+            f"⚠ 大盘进入偏热区间 + 本仓浮盈 {pnl_pct:+.1f}%（丰厚）。"
+            f"建议开始考虑部分减仓，或至少停止加码。"
+            f"别人贪婪时你要开始恐惧。"
+        )
+        return {
+            "pnl_pct": round(pnl_pct, 2),
+            "label": label,
+            "advice": advice,
+            "override_signal": override,
+            "must_sell": must_sell,
+            "bull_top_alert": bull_top_alert,
+        }
+
+    # ==================== Level 4：单股估值偏高 sell_* 信号 ====================
+    is_valuation_sell = signal and any(
+        kw in signal for kw in ("sell_heavy", "sell_medium", "sell_light", "sell_watch")
+    )
+
+    if is_valuation_sell:
+        if pnl_pct >= 30:
+            advice = (
+                f"✓ 浮盈 {pnl_pct:+.1f}%（≥30%），估值高位时卖盈利部分"
+                f"锁定利润，留底仓继续吃分红。"
+            )
+        elif pnl_pct >= 10:
+            advice = (
+                f"✓ 浮盈 {pnl_pct:+.1f}%（≥10%），可减仓 1/3 锁定部分利润。"
+            )
+        elif pnl_pct >= -5:
+            advice = (
+                f"⚠ 估值偏高但持仓浮盈仅 {pnl_pct:+.1f}%，"
+                f"扣手续费后卖出无实际收益。"
+                f"建议：停止新增买入，但老仓位继续持有。"
+            )
+            override = True
+        else:
+            advice = (
+                f"⚠ 估值偏高但已浮亏 {pnl_pct:.1f}%，卖出即割肉。"
+                f"注意区分：如果是估值（市场情绪），继续持有；"
+                f"如果是基本面（ROE 下滑、营收下跌），应该止损。"
+            )
+            override = True
+
+    return {
+        "pnl_pct": round(pnl_pct, 2),
+        "label": label,
+        "advice": advice,
+        "override_signal": override,
+        "must_sell": must_sell,
+        "bull_top_alert": bull_top_alert,
+    }
+
+
+def scan_and_update_holdings_etfs(holdings, market_temp_level=0):
     """
     对持仓中的每只 ETF 更新估值并返回监测结果
-    返回 list，每项含 ETF 基本信息 + 温度 + 信号
-    未映射的 ETF 单独返回警告
+    返回 list，每项含 ETF 基本信息 + 温度 + 信号 + 浮盈评估 + 牛顶提醒
+
+    Args:
+      market_temp_level: 大盘温度等级 (-2~2)，传给 evaluate_sell_meaningfulness
+                        用于判断"整体市场到牛顶 → 主动减仓"
     """
+    # 一次性拉 ETF 实时行情，后面每只 ETF 复用
+    from data_fetcher import get_etf_realtime_quotes, get_etf_price
+    print("  拉取 ETF 实时行情...")
+    etf_quotes_df = get_etf_realtime_quotes()
+    print(f"  ETF 行情条数: {len(etf_quotes_df) if etf_quotes_df is not None else 0}")
+
     etf_map = load_etf_index_map()
     etfs = extract_etfs_from_holdings(holdings)
     if not etfs:
@@ -372,12 +555,41 @@ def scan_and_update_holdings_etfs(holdings):
         index_name = mapping["name"]
         kind = mapping.get("kind", "strategy")
 
+        # 拿当前价 + 算浮盈
+        current_price = get_etf_price(code, etf_quotes_df)
+        pnl = evaluate_sell_meaningfulness(
+            cost=etf.get("cost", 0),
+            current_price=current_price,
+            signal=None,  # 稍后用算出的 signal 重新评估
+            market_temp_level=market_temp_level,
+        )
+
         try:
             store, added = update_index_valuation(index_code, index_name, kind)
             temp = compute_etf_temperature(store)
             signal, signal_text = get_etf_action_signal(temp)
+
+            # 用真正的 signal 重新评估卖出意义
+            pnl = evaluate_sell_meaningfulness(
+                cost=etf.get("cost", 0),
+                current_price=current_price,
+                signal=signal,
+                market_temp_level=market_temp_level,
+            )
+
+            # 如果 advice 说"卖出无意义"，在 signal_text 末尾追加提醒
+            if pnl.get("override_signal") and pnl.get("advice"):
+                signal_text = f"{signal_text} | {pnl['advice']}"
+
             results.append({
                 **etf,
+                "current_price": current_price,
+                "pnl_pct": pnl.get("pnl_pct"),
+                "pnl_label": pnl.get("label"),
+                "pnl_advice": pnl.get("advice"),
+                "pnl_override": pnl.get("override_signal"),
+                "must_sell": pnl.get("must_sell", False),
+                "bull_top_alert": pnl.get("bull_top_alert", False),
                 "index_code": index_code,
                 "index_name": index_name,
                 "kind": kind,
@@ -386,12 +598,16 @@ def scan_and_update_holdings_etfs(holdings):
                 "signal_text": signal_text,
                 "new_records": added,
             })
+            pnl_str = f"浮盈 {pnl['pnl_pct']:+.1f}%" if pnl.get("pnl_pct") is not None else "无当前价"
             print(f"  {code} {etf['name']}: {index_name} PE={temp.get('current_pe')} "
-                  f"分位={temp.get('percentile')}% {temp.get('label','')} [+{added}]")
+                  f"分位={temp.get('percentile')}% {temp.get('label','')} {pnl_str} [+{added}]")
         except Exception as e:
             print(f"  {code} {etf['name']} 更新失败: {e}")
             results.append({
                 **etf,
+                "current_price": current_price,
+                "pnl_pct": pnl.get("pnl_pct"),
+                "pnl_label": pnl.get("label"),
                 "index_code": index_code,
                 "index_name": index_name,
                 "kind": kind,

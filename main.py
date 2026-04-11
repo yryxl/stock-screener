@@ -319,7 +319,17 @@ def run_holdings(config):
     if not holdings:
         print("  无持仓")
         return []
-    holding_signals = check_holdings_sell_signals(holdings, config)
+
+    # 读出已注入的大盘温度，传给 check_holdings_sell_signals 用于"牛顶减仓提醒"
+    existing = load_json("daily_results.json")
+    market_temp_level = 0
+    if isinstance(existing, dict):
+        mt = existing.get("market_temperature") or {}
+        market_temp_level = mt.get("level", 0)
+
+    holding_signals = check_holdings_sell_signals(
+        holdings, config, market_temp_level=market_temp_level
+    )
     print(f"  信号: {len(holding_signals)}只")
     return holding_signals
 
@@ -378,7 +388,18 @@ def _inject_etf_monitor():
         holdings = load_json("holdings.json")
         if not holdings:
             return
-        etf_results, unmapped = scan_and_update_holdings_etfs(holdings)
+
+        # 读出已注入的大盘温度等级，传给 ETF 监测用于"牛顶减仓提醒"
+        # 依赖 _inject_market_temperature 先跑
+        existing_now = load_json("daily_results.json")
+        market_temp_level = 0
+        if isinstance(existing_now, dict):
+            mt = existing_now.get("market_temperature") or {}
+            market_temp_level = mt.get("level", 0)
+
+        etf_results, unmapped = scan_and_update_holdings_etfs(
+            holdings, market_temp_level=market_temp_level
+        )
         portfolio_cls = classify_portfolio(holdings)
 
         existing = load_json("daily_results.json")
@@ -416,6 +437,11 @@ def main():
             print(f"跳过运行: {reason}")
             return
         print(f"运行原因: {reason}")
+
+    # 先注入市场温度，让后面的 run_holdings / _inject_etf_monitor
+    # 能读到最新温度等级用于"牛顶减仓提醒"
+    if mode not in ("reanalyze",):
+        _inject_market_temperature()
 
     # 休市日处理
     if not trading and mode != "all":
@@ -635,10 +661,8 @@ def main():
         except Exception as e:
             print(f"快照保存失败（不影响运行）: {e}")
 
-    # 统一在所有模式运行完后注入市场温度（实时沪深300 PE 历史分位）
+    # 温度已在开头注入，这里只跑 ETF 监测（依赖已注入的 market_temp_level）
     if mode not in ("reanalyze",):
-        _inject_market_temperature()
-        # ETF 持仓估值监测（增量积累，新买的 ETF 第二天自动开始积累）
         _inject_etf_monitor()
 
     print(f"\n=== 完成 ===")
