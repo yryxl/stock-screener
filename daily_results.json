@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-11 17:26",
+  "date": "2026-04-11 17:54",
   "mode": "all",
   "is_trading_day": false,
-  "data_source": "关注表快速重跑（修复 ROE 方向 bug 后）",
+  "data_source": "持仓重跑（加仓门槛修复后）",
   "ai_recommendations": [],
   "watchlist_signals": [
     {
@@ -443,8 +443,8 @@
       "cost": 56.4,
       "price": 54.92,
       "pe": 19.01,
-      "signal": "buy_add",
-      "signal_text": "持仓股PE偏低→可考虑加仓 | PE=19.0，低于行业合理区间20-30→可以轻仓买入",
+      "signal": "hold_keep",
+      "signal_text": "非十年王者/好公司 → 建议持有不加仓 | PE=19.0，低于行业合理区间20-30→可以轻仓买入",
       "industry": "中药Ⅱ",
       "holding_pnl": -2.624113475177303,
       "cf_warning": null
