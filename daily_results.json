@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-10 19:27",
-  "mode": "full",
-  "is_trading_day": true,
-  "data_source": "全市场扫描",
+  "date": "2026-04-11 03:01",
+  "mode": "all",
+  "is_trading_day": false,
+  "data_source": "全量运行（休市日，数据来自休市前最后交易日）",
   "ai_recommendations": [],
   "watchlist_signals": [
     {
@@ -91,7 +91,7 @@
       "price": 54.92,
       "pe": 19.01,
       "signal": "hold",
-      "signal_text": "财务风险(仅5年数据、ROE=10.2% 负债率26%)，继续观望",
+      "signal_text": "基本面恶化(ROE连续下滑至10.5%（破15%底线）)，继续观望",
       "total_score": 24,
       "dividend_yield": 4.74,
       "dimensions": {
@@ -394,23 +394,15 @@
       "signal": "hold_keep",
       "signal_text": "PE=19.0，处于合理区间15-25 →建议持续持有",
       "industry": "",
-      "holding_pnl": -2.624113475177303
-    }
-  ],
-  "position_warnings": [
-    {
-      "code": "512890",
-      "name": "红利低波etf华泰",
-      "pct": 51.07690841513389,
-      "level": "danger",
-      "text": "仓位51.1%≥40%，严重偏重！建议分散"
+      "holding_pnl": -2.624113475177303,
+      "cf_warning": null
     }
   ],
   "market_temperature": {
     "level": 0,
-    "label": "⚪正常",
-    "description": "市场估值合理，按正常节奏投资",
-    "current_pe_median": 21.69,
+    "label": "⚪ 正常市",
+    "description": "市场估值处于合理区间（历史 30%-70% 分位），按正常节奏投资。",
+    "current_pe_median": 21.75,
     "percentile": 52.5,
     "lookback_years": 10,
     "as_of": "2026-04",
