@@ -878,15 +878,27 @@ def check_fundamental_health(code):
 
     # 6. ROE连续下滑（巴菲特清仓信号）
     # 从20%+掉到<15%且持续2-3年 → 基本面恶化
+    #
+    # ⚠ 注意方向：df_annual 是 latest-first 排序，
+    #   recent_roe[0]=最新年, recent_roe[1]=次新年, recent_roe[2]=最老年
+    #   "连续 3 年下滑" 的正确条件是：最新 < 次新 < 最老
+    #   即 recent_roe[0] < recent_roe[1] < recent_roe[2]
+    #
+    # 历史 bug：之前写的 `recent_roe[i] > recent_roe[i+1]`，方向反了，
+    # 把"ROE 回升（10→12→13）"误判为"ROE 下滑"，触发错误的观望信号。
+    # 对比 live_rules.check_moat_live 规则 3 (r[0]<r[1]<r[2]) 修正。
     roe_series = get_roe_series(df_annual)
     if roe_series is not None and len(roe_series) >= 3:
-        recent_roe = roe_series.head(3).values
-        # 连续3年下滑
-        if all(recent_roe[i] > recent_roe[i+1] for i in range(len(recent_roe)-1)):
-            if recent_roe[-1] < 15:
-                problems.append(f"ROE连续下滑至{recent_roe[-1]:.1f}%（破15%底线）")
-            elif recent_roe[0] - recent_roe[-1] > 5:
-                problems.append(f"ROE连续下滑（从{recent_roe[0]:.1f}%降至{recent_roe[-1]:.1f}%）")
+        recent_roe = roe_series.head(3).values  # [最新, 次新, 最老]
+        latest_roe = recent_roe[0]
+        oldest_roe = recent_roe[2]
+        # 连续 3 年下滑：最新 < 次新 < 最老
+        is_declining = recent_roe[0] < recent_roe[1] < recent_roe[2]
+        if is_declining:
+            if latest_roe < 15:
+                problems.append(f"ROE连续下滑至{latest_roe:.1f}%（破15%底线）")
+            elif oldest_roe - latest_roe > 5:
+                problems.append(f"ROE连续下滑（从{oldest_roe:.1f}%降至{latest_roe:.1f}%）")
 
     # 7. 高ROE但现金流远低于净利润（虚假ROE）
     # 巴菲特：经营现金流应≥净利润
