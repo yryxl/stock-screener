@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-11 03:52",
+  "date": "2026-04-11 12:48",
   "mode": "all",
   "is_trading_day": false,
   "data_source": "全量运行（休市日，数据来自休市前最后交易日）",
@@ -13,7 +13,7 @@
       "price": 41.35,
       "pe": 34.38,
       "signal": "hold",
-      "signal_text": "PE(TTM)=34.4，继续观望",
+      "signal_text": "PE=34.4，处于合理区间22-35，等待更低点",
       "total_score": 27,
       "dividend_yield": 2.66,
       "dimensions": {
@@ -52,7 +52,7 @@
       "price": 86.0,
       "pe": 36.58,
       "signal": "hold",
-      "signal_text": "PE(TTM)=36.6，继续观望",
+      "signal_text": "PE=36.6，超出合理区间20-30，等待回落",
       "total_score": 26,
       "dividend_yield": 8.26,
       "dimensions": {
@@ -169,7 +169,7 @@
       "price": 27.8,
       "pe": 32.06,
       "signal": "hold",
-      "signal_text": "PE(TTM)=32.1，继续观望",
+      "signal_text": "PE=32.1，超出合理区间20-30，等待回落",
       "total_score": 21,
       "dividend_yield": 3.6,
       "dimensions": {
@@ -208,7 +208,7 @@
       "price": 69.04,
       "pe": 40.0,
       "signal": "hold",
-      "signal_text": "PE(TTM)=40.0，继续观望",
+      "signal_text": "PE=40.0，处于合理区间25-40，等待更低点",
       "total_score": 21,
       "dividend_yield": 1.01,
       "dimensions": {
@@ -247,7 +247,7 @@
       "price": 5.2,
       "pe": 15.73,
       "signal": "hold",
-      "signal_text": "PE(TTM)=15.7，继续观望",
+      "signal_text": "PE=15.7，处于合理区间10-16，等待更低点",
       "total_score": 19,
       "dividend_yield": 6.72,
       "dimensions": {
@@ -286,7 +286,7 @@
       "price": 26.14,
       "pe": 20.64,
       "signal": "hold",
-      "signal_text": "PE(TTM)=20.6，继续观望",
+      "signal_text": "PE=20.6，处于合理区间15-25，等待更低点",
       "total_score": 19,
       "dividend_yield": 6.5,
       "dimensions": {
@@ -325,7 +325,7 @@
       "price": 26.4,
       "pe": 18.91,
       "signal": "hold",
-      "signal_text": "PE(TTM)=18.9，继续观望",
+      "signal_text": "PE=18.9，超出合理区间10-18，等待回落",
       "total_score": 18,
       "dividend_yield": 4.37,
       "dimensions": {
@@ -364,7 +364,7 @@
       "price": 4.95,
       "pe": 18.55,
       "signal": "hold",
-      "signal_text": "PE(TTM)=18.6，继续观望",
+      "signal_text": "PE=18.6，超出合理区间10-16，等待回落",
       "total_score": 0,
       "dividend_yield": 5.42,
       "dimensions": {}
@@ -377,7 +377,7 @@
       "price": 7.31,
       "pe": 7.3,
       "signal": "hold",
-      "signal_text": "PE(TTM)=7.3，继续观望",
+      "signal_text": "PE=7.3，处于合理区间6-9，等待更低点",
       "total_score": 0,
       "dividend_yield": 6.5,
       "dimensions": {}
@@ -391,9 +391,9 @@
       "cost": 56.4,
       "price": 54.92,
       "pe": 19.01,
-      "signal": "hold_keep",
-      "signal_text": "PE=19.0，处于合理区间15-25 →建议持续持有",
-      "industry": "",
+      "signal": "buy_add",
+      "signal_text": "持仓股PE偏低→可考虑加仓 | PE=19.0，低于行业合理区间20-30→可以轻仓买入",
+      "industry": "中药Ⅱ",
       "holding_pnl": -2.624113475177303,
       "cf_warning": null
     }
