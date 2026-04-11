@@ -481,19 +481,21 @@ def check_holdings_sell_signals(holdings, config):
         # 3. PE信号
         signal, signal_text = get_pe_signal(pe, industry)
 
-        # 3.5 用 live_rules 做完整的 8 条护城河检查 + 十年王者判定
+        # 3.5 用 live_rules 做完整的 8 条护城河检查 + 十年王者判定 + 好公司判定
         #     和 backtest_engine.py 的规则同步
         is_king = False
+        is_good_quality = False
         king_avg_roe = None
         moat_intact_new = True
         try:
-            from live_rules import check_moat_live, check_10_year_king_live
+            from live_rules import check_moat_live, check_10_year_king_live, is_good_quality_live
             df_indicator = get_financial_indicator(code)
             if df_indicator is not None:
                 df_annual_check = extract_annual_data(df_indicator, years=10)
                 if not df_annual_check.empty:
                     moat_intact_new, moat_probs_new = check_moat_live(df_annual_check, industry=industry)
                     is_king, king_avg_roe, _ = check_10_year_king_live(df_annual_check)
+                    is_good_quality = is_good_quality_live(df_annual_check)
         except Exception as e:
             moat_probs_new = []
 
@@ -535,10 +537,25 @@ def check_holdings_sell_signals(holdings, config):
                     signal = "true_decline"
                     signal_text = f"亏损{holding_pnl:.0f}%+基本面恶化({','.join(problems[:2])})→护城河可能消失，建议止损"
 
-        # 6. 加仓信号：持仓股PE处于低位且基本面健康 → 提示加仓
+        # 6. 加仓信号：仅十年王者 / 好公司（严格标准）才允许 PE 偏低时加仓
+        #    巴菲特原话："Don't add to losers, don't add to the average. Add only to winners."
+        #    芒格原则：对平庸企业的正确动作是持有不加码，等更好的时机
+        #    之前的 bug：只看 PE 低就给 buy_add，把云南白药这种 10 年 ROE
+        #    均值 13%（未达 15% 门槛）的平庸企业也建议加仓，和关注表
+        #    "ROE 限制最高关注"的逻辑互相矛盾。
         if signal and "buy" in signal:
-            signal = "buy_add"  # 特殊信号：加仓
-            signal_text = f"持仓股PE偏低→可考虑加仓 | {signal_text}"
+            if is_king:
+                signal = "buy_add"
+                signal_text = f"十年王者 + PE偏低→可加仓 | {signal_text}"
+            elif is_good_quality:
+                # 非十年连续但 5 年 ROE 均值 ≥ 20% + 毛利 ≥ 30% 的好公司
+                signal = "buy_add"
+                signal_text = f"好公司 + PE偏低→可加仓 | {signal_text}"
+            else:
+                # 平庸企业（ROE 不达标）：降级为持有，不建议加仓
+                # 保留原 PE 估值信号文本供参考
+                signal = "hold_keep"
+                signal_text = f"非十年王者/好公司 → 建议持有不加仓 | {signal_text}"
 
         # 7. 持仓股：hold变成"建议持续持有"
         if signal == "hold":
