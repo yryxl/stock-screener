@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-11 17:05",
+  "date": "2026-04-11 17:26",
   "mode": "all",
   "is_trading_day": false,
-  "data_source": "关注表快速重跑（休市日，上一交易日数据）",
+  "data_source": "关注表快速重跑（修复 ROE 方向 bug 后）",
   "ai_recommendations": [],
   "watchlist_signals": [
     {
@@ -90,8 +90,8 @@
       "note": "国家绝密配方+百年品牌",
       "price": 54.92,
       "pe": 19.01,
-      "signal": "hold",
-      "signal_text": "基本面恶化(ROE连续下滑至10.5%（破15%底线）)，继续观望",
+      "signal": "buy_watch",
+      "signal_text": "PE偏低，ROE限制最高关注",
       "total_score": 26,
       "dividend_yield": 4.74,
       "dimensions": {
