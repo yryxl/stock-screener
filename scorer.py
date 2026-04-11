@@ -128,12 +128,37 @@ def score_profitability(df_annual):
     return min(score, 10), " | ".join(details)
 
 
-def score_dividend(df_annual, price=None):
-    """维度4：股息率（10分）"""
+def score_dividend(df_annual, price=None, external_div_yield=None):
+    """
+    维度4：股息率（10分）
+
+    数据源（按优先级）：
+      1. 外部传入 external_div_yield（data_fetcher.get_dividend_yield，
+         基于股票分红历史 + 当前股价，覆盖所有 A 股）
+      2. df_annual 里的"每股股利"/"每股派息"列（只有新浪源才有，
+         同花顺 stock_financial_abstract_ths 不返回这个字段）
+
+    Args:
+      df_annual: 年报 DataFrame
+      price: 当前股价（用于从每股股利算 div_yield）
+      external_div_yield: 外部已算好的股息率（百分比，如 4.74 表示 4.74%）
+    """
     score = 0
     details = []
     div_yield = 0
 
+    # 优先：用外部传入的 div_yield（基于分红历史 + 最新价，精度最高）
+    if external_div_yield is not None and external_div_yield > 0:
+        div_yield = external_div_yield
+        if div_yield >= 6: score += 6; details.append(f"股息率{div_yield:.1f}%极高")
+        elif div_yield >= 4: score += 5; details.append(f"股息率{div_yield:.1f}%高")
+        elif div_yield >= 2.5: score += 3; details.append(f"股息率{div_yield:.1f}%")
+        elif div_yield >= 1: score += 2; details.append(f"股息率{div_yield:.1f}%偏低")
+        else: score += 1; details.append(f"股息率{div_yield:.1f}%极低")
+        # 外部源只有单一股息率值，没有年度序列，无法加"连续 N 年"和"股息增长"的加分
+        return min(score, 10), " | ".join(details), div_yield
+
+    # 兜底：从财务指标表里找"每股股利"列（新浪源才有）
     div_col = find_column(df_annual, ["每股股利", "每股派息"])
     if div_col and price and price > 0:
         divs = pd.to_numeric(df_annual[div_col], errors="coerce").dropna()
@@ -190,15 +215,17 @@ def score_valuation(pe, industry=""):
     return min(score, 10), " | ".join(details)
 
 
-def score_stock_for_display(code, df_annual, pe=None, price=None, industry=""):
+def score_stock_for_display(code, df_annual, pe=None, price=None, industry="", external_div_yield=None):
     """
     为展示和排序打分（不决定买卖信号）
     返回：总分、各维度分数、股息率
+
+    external_div_yield: 外部已算好的股息率百分比（main.check_watchlist 传入 get_dividend_yield 的结果）
     """
     s1, d1 = score_roe_quality(df_annual)
     s2, d2 = score_financial_health(df_annual)
     s3, d3 = score_profitability(df_annual)
-    s4, d4, div_yield = score_dividend(df_annual, price)
+    s4, d4, div_yield = score_dividend(df_annual, price, external_div_yield=external_div_yield)
     s5, d5 = score_valuation(pe, industry)
 
     total = s1 + s2 + s3 + s4 + s5

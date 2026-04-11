@@ -154,11 +154,14 @@ def get_financial_indicator(stock_code):
     """
     获取单只股票的财务分析指标
     多数据源自动切换，确保拿到数据：
-    源1: stock_financial_analysis_indicator（新浪）
-    源2: stock_financial_abstract_ths（同花顺）
-    源3: stock_financial_benefit_ths（同花顺利润表）
+    源1: stock_financial_analysis_indicator（新浪，列名"净资产收益率(%)"等）
+    源2: stock_financial_abstract_ths（同花顺，列名"净资产收益率"等）
+
+    注意：以前同花顺版本列名是乱码需要按位置映射，当前版本直接返回中文
+    列名，无需 col_map。银行股列数 17（没有毛利率/流动比率是正常的），
+    铁路股 23 列。不再强制 len(cols) >= 25。
     """
-    # 源1: 新浪财务指标（最全，但部分股票返回空）
+    # 源1: 新浪财务指标（最全，但部分股票返回空，如银行/铁路）
     df = safe_fetch(ak.stock_financial_analysis_indicator, symbol=stock_code)
     if df is not None and not df.empty:
         df["日期"] = pd.to_datetime(df["日期"], errors="coerce")
@@ -166,39 +169,33 @@ def get_financial_indicator(stock_code):
         if not df.empty:
             return df
 
-    # 源2: 同花顺财务摘要（覆盖面更广）
+    # 源2: 同花顺财务摘要（银行/铁路/保险等覆盖面更广）
     try:
         df_ths = safe_fetch(ak.stock_financial_abstract_ths, symbol=stock_code)
         if df_ths is not None and not df_ths.empty:
-            # 同花顺列名可能是乱码，按位置映射为标准列名
-            cols = list(df_ths.columns)
-            col_map = {}
-            if len(cols) >= 25:
-                col_map = {
-                    cols[0]: "日期",
-                    cols[12]: "销售净利率(%)",
-                    cols[13]: "销售毛利率(%)",
-                    cols[14]: "净资产收益率(%)",
-                    cols[15]: "净资产收益率(扣非)(%)",
-                    cols[7]: "每股收益(元)",
-                    cols[8]: "每股净资产(元)",
-                    cols[11]: "每股经营性现金流(元)",
-                    cols[20]: "流动比率",
-                    cols[24]: "资产负债率(%)",
-                    cols[5]: "营业总收入(元)",
-                    cols[6]: "营业总收入同比增长率(%)",
-                }
-            df_ths = df_ths.rename(columns=col_map)
+            # 统一列名：报告期 → 日期（后续 extract_annual_data 用的是"日期"）
+            if "报告期" in df_ths.columns and "日期" not in df_ths.columns:
+                df_ths = df_ths.rename(columns={"报告期": "日期"})
 
-            # 处理日期
             df_ths["日期"] = pd.to_datetime(df_ths["日期"], errors="coerce")
             df_ths = df_ths.dropna(subset=["日期"])
 
-            # 清洗百分比字段（去掉%号转数字）
+            # 清洗：
+            # 1. False（akshare 把缺失值返回字符串 False）→ NaN
+            # 2. 去掉 "%" 和 "亿"/"万" 单位
+            # 3. 转数字
+            # 同花顺所有"率/比率"列都带 %，经营现金流/每股收益是纯数字
             for col in df_ths.columns:
-                if "%" in col or "率" in col or "比率" in col:
-                    df_ths[col] = df_ths[col].astype(str).str.replace("%", "").str.replace("False", "")
-                    df_ths[col] = pd.to_numeric(df_ths[col], errors="coerce")
+                if col == "日期":
+                    continue
+                s = df_ths[col]
+                # 先统一为字符串再清洗
+                s = s.astype(str).replace({"False": None, "nan": None, "None": None})
+                # 百分比和纯数字两种都有，统一去掉 % 符号
+                s = s.str.replace("%", "", regex=False)
+                # "亿" / "万" 单位：这些字段（营业收入、净利润）打分用不到，
+                # 转不了数字就让它是 NaN 即可
+                df_ths[col] = pd.to_numeric(s, errors="coerce")
 
             if not df_ths.empty:
                 return df_ths

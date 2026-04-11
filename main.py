@@ -181,7 +181,13 @@ def check_watchlist(config, quotes_df):
             df_annual = extract_annual_data(df_indicator, years=10)
             if not df_annual.empty:
                 from scorer import score_stock_for_display
-                score_data = score_stock_for_display(code, df_annual, pe=pe_val, price=price_val, industry=category)
+                # 传入 div_yield（已经算好的真实股息率）给 scorer 使用
+                # 这样同花顺数据源的银行/铁路股也能拿到股息率分数
+                score_data = score_stock_for_display(
+                    code, df_annual,
+                    pe=pe_val, price=price_val, industry=category,
+                    external_div_yield=div_yield,
+                )
                 total_score = score_data.get("total_score", 0)
 
         signals.append({
