@@ -27,7 +27,10 @@ from screener import (
 from notifier import send_daily_report, send_msg, get_access_token
 from market_temperature import get_realtime_market_temperature
 from etf_monitor import scan_and_update_holdings_etfs, classify_portfolio
-from data_fetcher import get_realtime_quotes, get_pe_ttm, get_dividend_yield, safe_fetch, get_financial_indicator, extract_annual_data
+from data_fetcher import (
+    get_realtime_quotes, get_pe_ttm, get_dividend_yield, safe_fetch,
+    get_financial_indicator, extract_annual_data, get_stock_industry,
+)
 import akshare as ak
 
 
@@ -65,18 +68,6 @@ def is_trading_day():
         print(f"  获取交易日历失败: {e}")
     # 失败时回退到简单判断（排除周末）
     return datetime.now().weekday() < 5
-
-
-def get_stock_industry(code):
-    try:
-        df = safe_fetch(ak.stock_individual_info_em, symbol=code)
-        if df is not None and not df.empty:
-            for _, row in df.iterrows():
-                if "行业" in str(row.get("item", "")):
-                    return str(row["value"])
-    except Exception:
-        pass
-    return ""
 
 
 def update_watchlist_industries(watchlist):
@@ -134,10 +125,19 @@ def check_watchlist(config, quotes_df):
         # ============================================
         signal, signal_text = get_pe_signal(pe_val, category)
 
-        # 关注表：PE>=合理区间一律"观望"
+        # 关注表：PE>=合理区间一律"观望"（关注表只给买入方向信号）
+        # 但 signal_text 要保留"为什么观望"的解释，不能只说"继续观望"
         if signal and ("sell" in signal or signal == "hold"):
+            from screener import match_industry_pe
+            pe_range = match_industry_pe(category)
+            fl, fh = pe_range["fair_low"], pe_range["fair_high"]
+            if pe_val > fh:
+                signal_text = f"PE={pe_val:.1f}，超出合理区间{fl}-{fh}，等待回落"
+            elif pe_val >= fl:
+                signal_text = f"PE={pe_val:.1f}，处于合理区间{fl}-{fh}，等待更低点"
+            else:
+                signal_text = f"PE={pe_val:.1f}，继续观望"
             signal = "hold"
-            signal_text = f"PE(TTM)={pe_val:.1f}，继续观望"
 
         # 买入信号需过清单：ROE+财务+基本面
         if signal and "buy" in signal:

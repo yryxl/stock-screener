@@ -365,27 +365,48 @@ with tab2:
     holdings = st.session_state.get("holdings", [])
     daily = st.session_state.get("daily", {})
 
-    # 持仓信号数据
+    # 持仓信号数据（个股来自 holding_signals，ETF 来自 etf_signals）
     holding_data = {}
     for s in daily.get("holding_signals", []):
         holding_data[s.get("code", "")] = s
+
+    # ETF 信号数据（按 code 索引，用于持仓 tab 的 ETF 行展示）
+    etf_data = {}
+    for e in daily.get("etf_signals", []):
+        etf_data[str(e.get("code", "")).zfill(6)] = e
+
+    # ETF kind → 中文分类映射（宽基/策略/行业）
+    _ETF_KIND_LABELS = {
+        "broad": "🛡 宽基 ETF",
+        "strategy_dividend": "💎 策略 ETF",
+        "strategy": "💎 策略 ETF",
+        "sector": "⚡ 行业 ETF",
+    }
 
     if not holdings:
         st.info("暂无持仓")
     else:
         # 按行业/类型分组
+        # 分类优先级：
+        #   1. ETF → 按 etf_signals 的 kind 分成宽基/策略/行业
+        #   2. 个股 → 按 holding_signals.industry（真实行业，来自 get_stock_industry）
+        #   3. 兜底 → holdings.json 里手填的 category
         category_holdings = {}
         for i, h in enumerate(holdings):
-            code = h["code"]
-            sig_data = holding_data.get(code, {})
-            industry = sig_data.get("industry", "") or h.get("category", "")
-            if not industry:
-                # 根据名称猜测类型
-                name = h.get("name", "")
-                if "etf" in name.lower() or "ETF" in name:
-                    industry = "ETF基金"
-                else:
-                    industry = "其他"
+            code = str(h["code"]).zfill(6)
+
+            # 先判断是不是 ETF
+            if code in etf_data:
+                kind = etf_data[code].get("kind", "sector")
+                industry = _ETF_KIND_LABELS.get(kind, "📊 ETF 基金")
+            elif code[0] in ("1", "5"):
+                # 未在 etf_signals 中（映射表缺失）但看起来像 ETF
+                industry = "📊 未识别 ETF（需补映射）"
+            else:
+                # 个股：走真实行业
+                sig_data = holding_data.get(code, {})
+                industry = sig_data.get("industry", "") or h.get("category", "") or "其他"
+
             if industry not in category_holdings:
                 category_holdings[industry] = []
             category_holdings[industry].append((i, h))
@@ -454,30 +475,57 @@ with tab2:
             st.subheader(f"🏷️ {cat}（成本¥{cat_cost:,.0f}，占{cat_pct:.1f}%{range_text}）")
 
             for i, h in items:
-                code = h["code"]
-                sig_data = holding_data.get(code, {})
-                signal = sig_data.get("signal", "")
-                signal_label = SIGNAL_LABELS.get(signal, "暂无数据")
-                signal_text = sig_data.get("signal_text", "等待下次运行更新")
-                pe = sig_data.get("pe", 0)
-                price = sig_data.get("price", 0)
+                code = str(h["code"]).zfill(6)
                 stock_cost = h.get("shares", 0) * h.get("cost", 0)
+
+                # ETF 与个股分开取数据
+                is_etf = code in etf_data
+                if is_etf:
+                    # ETF 行：数据来自 etf_signals（PE 是跟踪指数的 PE）
+                    # 信号文案直接用 temperature.label，不走 SIGNAL_LABELS
+                    # （SIGNAL_LABELS 是个股文案，"可以适当卖出" 对 ETF 不合适）
+                    e = etf_data[code]
+                    temp = e.get("temperature", {}) or {}
+                    pe = temp.get("current_pe")
+                    pe_label = "指数PE"
+                    percentile = temp.get("percentile")
+                    signal_label = temp.get("label") or "📊 数据积累中"
+                    signal_text = e.get("signal_text", "") or temp.get("note", "数据积累中")
+                    price = 0
+                    index_name = e.get("index_name", "")
+                else:
+                    # 个股行：数据来自 holding_signals
+                    sig_data = holding_data.get(code, {})
+                    signal = sig_data.get("signal", "")
+                    signal_label = SIGNAL_LABELS.get(signal, "暂无数据")
+                    signal_text = sig_data.get("signal_text", "等待下次运行更新")
+                    pe = sig_data.get("pe", 0)
+                    pe_label = "PE(TTM)"
+                    price = sig_data.get("price", 0)
+                    percentile = None
+                    index_name = ""
 
                 col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 1.2, 3, 0.8])
                 with col1:
                     st.markdown(f"**{h.get('name', '未知')}**")
-                    st.caption(f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.0f}")
+                    caption = f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.0f}"
+                    if is_etf and index_name:
+                        caption += f" | 跟踪 {index_name}"
+                    st.caption(caption)
                 with col2:
                     st.metric("股数", f"{h.get('shares', 0):,}")
                 with col3:
                     st.metric("成本价", f"¥{h.get('cost', 0):.3f}")
                 with col4:
                     if pe and pe > 0:
-                        st.metric("PE(TTM)", f"{pe:.1f}")
+                        if is_etf and percentile is not None:
+                            st.metric(pe_label, f"{pe:.1f}", f"分位{percentile:.0f}%")
+                        else:
+                            st.metric(pe_label, f"{pe:.1f}")
                     elif price and price > 0:
                         st.metric("现价", f"¥{price:.2f}")
                     else:
-                        st.metric("PE(TTM)", "—")
+                        st.metric(pe_label, "—")
                 with col5:
                     st.markdown(f"{signal_label}")
                     st.caption(signal_text[:80])
