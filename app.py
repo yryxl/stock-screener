@@ -208,15 +208,15 @@ def render_market_temperature_banner():
     bg = bg_colors.get(level, "#f5f5f5")
     bd = bd_colors.get(level, "#9e9e9e")
     info = f"沪深300中位数PE={pe} | 历史10年{pct}%分位" if pe else ""
-    st.markdown(
-        f"""<div style="background:{bg};padding:14px 20px;border-left:5px solid {bd};
-        border-radius:6px;margin-bottom:15px;">
-        <div style="font-size:19px;font-weight:bold;margin-bottom:4px;">{label}</div>
-        <div style="color:#333;font-size:14px;line-height:1.6;">{desc}</div>
-        <div style="color:#888;font-size:12px;margin-top:6px;">{info}（数据截至 {as_of}，沪深300指数）</div>
-        </div>""",
-        unsafe_allow_html=True,
+    # HTML 必须是单行/无 4 格以上缩进，否则会被 Markdown 当成代码块
+    banner_html = (
+        f'<div style="background:{bg};padding:14px 20px;border-left:5px solid {bd};border-radius:6px;margin-bottom:15px;">'
+        f'<div style="font-size:19px;font-weight:bold;margin-bottom:4px;">{label}</div>'
+        f'<div style="color:#333;font-size:14px;line-height:1.6;">{desc}</div>'
+        f'<div style="color:#888;font-size:12px;margin-top:6px;">{info}（数据截至 {as_of}，沪深300指数）</div>'
+        f'</div>'
     )
+    st.markdown(banner_html, unsafe_allow_html=True)
 
 
 render_market_temperature_banner()
@@ -431,14 +431,15 @@ with tab2:
                 b = buckets.get(bkey, {"value": 0, "pct": 0, "items": []})
                 items_count = len(b.get("items", []))
                 with col:
-                    st.markdown(
-                        f"""<div style="background:{bcolor};padding:10px;border-radius:6px;text-align:center;">
-                        <div style="font-size:13px;color:#666;">{blabel}</div>
-                        <div style="font-size:20px;font-weight:bold;">{b.get('pct',0):.1f}%</div>
-                        <div style="font-size:11px;color:#888;">{items_count}只 · ¥{b.get('value',0):,.0f}</div>
-                        </div>""",
-                        unsafe_allow_html=True,
+                    # HTML 必须拼成单行，避免 Markdown 把缩进当成代码块
+                    bucket_html = (
+                        f'<div style="background:{bcolor};padding:10px;border-radius:6px;text-align:center;">'
+                        f'<div style="font-size:13px;color:#666;">{blabel}</div>'
+                        f'<div style="font-size:20px;font-weight:bold;">{b.get("pct",0):.1f}%</div>'
+                        f'<div style="font-size:11px;color:#888;">{items_count}只 · ¥{b.get("value",0):,.0f}</div>'
+                        f'</div>'
                     )
+                    st.markdown(bucket_html, unsafe_allow_html=True)
             st.caption(
                 f"⚠ 提醒：宽基 ETF 是低波动权益资产，不是类固收。历史上沪深300也出现过单年跌 40% 的情况。"
                 f"防御型占比 {cls.get('defensive_pct',0):.1f}% | 进攻型占比 {cls.get('offensive_pct',0):.1f}%"
@@ -759,18 +760,24 @@ with tab4:
                 info_parts.append(f"数据点={dp}")
                 info_line = " | ".join(info_parts)
 
-                st.markdown(
-                    f"""<div style="background:{bg};padding:12px 16px;border-radius:6px;margin-bottom:8px;">
-                    <div style="font-weight:bold;font-size:15px;">
-                    {r.get('name','')} ({r.get('code','')}) <span style="color:#888;font-size:12px;font-weight:normal;">· {kind_cn} · 跟踪 {r.get('index_name','')}</span>
-                    </div>
-                    <div style="color:#444;font-size:13px;margin-top:4px;">{info_line}</div>
-                    <div style="color:#666;font-size:12px;margin-top:4px;">持仓：{shares:,} 股 · 成本 ¥{cost} · 市值 ¥{value:,.0f}</div>
-                    <div style="color:#1976d2;font-size:13px;margin-top:6px;font-weight:bold;">{signal_text}</div>
-                    {f'<div style="color:#999;font-size:11px;margin-top:4px;">{note}</div>' if note else ''}
-                    </div>""",
-                    unsafe_allow_html=True,
+                # 注意：这里 HTML 必须顶格无缩进
+                # Markdown 规则：4 格以上缩进会被当成代码块，会导致 `</div>`
+                # 之类的字面值漏到页面上（曾出现"</div>"显示在 ETF 卡片末尾的 bug）
+                name_str = f"{r.get('name','')} ({r.get('code','')})"
+                sub_str = f"· {kind_cn} · 跟踪 {r.get('index_name','')}"
+                note_html = f'<div style="color:#999;font-size:11px;margin-top:4px;">{note}</div>' if note else ''
+                card_html = (
+                    f'<div style="background:{bg};padding:12px 16px;border-radius:6px;margin-bottom:8px;">'
+                    f'<div style="font-weight:bold;font-size:15px;">{name_str} '
+                    f'<span style="color:#888;font-size:12px;font-weight:normal;">{sub_str}</span></div>'
+                    f'<div style="color:#444;font-size:13px;margin-top:4px;">{info_line}</div>'
+                    f'<div style="color:#666;font-size:12px;margin-top:4px;">'
+                    f'持仓：{shares:,} 股 · 成本 ¥{cost} · 市值 ¥{value:,.0f}</div>'
+                    f'<div style="color:#1976d2;font-size:13px;margin-top:6px;font-weight:bold;">{signal_text}</div>'
+                    f'{note_html}'
+                    f'</div>'
                 )
+                st.markdown(card_html, unsafe_allow_html=True)
 
         if etf_unmapped:
             st.divider()
