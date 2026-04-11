@@ -288,7 +288,11 @@ def check_gross_margin(df_annual, config):
 # ============================================
 
 def screen_single_stock(code, config, quotes_df):
-    result = {"code": code, "passed": False, "checks": {}, "signal": None, "signal_text": "", "pe": None, "price": None}
+    result = {
+        "code": code, "passed": False, "checks": {},
+        "signal": None, "signal_text": "", "pe": None, "price": None,
+        "is_10y_king": False, "is_good_quality": False,
+    }
 
     df_indicator = get_financial_indicator(code)
     if df_indicator is None:
@@ -297,6 +301,7 @@ def screen_single_stock(code, config, quotes_df):
     if df_annual.empty or len(df_annual) < 3:
         return result
 
+    # ---- 第一关：基础财务检查 ----
     for check_name, check_func in [
         ("roe", lambda: check_roe_no_leverage(df_annual, config)),
         ("debt", lambda: check_debt_health(df_annual, config)),
@@ -309,7 +314,27 @@ def screen_single_stock(code, config, quotes_df):
         if not passed:
             return result
 
-    # 股价预筛（用实时行情的价格，不查PE）
+    # ---- 第二关：完整 8 条护城河检查（从 live_rules 同步 backtest_engine 规则）----
+    try:
+        from live_rules import check_moat_live, check_10_year_king_live, is_good_quality_live
+        industry_for_moat = ""
+        if quotes_df is not None and not quotes_df.empty:
+            _row = quotes_df[quotes_df["代码"] == code]
+            if not _row.empty:
+                industry_for_moat = str(_row.iloc[0].get("所属行业", ""))
+        moat_intact, moat_problems = check_moat_live(df_annual, industry=industry_for_moat)
+        if not moat_intact:
+            result["checks"]["moat"] = {"passed": False, "detail": "; ".join(moat_problems[:2])}
+            return result
+        # 十年王者 + 好公司标签（供后续"合理价格买好公司"使用）
+        is_king, king_avg, _ = check_10_year_king_live(df_annual)
+        result["is_10y_king"] = is_king
+        result["king_avg_roe"] = king_avg
+        result["is_good_quality"] = is_good_quality_live(df_annual)
+    except Exception as e:
+        print(f"  {code} 新规则检查异常: {e}")
+
+    # ---- 第三关：价格 + PE 信号 ----
     if quotes_df is not None and not quotes_df.empty:
         row = quotes_df[quotes_df["代码"] == code]
         if not row.empty:
@@ -332,6 +357,20 @@ def screen_single_stock(code, config, quotes_df):
 
             industry = str(row.get("所属行业", "")) if "所属行业" in quotes_df.columns else ""
             signal, signal_text = get_pe_signal(pe, industry)
+
+            # 合理价格买好公司（巴菲特 1989）：好公司在合理区间内也可以买入
+            if result["is_good_quality"] and signal in ("hold", "buy_watch", "sell_watch"):
+                pe_range = match_industry_pe(industry)
+                if pe and pe > 0 and pe_range:
+                    mid = (pe_range["fair_low"] + pe_range["fair_high"]) / 2
+                    tag = "十年王者" if result["is_10y_king"] else "好公司"
+                    if pe_range["fair_low"] < pe <= mid:
+                        signal = "buy_light"
+                        signal_text = f"{tag}合理价（PE={pe:.1f}）→ 轻仓买入"
+                    elif mid < pe <= pe_range["fair_high"]:
+                        signal = "buy_watch"
+                        signal_text = f"{tag}（PE={pe:.1f} 合理偏高）→ 关注买入"
+
             result["signal"] = signal
             result["signal_text"] = signal_text
 
@@ -443,25 +482,48 @@ def check_holdings_sell_signals(holdings, config):
         # 3. PE信号
         signal, signal_text = get_pe_signal(pe, industry)
 
-        # 4. 如果是卖出信号，先判断真跌还是假跌
-        if signal and "sell" in signal:
-            is_healthy, problems = check_fundamental_health(code)
+        # 3.5 用 live_rules 做完整的 8 条护城河检查 + 十年王者判定
+        #     和 backtest_engine.py 的规则同步
+        is_king = False
+        king_avg_roe = None
+        moat_intact_new = True
+        try:
+            from live_rules import check_moat_live, check_10_year_king_live
+            df_indicator = get_financial_indicator(code)
+            if df_indicator is not None:
+                df_annual_check = extract_annual_data(df_indicator, years=10)
+                if not df_annual_check.empty:
+                    moat_intact_new, moat_probs_new = check_moat_live(df_annual_check, industry=industry)
+                    is_king, king_avg_roe, _ = check_10_year_king_live(df_annual_check)
+        except Exception as e:
+            moat_probs_new = []
 
-            if is_healthy is not None and not is_healthy:
-                # 真跌：基本面恶化，直接发最严重警告
+        # 4. 如果是卖出信号，用新的护城河规则判断真跌/假跌
+        if signal and "sell" in signal:
+            # 优先用新的 check_moat_live（8 条规则）
+            if not moat_intact_new:
                 signal = "true_decline"
-                signal_text = f"基本面恶化({', '.join(problems[:3])})，建议卖出"
-                print(f"  {name} 真跌→基本面恶化")
+                signal_text = f"护城河松动({'; '.join(moat_probs_new[:2])})，建议卖出"
+                print(f"  {name} 护城河松动→{moat_probs_new[0] if moat_probs_new else ''}")
             else:
-                # 假跌或判定不清：按PE级别给卖出信号（关注/适当/中仓/大量）
-                # 检查同行业是否也在跌
-                if industry:
-                    peers = quotes_df[quotes_df.get("所属行业", pd.Series()) == industry]
-                    if len(peers) > 3:
-                        peer_changes = pd.to_numeric(peers.get("涨跌幅", pd.Series()), errors="coerce").dropna()
-                        if peer_changes.mean() < -1:
-                            signal_text += "（同行业普跌，市场因素）"
-                print(f"  {name} PE卖出信号: {signal}")
+                # 护城河完好：按档位分级卖出
+                # 十年王者/高质量好公司 → 保留（只在最严重时减仓）
+                if is_king:
+                    # 十年王者：大量卖出也不清仓，只降级为"关注/减仓提示"
+                    if signal == "sell_heavy":
+                        signal_text = f"十年王者但PE远超行业上限 → 建议减仓30% | {signal_text}"
+                    elif signal == "sell_medium":
+                        signal_text = f"十年王者但PE明显偏高 → 建议减仓20% | {signal_text}"
+                    print(f"  {name} 十年王者·豁免自动清仓")
+                else:
+                    # 非王者：正常 PE 卖出信号
+                    if industry:
+                        peers = quotes_df[quotes_df.get("所属行业", pd.Series()) == industry]
+                        if len(peers) > 3:
+                            peer_changes = pd.to_numeric(peers.get("涨跌幅", pd.Series()), errors="coerce").dropna()
+                            if peer_changes.mean() < -1:
+                                signal_text += "（同行业普跌，市场因素）"
+                    print(f"  {name} PE卖出信号: {signal}")
 
         # 5. 护城河消失止损（芒格：宁可错过也不犯错）
         # 持有后亏损超30%且基本面也在恶化 → 护城河可能消失
@@ -621,10 +683,24 @@ def check_watchlist_financial_health(code, industry=""):
     根据行业复杂度+杠杆率动态调整ROE门槛：
     - 简单生意+低杠杆：ROE 12%可重仓（巴菲特最爱）
     - 复杂生意+高杠杆：ROE 25%才可重仓（必须赚够多）
+    - 十年王者豁免当下 ROE 门槛（巴菲特：熊市看历史不看当下）
     """
     df = get_financial_indicator(code)
     if df is None:
         return True, "财务数据不可用", "watch"  # 保守：最高关注
+
+    # 用 10 年数据做十年王者判定（替代原来只看 5 年的局限）
+    df_annual_10y = extract_annual_data(df, years=10)
+    try:
+        from live_rules import check_10_year_king_live
+        is_king, king_avg, king_years = check_10_year_king_live(df_annual_10y)
+    except Exception:
+        is_king = False
+        king_avg = None
+
+    # 十年王者：直接放行为 heavy 级别（巴菲特：熊市买王者）
+    if is_king:
+        return True, f"十年王者(ROE均值{king_avg:.0f}% {king_years}/10年≥15%)", "heavy"
 
     df_annual = extract_annual_data(df, years=5)
     if df_annual.empty:
