@@ -5,3 +5,6 @@ __pycache__/
 data/*.db
 *.log
 cache/
+
+# 中证官网 XLS 手工下载的临时目录（导入后就没用了）
+backtest_data/etf_valuation_import/
