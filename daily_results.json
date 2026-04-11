@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-11 03:01",
+  "date": "2026-04-11 03:52",
   "mode": "all",
   "is_trading_day": false,
   "data_source": "全量运行（休市日，数据来自休市前最后交易日）",
@@ -400,8 +400,8 @@
   ],
   "market_temperature": {
     "level": 0,
-    "label": "⚪ 正常市",
-    "description": "市场估值处于合理区间（历史 30%-70% 分位），按正常节奏投资。",
+    "label": "⚪ 正常·按节奏",
+    "description": "估值处于合理区间（历史 30%-70% 分位）。按自己的定投/选股节奏执行，不因估值做大调整。巴菲特大多数时候都处在这个状态。",
     "current_pe_median": 21.75,
     "percentile": 52.5,
     "lookback_years": 10,
@@ -427,7 +427,7 @@
         "note": "数据积累不足（20条，需≥60条才能判定历史分位）"
       },
       "signal": "hold",
-      "signal_text": "数据积累中（20条）",
+      "signal_text": "数据积累中（20条，需≥60条才能判分位）",
       "new_records": 0
     },
     {
@@ -440,8 +440,8 @@
       "kind": "broad",
       "temperature": {
         "level": 1,
-        "label": "🔥 偏热市·谨慎",
-        "description": "市场进入偏热区间，估值处于历史 70%-85% 分位。谨慎买入，只考虑最低估的好公司，可以对部分高估持仓减仓。",
+        "label": "🔥 偏热·暂停加仓",
+        "description": "估值处于历史 70%-85% 分位，还没到极端泡沫，但安全边际已经很薄。处置建议：停止往高估标的加钱，新钱转向仍然便宜的品种（红利/低估行业）；老仓位继续持有不动。巴菲特原则：不在偏贵时加码，等便宜了再重仓。",
         "percentile": 82.0,
         "current_pe": 13.52,
         "current_dividend_yield": null,
@@ -450,7 +450,7 @@
         "lookback_years": 10
       },
       "signal": "sell_light",
-      "signal_text": "PE分位82.0%·偏热·减仓",
+      "signal_text": "PE分位82.0%·偏热·暂停加仓·新钱转便宜标的",
       "new_records": 0
     },
     {
@@ -471,7 +471,7 @@
         "note": "数据积累不足（20条，需≥60条才能判定历史分位）"
       },
       "signal": "hold",
-      "signal_text": "数据积累中（20条）",
+      "signal_text": "数据积累中（20条，需≥60条才能判分位）",
       "new_records": 0
     },
     {
@@ -484,8 +484,8 @@
       "kind": "broad",
       "temperature": {
         "level": 1,
-        "label": "🔥 偏热市·谨慎",
-        "description": "市场进入偏热区间，估值处于历史 70%-85% 分位。谨慎买入，只考虑最低估的好公司，可以对部分高估持仓减仓。",
+        "label": "🔥 偏热·暂停加仓",
+        "description": "估值处于历史 70%-85% 分位，还没到极端泡沫，但安全边际已经很薄。处置建议：停止往高估标的加钱，新钱转向仍然便宜的品种（红利/低估行业）；老仓位继续持有不动。巴菲特原则：不在偏贵时加码，等便宜了再重仓。",
         "percentile": 82.0,
         "current_pe": 28.11,
         "current_dividend_yield": null,
@@ -494,7 +494,7 @@
         "lookback_years": 10
       },
       "signal": "sell_light",
-      "signal_text": "PE分位82.0%·偏热·减仓",
+      "signal_text": "PE分位82.0%·偏热·暂停加仓·新钱转便宜标的",
       "new_records": 0
     },
     {
@@ -515,7 +515,7 @@
         "note": "数据积累不足（20条，需≥60条才能判定历史分位）"
       },
       "signal": "hold",
-      "signal_text": "数据积累中（20条）",
+      "signal_text": "数据积累中（20条，需≥60条才能判分位）",
       "new_records": 0
     }
   ],
