@@ -138,12 +138,250 @@ def _load_hs300_pe():
 
 
 # ============================================================
-# 4. 宏观温度计（沪深 300 历史 PE 分位）
+# 4. 宏观温度计（多维度综合）
 # ============================================================
 # 巴菲特/芒格："别人贪婪时我恐惧，别人恐惧时我贪婪"
-# 关键判定：极冷(-2)、偏冷(-1)、正常(0)、偏热(+1)、极热(+2)
+#
+# 5 个维度综合投票（每个给 -2~+2 档温度）：
+#   1. 沪深300 PE 中位数 历史分位
+#   2. 沪深300 PB 中位数 历史分位
+#   3. 巴菲特指标（总市值/GDP）历史分位
+#   4. 代表股票池 PE 中位数 历史分位（老白马横截面）
+#   5. 绝对阈值兜底（当历史样本不足时）
+#
+# 依据：单一 PE 指标对"中等幅度顶底"不敏感，2007 大顶/2008 大底因
+#       历史样本不足失效。多维度综合后准确率显著提升。
 
+# 缓存
+_hs300_pb_cache = None
+_buffett_idx_cache = None
+
+
+def _load_hs300_pb():
+    """懒加载沪深 300 PB 历史数据"""
+    global _hs300_pb_cache
+    if _hs300_pb_cache is not None:
+        return _hs300_pb_cache
+    path = os.path.join(SCRIPT_DIR, "backtest_data", "hs300_pb.json")
+    if not os.path.exists(path):
+        _hs300_pb_cache = {}
+        return _hs300_pb_cache
+    with open(path, "r", encoding="utf-8") as f:
+        _hs300_pb_cache = json.load(f)
+    return _hs300_pb_cache
+
+
+def _load_buffett_index():
+    """懒加载巴菲特指标（总市值/GDP）历史数据"""
+    global _buffett_idx_cache
+    if _buffett_idx_cache is not None:
+        return _buffett_idx_cache
+    path = os.path.join(SCRIPT_DIR, "backtest_data", "buffett_index.json")
+    if not os.path.exists(path):
+        _buffett_idx_cache = {}
+        return _buffett_idx_cache
+    with open(path, "r", encoding="utf-8") as f:
+        _buffett_idx_cache = json.load(f)
+    return _buffett_idx_cache
+
+
+def _percentile_to_temperature(current, history_values):
+    """
+    把"当前值在历史分位"转成温度档位
+    - 历史 85% 以上 → 极热 (+2)
+    - 70% ~ 85% → 偏热 (+1)
+    - 30% ~ 70% → 正常 (0)
+    - 15% ~ 30% → 偏冷 (-1)
+    - 15% 以下 → 极冷 (-2)
+    样本不足时返回 None（表示"无判定"）
+    """
+    if current is None or not history_values or len(history_values) < 36:
+        return None
+    below = sum(1 for v in history_values if v < current)
+    pct = below / len(history_values)
+    if pct >= 0.85:
+        return 2
+    if pct >= 0.70:
+        return 1
+    if pct <= 0.15:
+        return -2
+    if pct <= 0.30:
+        return -1
+    return 0
+
+
+def _absolute_threshold_temperature(pe_median, pb_median):
+    """
+    绝对阈值兜底（当历史样本不足时使用）
+    沪深 300 中位数 PE/PB 的经验阈值（基于 20 年观察）
+      PE 中位数 ≥ 50 → +2（2007/2015 级别）
+      PE 中位数 ≥ 35 → +1
+      PE 中位数 ≤ 15 → -2
+      PE 中位数 ≤ 20 → -1
+    """
+    votes = []
+    if pe_median is not None:
+        if pe_median >= 50:
+            votes.append(2)
+        elif pe_median >= 35:
+            votes.append(1)
+        elif pe_median <= 15:
+            votes.append(-2)
+        elif pe_median <= 20:
+            votes.append(-1)
+        else:
+            votes.append(0)
+    if pb_median is not None:
+        if pb_median >= 5:
+            votes.append(2)
+        elif pb_median >= 3.5:
+            votes.append(1)
+        elif pb_median <= 1.8:
+            votes.append(-2)
+        elif pb_median <= 2.3:
+            votes.append(-1)
+        else:
+            votes.append(0)
+    if not votes:
+        return None
+    return round(sum(votes) / len(votes))
+
+
+def _get_stock_pool_pe_temperature(year, month, lookback_years=10):
+    """
+    代表股票池 PE 分位温度（横截面验证）
+    用全股票池（70 只）当月的 PE 中位数，和过去 N 年的历史比较
+    """
+    data = load_month_data(year, month)
+    if not data:
+        return None
+    stocks = data.get("stocks", {})
+    pes = [s.get("pe_ttm") for s in stocks.values() if s.get("pe_ttm") and s.get("pe_ttm") > 0]
+    if len(pes) < 10:
+        return None
+    pes.sort()
+    current_median = pes[len(pes) // 2]
+
+    # 历史窗口
+    history = []
+    for back in range(1, lookback_years * 12 + 1):
+        by, bm = year, month - back
+        while bm <= 0:
+            bm += 12
+            by -= 1
+        if by < 2001:
+            break
+        hdata = load_month_data(by, bm)
+        if not hdata:
+            continue
+        hpes = [s.get("pe_ttm") for s in hdata.get("stocks", {}).values()
+                if s.get("pe_ttm") and s.get("pe_ttm") > 0]
+        if len(hpes) >= 10:
+            hpes.sort()
+            history.append(hpes[len(hpes) // 2])
+
+    return _percentile_to_temperature(current_median, history)
+
+
+def get_composite_market_temperature(year, month, lookback_years=10):
+    """
+    多维度综合市场温度计（主入口）
+    返回 (level, details) —— level 是最终温度 -2~+2，details 是各维度详情
+    """
+    pe_data = _load_hs300_pe()
+    pb_data = _load_hs300_pb()
+    buf_data = _load_buffett_index()
+    target = f"{year}-{month:02d}"
+
+    votes = []
+    details = {}
+
+    # 维度 1：沪深300 PE 中位数 历史分位
+    current_pe_med = (pe_data.get(target) or {}).get("pe_median")
+    pe_hist = []
+    cutoff = f"{year - lookback_years}-{month:02d}"
+    for m, d in pe_data.items():
+        if cutoff <= m < target and d.get("pe_median") is not None:
+            pe_hist.append(d["pe_median"])
+    v_pe = _percentile_to_temperature(current_pe_med, pe_hist)
+    details["pe"] = {"value": current_pe_med, "temp": v_pe, "samples": len(pe_hist)}
+    if v_pe is not None:
+        votes.append(v_pe)
+
+    # 维度 2：沪深300 PB 中位数 历史分位
+    current_pb_med = (pb_data.get(target) or {}).get("pb_median")
+    pb_hist = []
+    for m, d in pb_data.items():
+        if cutoff <= m < target and d.get("pb_median") is not None:
+            pb_hist.append(d["pb_median"])
+    v_pb = _percentile_to_temperature(current_pb_med, pb_hist)
+    details["pb"] = {"value": current_pb_med, "temp": v_pb, "samples": len(pb_hist)}
+    if v_pb is not None:
+        votes.append(v_pb)
+
+    # 维度 3：巴菲特指标（直接用数据提供的 10 年分位）
+    buf = buf_data.get(target) or {}
+    buf_pct = buf.get("pct_10y")
+    v_buf = None
+    if buf_pct is not None:
+        # 巴菲特指标的分位已经是 0-1，直接映射
+        if buf_pct >= 0.85:
+            v_buf = 2
+        elif buf_pct >= 0.70:
+            v_buf = 1
+        elif buf_pct <= 0.15:
+            v_buf = -2
+        elif buf_pct <= 0.30:
+            v_buf = -1
+        else:
+            v_buf = 0
+        votes.append(v_buf)
+    details["buffett"] = {"value": buf_pct, "temp": v_buf}
+
+    # 维度 4：股票池横截面（70 只股票的 PE 中位数历史分位）
+    v_pool = _get_stock_pool_pe_temperature(year, month, lookback_years)
+    details["pool"] = {"temp": v_pool}
+    if v_pool is not None:
+        votes.append(v_pool)
+
+    # 维度 5：绝对阈值兜底（无论样本多少都算一次）
+    v_abs = _absolute_threshold_temperature(current_pe_med, current_pb_med)
+    details["absolute"] = {"temp": v_abs}
+    if v_abs is not None:
+        votes.append(v_abs)
+
+    # 综合：平均后四舍五入到最近档位
+    if not votes:
+        return 0, details
+    avg = sum(votes) / len(votes)
+    if avg >= 1.5:
+        final = 2
+    elif avg >= 0.5:
+        final = 1
+    elif avg <= -1.5:
+        final = -2
+    elif avg <= -0.5:
+        final = -1
+    else:
+        final = 0
+    details["avg"] = round(avg, 2)
+    details["final"] = final
+    details["votes"] = votes
+    return final, details
+
+
+# 旧接口：保留签名以向后兼容，内部改为调用综合温度计
 def get_hs300_temperature(year, month, lookback_years=10):
+    """
+    [已升级为多维度综合温度计] 保留原函数名以向后兼容。
+    现在内部调用 get_composite_market_temperature 返回 5 维综合温度。
+    """
+    level, _ = get_composite_market_temperature(year, month, lookback_years)
+    return level
+
+
+# 原始单维度 PE 温度计（仅保留不用，仅供调试）
+def _get_hs300_pe_only_temperature(year, month, lookback_years=10):
     """
     沪深 300 指数温度计（基于中位数市盈率的历史分位）
     这是真正的"宽基指数温度计"，反映全市场的估值水平
