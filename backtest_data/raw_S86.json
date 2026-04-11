@@ -1,0 +1,1450 @@
+{
+  "id": "S86",
+  "code": "603259",
+  "collected_at": "2026-04-11 19:03",
+  "monthly_prices": {
+    "2018-05": {
+      "price": 50.08,
+      "open": 50.08,
+      "high": 135.57,
+      "low": 25.92,
+      "volume": 126286497,
+      "change_pct": 400.39,
+      "date": "2018-05-15"
+    },
+    "2018-06": {
+      "price": 100.53,
+      "open": 100.66,
+      "high": 138.87,
+      "low": 86.11,
+      "volume": 397635596,
+      "change_pct": -24.71,
+      "date": "2018-06-15"
+    },
+    "2018-07": {
+      "price": 99.0,
+      "open": 100.81,
+      "high": 105.4,
+      "low": 80.11,
+      "volume": 242919197,
+      "change_pct": -14.47,
+      "date": "2018-07-16"
+    },
+    "2018-08": {
+      "price": 75.54,
+      "open": 79.3,
+      "high": 91.6,
+      "low": 70.39,
+      "volume": 182742820,
+      "change_pct": 4.81,
+      "date": "2018-08-15"
+    },
+    "2018-09": {
+      "price": 82.5,
+      "open": 81.8,
+      "high": 93.47,
+      "low": 80.5,
+      "volume": 124537380,
+      "change_pct": 10.55,
+      "date": "2018-09-17"
+    },
+    "2018-10": {
+      "price": 79.87,
+      "open": 78.56,
+      "high": 90.8,
+      "low": 74.0,
+      "volume": 102199766,
+      "change_pct": -3.79,
+      "date": "2018-10-15"
+    },
+    "2018-11": {
+      "price": 87.35,
+      "open": 86.16,
+      "high": 93.33,
+      "low": 76.83,
+      "volume": 105407280,
+      "change_pct": -9.01,
+      "date": "2018-11-15"
+    },
+    "2018-12": {
+      "price": 78.38,
+      "open": 78.66,
+      "high": 85.86,
+      "low": 74.0,
+      "volume": 66223053,
+      "change_pct": -8.71,
+      "date": "2018-12-17"
+    },
+    "2019-01": {
+      "price": 72.39,
+      "open": 71.55,
+      "high": 78.09,
+      "low": 70.48,
+      "volume": 63634457,
+      "change_pct": 0.33,
+      "date": "2019-01-15"
+    },
+    "2019-02": {
+      "price": 81.91,
+      "open": 82.88,
+      "high": 91.3,
+      "low": 76.0,
+      "volume": 77926925,
+      "change_pct": 17.47,
+      "date": "2019-02-15"
+    },
+    "2019-03": {
+      "price": 93.65,
+      "open": 92.35,
+      "high": 101.6,
+      "low": 87.81,
+      "volume": 112333764,
+      "change_pct": 3.9,
+      "date": "2019-03-15"
+    },
+    "2019-04": {
+      "price": 93.01,
+      "open": 97.89,
+      "high": 98.26,
+      "low": 87.03,
+      "volume": 85117428,
+      "change_pct": -6.41,
+      "date": "2019-04-15"
+    },
+    "2019-05": {
+      "price": 81.51,
+      "open": 80.98,
+      "high": 84.5,
+      "low": 74.23,
+      "volume": 72227661,
+      "change_pct": -0.6,
+      "date": "2019-05-15"
+    },
+    "2019-06": {
+      "price": 85.0,
+      "open": 82.36,
+      "high": 87.66,
+      "low": 76.63,
+      "volume": 87574535,
+      "change_pct": 9.72,
+      "date": "2019-06-17"
+    },
+    "2019-07": {
+      "price": 64.93,
+      "open": 63.09,
+      "high": 92.66,
+      "low": 61.83,
+      "volume": 144261017,
+      "change_pct": -26.14,
+      "date": "2019-07-15"
+    },
+    "2019-08": {
+      "price": 68.36,
+      "open": 69.0,
+      "high": 88.1,
+      "low": 61.62,
+      "volume": 228186181,
+      "change_pct": 33.38,
+      "date": "2019-08-15"
+    },
+    "2019-09": {
+      "price": 80.97,
+      "open": 80.7,
+      "high": 88.42,
+      "low": 79.02,
+      "volume": 189282970,
+      "change_pct": 0.21,
+      "date": "2019-09-16"
+    },
+    "2019-10": {
+      "price": 88.0,
+      "open": 88.3,
+      "high": 94.07,
+      "low": 81.29,
+      "volume": 160693272,
+      "change_pct": 9.57,
+      "date": "2019-10-15"
+    },
+    "2019-11": {
+      "price": 97.13,
+      "open": 97.93,
+      "high": 100.47,
+      "low": 86.38,
+      "volume": 202975306,
+      "change_pct": -6.2,
+      "date": "2019-11-15"
+    },
+    "2019-12": {
+      "price": 96.05,
+      "open": 95.0,
+      "high": 98.26,
+      "low": 85.8,
+      "volume": 190281524,
+      "change_pct": 5.22,
+      "date": "2019-12-16"
+    },
+    "2020-01": {
+      "price": 94.0,
+      "open": 92.28,
+      "high": 99.94,
+      "low": 85.94,
+      "volume": 190727058,
+      "change_pct": 3.57,
+      "date": "2020-01-15"
+    },
+    "2020-02": {
+      "price": 114.0,
+      "open": 109.47,
+      "high": 118.85,
+      "low": 86.99,
+      "volume": 260173762,
+      "change_pct": 21.85,
+      "date": "2020-02-17"
+    },
+    "2020-03": {
+      "price": 91.98,
+      "open": 100.2,
+      "high": 119.3,
+      "low": 85.4,
+      "volume": 361858995,
+      "change_pct": -15.82,
+      "date": "2020-03-16"
+    },
+    "2020-04": {
+      "price": 99.25,
+      "open": 101.2,
+      "high": 105.86,
+      "low": 89.01,
+      "volume": 238144466,
+      "change_pct": 12.49,
+      "date": "2020-04-15"
+    },
+    "2020-05": {
+      "price": 109.33,
+      "open": 110.96,
+      "high": 112.5,
+      "low": 98.9,
+      "volume": 207195140,
+      "change_pct": 6.49,
+      "date": "2020-05-15"
+    },
+    "2020-06": {
+      "price": 82.55,
+      "open": 83.04,
+      "high": 112.68,
+      "low": 78.77,
+      "volume": 310081745,
+      "change_pct": -10.56,
+      "date": "2020-06-15"
+    },
+    "2020-07": {
+      "price": 106.8,
+      "open": 104.8,
+      "high": 117.19,
+      "low": 91.6,
+      "volume": 444693617,
+      "change_pct": 15.42,
+      "date": "2020-07-15"
+    },
+    "2020-08": {
+      "price": 106.91,
+      "open": 107.29,
+      "high": 118.45,
+      "low": 103.0,
+      "volume": 314599851,
+      "change_pct": -2.79,
+      "date": "2020-08-17"
+    },
+    "2020-09": {
+      "price": 98.7,
+      "open": 97.85,
+      "high": 112.08,
+      "low": 93.91,
+      "volume": 317506316,
+      "change_pct": -7.15,
+      "date": "2020-09-15"
+    },
+    "2020-10": {
+      "price": 109.31,
+      "open": 108.65,
+      "high": 117.24,
+      "low": 100.0,
+      "volume": 194619037,
+      "change_pct": 9.44,
+      "date": "2020-10-15"
+    },
+    "2020-11": {
+      "price": 120.85,
+      "open": 118.0,
+      "high": 121.8,
+      "low": 100.13,
+      "volume": 302172500,
+      "change_pct": -9.1,
+      "date": "2020-11-16"
+    },
+    "2020-12": {
+      "price": 115.9,
+      "open": 112.9,
+      "high": 136.55,
+      "low": 102.8,
+      "volume": 315439140,
+      "change_pct": 30.8,
+      "date": "2020-12-15"
+    },
+    "2021-01": {
+      "price": 139.46,
+      "open": 141.51,
+      "high": 184.12,
+      "low": 134.68,
+      "volume": 348127302,
+      "change_pct": 23.12,
+      "date": "2021-01-15"
+    },
+    "2021-02": {
+      "price": 171.9,
+      "open": 188.0,
+      "high": 188.28,
+      "low": 138.25,
+      "volume": 261967566,
+      "change_pct": -13.62,
+      "date": "2021-02-18"
+    },
+    "2021-03": {
+      "price": 129.21,
+      "open": 137.04,
+      "high": 150.98,
+      "low": 119.68,
+      "volume": 561868833,
+      "change_pct": -5.26,
+      "date": "2021-03-15"
+    },
+    "2021-04": {
+      "price": 134.5,
+      "open": 136.0,
+      "high": 163.88,
+      "low": 131.5,
+      "volume": 400282380,
+      "change_pct": 12.99,
+      "date": "2021-04-15"
+    },
+    "2021-05": {
+      "price": 161.43,
+      "open": 153.5,
+      "high": 171.79,
+      "low": 140.31,
+      "volume": 378340714,
+      "change_pct": 9.21,
+      "date": "2021-05-17"
+    },
+    "2021-06": {
+      "price": 143.96,
+      "open": 145.05,
+      "high": 180.99,
+      "low": 134.77,
+      "volume": 446407646,
+      "change_pct": -6.6,
+      "date": "2021-06-15"
+    },
+    "2021-07": {
+      "price": 165.0,
+      "open": 161.0,
+      "high": 172.49,
+      "low": 139.8,
+      "volume": 577576150,
+      "change_pct": -5.06,
+      "date": "2021-07-15"
+    },
+    "2021-08": {
+      "price": 136.48,
+      "open": 137.88,
+      "high": 163.88,
+      "low": 121.1,
+      "volume": 692096133,
+      "change_pct": -10.27,
+      "date": "2021-08-16"
+    },
+    "2021-09": {
+      "price": 141.73,
+      "open": 141.2,
+      "high": 158.88,
+      "low": 125.83,
+      "volume": 474453803,
+      "change_pct": 16.82,
+      "date": "2021-09-15"
+    },
+    "2021-10": {
+      "price": 145.33,
+      "open": 142.88,
+      "high": 156.8,
+      "low": 132.61,
+      "volume": 301556610,
+      "change_pct": -10.38,
+      "date": "2021-10-15"
+    },
+    "2021-11": {
+      "price": 131.36,
+      "open": 129.1,
+      "high": 146.0,
+      "low": 121.5,
+      "volume": 571250205,
+      "change_pct": 1.85,
+      "date": "2021-11-15"
+    },
+    "2021-12": {
+      "price": 124.02,
+      "open": 137.01,
+      "high": 148.8,
+      "low": 110.8,
+      "volume": 665448226,
+      "change_pct": -18.05,
+      "date": "2021-12-15"
+    },
+    "2022-01": {
+      "price": 114.16,
+      "open": 113.98,
+      "high": 120.46,
+      "low": 101.6,
+      "volume": 506351079,
+      "change_pct": -8.87,
+      "date": "2022-01-17"
+    },
+    "2022-02": {
+      "price": 93.83,
+      "open": 85.31,
+      "high": 109.29,
+      "low": 81.82,
+      "volume": 628551249,
+      "change_pct": -3.32,
+      "date": "2022-02-15"
+    },
+    "2022-03": {
+      "price": 93.17,
+      "open": 93.0,
+      "high": 119.97,
+      "low": 88.6,
+      "volume": 629643531,
+      "change_pct": 7.38,
+      "date": "2022-03-15"
+    },
+    "2022-04": {
+      "price": 109.11,
+      "open": 105.0,
+      "high": 112.72,
+      "low": 95.68,
+      "volume": 366736018,
+      "change_pct": -6.2,
+      "date": "2022-04-15"
+    },
+    "2022-05": {
+      "price": 98.81,
+      "open": 100.05,
+      "high": 103.7,
+      "low": 87.13,
+      "volume": 406832729,
+      "change_pct": -7.56,
+      "date": "2022-05-16"
+    },
+    "2022-06": {
+      "price": 95.63,
+      "open": 94.0,
+      "high": 107.7,
+      "low": 89.88,
+      "volume": 688415854,
+      "change_pct": 9.46,
+      "date": "2022-06-15"
+    },
+    "2022-07": {
+      "price": 105.0,
+      "open": 107.46,
+      "high": 118.4,
+      "low": 93.0,
+      "volume": 609353596,
+      "change_pct": -10.18,
+      "date": "2022-07-15"
+    },
+    "2022-08": {
+      "price": 94.47,
+      "open": 94.74,
+      "high": 97.68,
+      "low": 86.41,
+      "volume": 554380228,
+      "change_pct": -4.01,
+      "date": "2022-08-15"
+    },
+    "2022-09": {
+      "price": 76.81,
+      "open": 77.29,
+      "high": 89.98,
+      "low": 68.75,
+      "volume": 586529531,
+      "change_pct": -19.47,
+      "date": "2022-09-15"
+    },
+    "2022-10": {
+      "price": 82.4,
+      "open": 81.99,
+      "high": 84.35,
+      "low": 67.2,
+      "volume": 597314236,
+      "change_pct": 3.37,
+      "date": "2022-10-17"
+    },
+    "2022-11": {
+      "price": 87.33,
+      "open": 86.71,
+      "high": 90.28,
+      "low": 73.75,
+      "volume": 611012812,
+      "change_pct": 1.33,
+      "date": "2022-11-15"
+    },
+    "2022-12": {
+      "price": 78.25,
+      "open": 78.32,
+      "high": 82.1,
+      "low": 75.0,
+      "volume": 318900786,
+      "change_pct": 2.14,
+      "date": "2022-12-15"
+    },
+    "2023-01": {
+      "price": 98.18,
+      "open": 91.11,
+      "high": 100.0,
+      "low": 79.41,
+      "volume": 387005093,
+      "change_pct": 15.32,
+      "date": "2023-01-16"
+    },
+    "2023-02": {
+      "price": 86.95,
+      "open": 89.21,
+      "high": 97.43,
+      "low": 81.56,
+      "volume": 319513401,
+      "change_pct": -11.43,
+      "date": "2023-02-15"
+    },
+    "2023-03": {
+      "price": 78.3,
+      "open": 79.68,
+      "high": 85.54,
+      "low": 72.79,
+      "volume": 567979818,
+      "change_pct": -3.46,
+      "date": "2023-03-15"
+    },
+    "2023-04": {
+      "price": 85.62,
+      "open": 85.09,
+      "high": 88.83,
+      "low": 66.4,
+      "volume": 651823516,
+      "change_pct": -14.71,
+      "date": "2023-04-17"
+    },
+    "2023-05": {
+      "price": 69.03,
+      "open": 66.0,
+      "high": 70.45,
+      "low": 64.12,
+      "volume": 398552084,
+      "change_pct": -4.0,
+      "date": "2023-05-15"
+    },
+    "2023-06": {
+      "price": 70.9,
+      "open": 68.05,
+      "high": 72.45,
+      "low": 61.24,
+      "volume": 506680763,
+      "change_pct": -3.4,
+      "date": "2023-06-15"
+    },
+    "2023-07": {
+      "price": 65.86,
+      "open": 67.02,
+      "high": 73.8,
+      "low": 61.89,
+      "volume": 415289504,
+      "change_pct": 15.0,
+      "date": "2023-07-17"
+    },
+    "2023-08": {
+      "price": 78.01,
+      "open": 78.41,
+      "high": 83.45,
+      "low": 71.67,
+      "volume": 583725590,
+      "change_pct": 8.99,
+      "date": "2023-08-15"
+    },
+    "2023-09": {
+      "price": 79.8,
+      "open": 78.23,
+      "high": 89.09,
+      "low": 75.54,
+      "volume": 335702474,
+      "change_pct": 5.74,
+      "date": "2023-09-15"
+    },
+    "2023-10": {
+      "price": 87.9,
+      "open": 90.4,
+      "high": 93.56,
+      "low": 82.61,
+      "volume": 356121502,
+      "change_pct": 0.02,
+      "date": "2023-10-16"
+    },
+    "2023-11": {
+      "price": 87.7,
+      "open": 87.72,
+      "high": 92.6,
+      "low": 82.22,
+      "volume": 334323871,
+      "change_pct": -4.5,
+      "date": "2023-11-15"
+    },
+    "2023-12": {
+      "price": 73.38,
+      "open": 75.38,
+      "high": 83.3,
+      "low": 71.05,
+      "volume": 379676302,
+      "change_pct": -11.91,
+      "date": "2023-12-15"
+    },
+    "2024-01": {
+      "price": 72.65,
+      "open": 71.1,
+      "high": 75.38,
+      "low": 53.9,
+      "volume": 682448405,
+      "change_pct": -25.7,
+      "date": "2024-01-15"
+    },
+    "2024-02": {
+      "price": 50.05,
+      "open": 50.5,
+      "high": 57.43,
+      "low": 45.2,
+      "volume": 1375456138,
+      "change_pct": -0.15,
+      "date": "2024-02-19"
+    },
+    "2024-03": {
+      "price": 51.31,
+      "open": 52.34,
+      "high": 60.52,
+      "low": 45.88,
+      "volume": 2340952772,
+      "change_pct": -14.95,
+      "date": "2024-03-15"
+    },
+    "2024-04": {
+      "price": 42.38,
+      "open": 42.8,
+      "high": 47.89,
+      "low": 41.17,
+      "volume": 1750037051,
+      "change_pct": -5.44,
+      "date": "2024-04-15"
+    },
+    "2024-05": {
+      "price": 45.22,
+      "open": 46.6,
+      "high": 48.68,
+      "low": 41.52,
+      "volume": 1434248023,
+      "change_pct": -5.24,
+      "date": "2024-05-15"
+    },
+    "2024-06": {
+      "price": 43.97,
+      "open": 43.56,
+      "high": 46.12,
+      "low": 39.09,
+      "volume": 1023733194,
+      "change_pct": -7.07,
+      "date": "2024-06-17"
+    },
+    "2024-07": {
+      "price": 38.05,
+      "open": 38.53,
+      "high": 42.68,
+      "low": 36.36,
+      "volume": 891783057,
+      "change_pct": 8.52,
+      "date": "2024-07-15"
+    },
+    "2024-08": {
+      "price": 40.13,
+      "open": 39.81,
+      "high": 43.81,
+      "low": 37.31,
+      "volume": 771726000,
+      "change_pct": -7.98,
+      "date": "2024-08-15"
+    },
+    "2024-09": {
+      "price": 40.02,
+      "open": 39.76,
+      "high": 52.36,
+      "low": 36.86,
+      "volume": 1200375019,
+      "change_pct": 34.08,
+      "date": "2024-09-18"
+    },
+    "2024-10": {
+      "price": 50.08,
+      "open": 51.92,
+      "high": 59.5,
+      "low": 47.78,
+      "volume": 1662916623,
+      "change_pct": -9.72,
+      "date": "2024-10-15"
+    },
+    "2024-11": {
+      "price": 52.87,
+      "open": 53.98,
+      "high": 61.0,
+      "low": 48.55,
+      "volume": 1187088783,
+      "change_pct": -3.02,
+      "date": "2024-11-15"
+    },
+    "2024-12": {
+      "price": 56.21,
+      "open": 56.21,
+      "high": 60.74,
+      "low": 49.7,
+      "volume": 1010106459,
+      "change_pct": 10.06,
+      "date": "2024-12-16"
+    },
+    "2025-01": {
+      "price": 53.28,
+      "open": 54.9,
+      "high": 57.0,
+      "low": 51.13,
+      "volume": 543585178,
+      "change_pct": 0.6,
+      "date": "2025-01-15"
+    },
+    "2025-02": {
+      "price": 62.32,
+      "open": 60.84,
+      "high": 69.25,
+      "low": 55.28,
+      "volume": 884731019,
+      "change_pct": 9.36,
+      "date": "2025-02-17"
+    },
+    "2025-03": {
+      "price": 64.03,
+      "open": 64.2,
+      "high": 70.68,
+      "low": 59.52,
+      "volume": 744873451,
+      "change_pct": 9.57,
+      "date": "2025-03-17"
+    },
+    "2025-04": {
+      "price": 52.58,
+      "open": 53.06,
+      "high": 70.0,
+      "low": 48.48,
+      "volume": 1094167021,
+      "change_pct": -12.6,
+      "date": "2025-04-15"
+    },
+    "2025-05": {
+      "price": 61.39,
+      "open": 61.1,
+      "high": 64.73,
+      "low": 57.92,
+      "volume": 619675102,
+      "change_pct": 4.13,
+      "date": "2025-05-15"
+    },
+    "2025-06": {
+      "price": 68.46,
+      "open": 67.85,
+      "high": 69.94,
+      "low": 63.5,
+      "volume": 623180410,
+      "change_pct": 8.96,
+      "date": "2025-06-16"
+    },
+    "2025-07": {
+      "price": 80.08,
+      "open": 78.94,
+      "high": 102.49,
+      "low": 68.9,
+      "volume": 1106691954,
+      "change_pct": 39.3,
+      "date": "2025-07-15"
+    },
+    "2025-08": {
+      "price": 97.8,
+      "open": 97.55,
+      "high": 103.96,
+      "low": 89.0,
+      "volume": 1427133711,
+      "change_pct": 8.07,
+      "date": "2025-08-15"
+    },
+    "2025-09": {
+      "price": 107.0,
+      "open": 105.0,
+      "high": 115.79,
+      "low": 97.55,
+      "volume": 1409777368,
+      "change_pct": 7.51,
+      "date": "2025-09-15"
+    },
+    "2025-10": {
+      "price": 99.46,
+      "open": 96.1,
+      "high": 113.97,
+      "low": 94.85,
+      "volume": 868922757,
+      "change_pct": -11.27,
+      "date": "2025-10-15"
+    },
+    "2025-11": {
+      "price": 93.76,
+      "open": 95.0,
+      "high": 99.87,
+      "low": 90.5,
+      "volume": 710901677,
+      "change_pct": -8.29,
+      "date": "2025-11-17"
+    },
+    "2025-12": {
+      "price": 91.21,
+      "open": 92.8,
+      "high": 95.66,
+      "low": 87.18,
+      "volume": 786875848,
+      "change_pct": -0.82,
+      "date": "2025-12-15"
+    }
+  },
+  "pe_history": {
+    "2018-05": 114.44,
+    "2018-06": 76.17,
+    "2018-07": 72.71,
+    "2018-08": 50.13,
+    "2018-09": 54.9,
+    "2018-10": 49.47,
+    "2018-11": 39.26,
+    "2018-12": 41.67,
+    "2019-01": 42.7,
+    "2019-02": 48.53,
+    "2019-03": 48.56,
+    "2019-04": 45.7,
+    "2019-05": 39.23,
+    "2019-06": 43.2,
+    "2019-07": 46.52,
+    "2019-08": 69.43,
+    "2019-09": 69.69,
+    "2019-10": 68.76,
+    "2019-11": 68.73,
+    "2019-12": 71.25,
+    "2020-01": 74.82,
+    "2020-02": 86.35,
+    "2020-03": 83.07,
+    "2020-04": 94.88,
+    "2020-05": 95.72,
+    "2020-06": 126.56,
+    "2020-07": 103.86,
+    "2020-08": 104.99,
+    "2020-09": 97.68,
+    "2020-10": 112.0,
+    "2020-11": 102.17,
+    "2020-12": 130.35,
+    "2021-01": 165.52,
+    "2021-02": 143.22,
+    "2021-03": 112.71,
+    "2021-04": 132.46,
+    "2021-05": 98.57,
+    "2021-06": 111.73,
+    "2021-07": 106.54,
+    "2021-08": 100.09,
+    "2021-09": 113.77,
+    "2021-10": 98.19,
+    "2021-11": 99.37,
+    "2021-12": 84.81,
+    "2022-01": 74.57,
+    "2022-02": 59.96,
+    "2022-03": 65.17,
+    "2022-04": 58.26,
+    "2022-05": 52.35,
+    "2022-06": 58.36,
+    "2022-07": 39.13,
+    "2022-08": 36.6,
+    "2022-09": 30.3,
+    "2022-10": 26.04,
+    "2022-11": 25.91,
+    "2022-12": 26.28,
+    "2023-01": 32.38,
+    "2023-02": 27.45,
+    "2023-03": 27.43,
+    "2023-04": 21.33,
+    "2023-05": 21.22,
+    "2023-06": 19.8,
+    "2023-07": 22.02,
+    "2023-08": 25.42,
+    "2023-09": 26.95,
+    "2023-10": 27.75,
+    "2023-11": 26.16,
+    "2023-12": 22.71,
+    "2024-01": 20.48,
+    "2024-02": 16.92,
+    "2024-03": 14.36,
+    "2024-04": 13.61,
+    "2024-05": 13.07,
+    "2024-06": 12.17,
+    "2024-07": 13.88,
+    "2024-08": 13.37,
+    "2024-09": 16.24,
+    "2024-10": 18.67,
+    "2024-11": 17.88,
+    "2024-12": 19.62,
+    "2025-01": 19.83,
+    "2025-02": 22.37,
+    "2025-03": 20.57,
+    "2025-04": 17.75,
+    "2025-05": 16.41,
+    "2025-06": 16.91,
+    "2025-07": 20.58,
+    "2025-08": 22.14,
+    "2025-09": 22.06,
+    "2025-10": 21.1,
+    "2025-11": 18.15,
+    "2025-12": 18.45,
+    "2026-01": 19.51,
+    "2026-02": 19.51,
+    "2026-03": 15.05,
+    "2026-04": 16.57
+  },
+  "financial_data": [
+    {
+      "date": "2014-12",
+      "roe": 20.82,
+      "gross_margin": 36.78,
+      "net_margin": 19.52,
+      "debt_ratio": 35.17,
+      "current_ratio": 1.97,
+      "eps": 0.51,
+      "revenue_growth": null,
+      "profit_growth": null,
+      "ocf_per_share": 4.6
+    },
+    {
+      "date": "2015-12",
+      "roe": 14.45,
+      "gross_margin": 34.55,
+      "net_margin": 14.0,
+      "debt_ratio": 33.62,
+      "current_ratio": 2.12,
+      "eps": 0.39,
+      "revenue_growth": 17.96,
+      "profit_growth": -24.38,
+      "ocf_per_share": 4.76
+    },
+    {
+      "date": "2016-12",
+      "roe": 29.1,
+      "gross_margin": 40.76,
+      "net_margin": 18.33,
+      "debt_ratio": 42.76,
+      "current_ratio": 1.44,
+      "eps": 1.08,
+      "revenue_growth": 25.24,
+      "profit_growth": 179.39,
+      "ocf_per_share": 1.87
+    },
+    {
+      "date": "2017-03",
+      "roe": 5.94,
+      "gross_margin": 43.66,
+      "net_margin": 20.36,
+      "debt_ratio": 37.98,
+      "current_ratio": 1.59,
+      "eps": 0.36,
+      "revenue_growth": null,
+      "profit_growth": null,
+      "ocf_per_share": 0.12
+    },
+    {
+      "date": "2017-06",
+      "roe": 13.03,
+      "gross_margin": 43.39,
+      "net_margin": 21.33,
+      "debt_ratio": null,
+      "current_ratio": null,
+      "eps": 0.79,
+      "revenue_growth": null,
+      "profit_growth": null,
+      "ocf_per_share": null
+    },
+    {
+      "date": "2017-09",
+      "roe": 17.59,
+      "gross_margin": 42.76,
+      "net_margin": 19.64,
+      "debt_ratio": 45.16,
+      "current_ratio": 1.13,
+      "eps": 1.13,
+      "revenue_growth": null,
+      "profit_growth": null,
+      "ocf_per_share": 1.2
+    },
+    {
+      "date": "2017-12",
+      "roe": 21.14,
+      "gross_margin": 41.83,
+      "net_margin": 16.7,
+      "debt_ratio": 46.44,
+      "current_ratio": 1.18,
+      "eps": 1.31,
+      "revenue_growth": 26.96,
+      "profit_growth": 25.86,
+      "ocf_per_share": 1.91
+    },
+    {
+      "date": "2018-03",
+      "roe": 4.51,
+      "gross_margin": 39.1,
+      "net_margin": 14.2,
+      "debt_ratio": 44.4,
+      "current_ratio": 1.24,
+      "eps": 0.31,
+      "revenue_growth": 21.13,
+      "profit_growth": -13.72,
+      "ocf_per_share": -0.03
+    },
+    {
+      "date": "2018-06",
+      "roe": 16.41,
+      "gross_margin": 40.06,
+      "net_margin": 29.58,
+      "debt_ratio": 35.81,
+      "current_ratio": 1.57,
+      "eps": 0.93,
+      "revenue_growth": 20.29,
+      "profit_growth": 71.31,
+      "ocf_per_share": 0.48
+    },
+    {
+      "date": "2018-09",
+      "roe": 22.62,
+      "gross_margin": 40.68,
+      "net_margin": 28.6,
+      "debt_ratio": 35.74,
+      "current_ratio": 1.41,
+      "eps": 1.39,
+      "revenue_growth": 21.9,
+      "profit_growth": 81.4,
+      "ocf_per_share": 0.88
+    },
+    {
+      "date": "2018-12",
+      "roe": 23.98,
+      "gross_margin": 39.45,
+      "net_margin": 24.27,
+      "debt_ratio": 19.86,
+      "current_ratio": 3.14,
+      "eps": 1.59,
+      "revenue_growth": 23.8,
+      "profit_growth": 84.22,
+      "ocf_per_share": 1.41
+    },
+    {
+      "date": "2019-03",
+      "roe": 2.13,
+      "gross_margin": 38.14,
+      "net_margin": 14.93,
+      "debt_ratio": 20.52,
+      "current_ratio": 3.4,
+      "eps": 0.24,
+      "revenue_growth": 29.31,
+      "profit_growth": 32.97,
+      "ocf_per_share": 0.16
+    },
+    {
+      "date": "2019-06",
+      "roe": 5.8,
+      "gross_margin": 38.78,
+      "net_margin": 18.75,
+      "debt_ratio": 25.79,
+      "current_ratio": 2.32,
+      "eps": 0.46,
+      "revenue_growth": 33.68,
+      "profit_growth": -16.91,
+      "ocf_per_share": 0.84
+    },
+    {
+      "date": "2019-09",
+      "roe": 9.89,
+      "gross_margin": 39.51,
+      "net_margin": 19.6,
+      "debt_ratio": 36.75,
+      "current_ratio": 2.2,
+      "eps": 0.77,
+      "revenue_growth": 34.06,
+      "profit_growth": -8.46,
+      "ocf_per_share": 1.08
+    },
+    {
+      "date": "2019-12",
+      "roe": 10.57,
+      "gross_margin": 38.95,
+      "net_margin": 14.85,
+      "debt_ratio": 40.46,
+      "current_ratio": 1.91,
+      "eps": 0.81,
+      "revenue_growth": 33.89,
+      "profit_growth": -17.96,
+      "ocf_per_share": 1.77
+    },
+    {
+      "date": "2020-03",
+      "roe": 1.73,
+      "gross_margin": 34.46,
+      "net_margin": 9.57,
+      "debt_ratio": 40.95,
+      "current_ratio": 1.78,
+      "eps": 0.13,
+      "revenue_growth": 15.09,
+      "profit_growth": -21.59,
+      "ocf_per_share": 0.66
+    },
+    {
+      "date": "2020-06",
+      "roe": 9.4,
+      "gross_margin": 36.9,
+      "net_margin": 23.89,
+      "debt_ratio": 39.59,
+      "current_ratio": 1.67,
+      "eps": 0.63,
+      "revenue_growth": 22.68,
+      "profit_growth": 62.49,
+      "ocf_per_share": 0.62
+    },
+    {
+      "date": "2020-09",
+      "roe": 11.89,
+      "gross_margin": 37.58,
+      "net_margin": 20.2,
+      "debt_ratio": 27.92,
+      "current_ratio": 3.26,
+      "eps": 0.86,
+      "revenue_growth": 27.34,
+      "profit_growth": 34.17,
+      "ocf_per_share": 0.99
+    },
+    {
+      "date": "2020-12",
+      "roe": 12.91,
+      "gross_margin": 37.99,
+      "net_margin": 18.06,
+      "debt_ratio": 29.32,
+      "current_ratio": 2.91,
+      "eps": 1.06,
+      "revenue_growth": 28.46,
+      "profit_growth": 59.62,
+      "ocf_per_share": 1.63
+    },
+    {
+      "date": "2021-03",
+      "roe": 4.43,
+      "gross_margin": 37.1,
+      "net_margin": 30.44,
+      "debt_ratio": 26.92,
+      "current_ratio": 2.6,
+      "eps": 0.52,
+      "revenue_growth": 55.31,
+      "profit_growth": 394.92,
+      "ocf_per_share": 0.27
+    },
+    {
+      "date": "2021-06",
+      "roe": 7.7,
+      "gross_margin": 36.99,
+      "net_margin": 25.55,
+      "debt_ratio": 29.12,
+      "current_ratio": 2.13,
+      "eps": 0.92,
+      "revenue_growth": 45.71,
+      "profit_growth": 55.79,
+      "ocf_per_share": 0.73
+    },
+    {
+      "date": "2021-09",
+      "roe": 10.23,
+      "gross_margin": 36.99,
+      "net_margin": 21.72,
+      "debt_ratio": 29.21,
+      "current_ratio": 1.93,
+      "eps": 1.22,
+      "revenue_growth": 39.84,
+      "profit_growth": 50.41,
+      "ocf_per_share": 1.08
+    },
+    {
+      "date": "2021-12",
+      "roe": 14.05,
+      "gross_margin": 36.29,
+      "net_margin": 22.43,
+      "debt_ratio": 29.69,
+      "current_ratio": 1.69,
+      "eps": 1.75,
+      "revenue_growth": 38.5,
+      "profit_growth": 72.19,
+      "ocf_per_share": 1.55
+    },
+    {
+      "date": "2022-03",
+      "roe": 4.16,
+      "gross_margin": 35.79,
+      "net_margin": 19.54,
+      "debt_ratio": 29.41,
+      "current_ratio": 1.69,
+      "eps": 0.56,
+      "revenue_growth": 71.18,
+      "profit_growth": 9.54,
+      "ocf_per_share": 0.17
+    },
+    {
+      "date": "2022-06",
+      "roe": 11.38,
+      "gross_margin": 36.25,
+      "net_margin": 26.33,
+      "debt_ratio": 31.53,
+      "current_ratio": 1.46,
+      "eps": 1.59,
+      "revenue_growth": 68.52,
+      "profit_growth": 73.29,
+      "ocf_per_share": 1.35
+    },
+    {
+      "date": "2022-09",
+      "roe": 17.72,
+      "gross_margin": 37.12,
+      "net_margin": 26.23,
+      "debt_ratio": 31.35,
+      "current_ratio": 1.46,
+      "eps": 2.52,
+      "revenue_growth": 71.87,
+      "profit_growth": 107.12,
+      "ocf_per_share": 2.6
+    },
+    {
+      "date": "2022-12",
+      "roe": 20.62,
+      "gross_margin": 37.3,
+      "net_margin": 22.62,
+      "debt_ratio": 27.46,
+      "current_ratio": 1.66,
+      "eps": 3.01,
+      "revenue_growth": 71.84,
+      "profit_growth": 72.91,
+      "ocf_per_share": 3.59
+    },
+    {
+      "date": "2023-03",
+      "roe": 4.53,
+      "gross_margin": 39.89,
+      "net_margin": 24.39,
+      "debt_ratio": 26.92,
+      "current_ratio": 1.74,
+      "eps": 0.74,
+      "revenue_growth": 5.77,
+      "profit_growth": 31.97,
+      "ocf_per_share": 1.02
+    },
+    {
+      "date": "2023-06",
+      "roe": 10.78,
+      "gross_margin": 40.52,
+      "net_margin": 28.39,
+      "debt_ratio": 27.58,
+      "current_ratio": 1.69,
+      "eps": 1.81,
+      "revenue_growth": 6.28,
+      "profit_growth": 14.61,
+      "ocf_per_share": 1.89
+    },
+    {
+      "date": "2023-09",
+      "roe": 16.19,
+      "gross_margin": 41.3,
+      "net_margin": 27.58,
+      "debt_ratio": 27.55,
+      "current_ratio": 1.75,
+      "eps": 2.75,
+      "revenue_growth": 4.04,
+      "profit_growth": 9.47,
+      "ocf_per_share": 3.48
+    },
+    {
+      "date": "2023-12",
+      "roe": 18.99,
+      "gross_margin": 41.18,
+      "net_margin": 24.05,
+      "debt_ratio": 24.64,
+      "current_ratio": 2.06,
+      "eps": 3.27,
+      "revenue_growth": 2.51,
+      "profit_growth": 9.0,
+      "ocf_per_share": 4.51
+    },
+    {
+      "date": "2024-03",
+      "roe": 3.51,
+      "gross_margin": 38.13,
+      "net_margin": 24.54,
+      "debt_ratio": 25.21,
+      "current_ratio": 2.33,
+      "eps": 0.67,
+      "revenue_growth": -10.95,
+      "profit_growth": -10.42,
+      "ocf_per_share": 0.77
+    },
+    {
+      "date": "2024-06",
+      "roe": 7.62,
+      "gross_margin": 39.37,
+      "net_margin": 24.83,
+      "debt_ratio": 25.95,
+      "current_ratio": 2.22,
+      "eps": 1.46,
+      "revenue_growth": -8.64,
+      "profit_growth": -20.2,
+      "ocf_per_share": 1.71
+    },
+    {
+      "date": "2024-09",
+      "roe": 11.73,
+      "gross_margin": 40.65,
+      "net_margin": 23.83,
+      "debt_ratio": 25.13,
+      "current_ratio": 2.36,
+      "eps": 2.25,
+      "revenue_growth": -6.23,
+      "profit_growth": -19.11,
+      "ocf_per_share": 2.88
+    },
+    {
+      "date": "2024-12",
+      "roe": 16.78,
+      "gross_margin": 41.48,
+      "net_margin": 24.38,
+      "debt_ratio": 26.44,
+      "current_ratio": 2.38,
+      "eps": 3.28,
+      "revenue_growth": -2.73,
+      "profit_growth": -1.63,
+      "ocf_per_share": 4.3
+    },
+    {
+      "date": "2025-03",
+      "roe": 6.08,
+      "gross_margin": 42.26,
+      "net_margin": 38.48,
+      "debt_ratio": 25.72,
+      "current_ratio": 2.29,
+      "eps": 1.29,
+      "revenue_growth": 20.96,
+      "profit_growth": 89.06,
+      "ocf_per_share": 1.11
+    },
+    {
+      "date": "2025-06",
+      "roe": 13.93,
+      "gross_margin": 44.45,
+      "net_margin": 41.64,
+      "debt_ratio": 27.93,
+      "current_ratio": 2.08,
+      "eps": 3.01,
+      "revenue_growth": 20.64,
+      "profit_growth": 101.92,
+      "ocf_per_share": 2.59
+    },
+    {
+      "date": "2025-09",
+      "roe": 19.26,
+      "gross_margin": 46.62,
+      "net_margin": 37.15,
+      "debt_ratio": 24.45,
+      "current_ratio": 2.77,
+      "eps": 4.25,
+      "revenue_growth": 18.61,
+      "profit_growth": 84.84,
+      "ocf_per_share": 3.85
+    },
+    {
+      "date": "2025-12",
+      "roe": 28.56,
+      "gross_margin": 47.64,
+      "net_margin": 42.53,
+      "debt_ratio": 22.18,
+      "current_ratio": 3.21,
+      "eps": 6.7,
+      "revenue_growth": 15.84,
+      "profit_growth": 102.65,
+      "ocf_per_share": 5.77
+    }
+  ],
+  "dividends": [
+    {
+      "date": "2026-03",
+      "div_per_10": 15.7927,
+      "status": "预案"
+    },
+    {
+      "date": "2025-09",
+      "div_per_10": 3.5,
+      "status": "实施"
+    },
+    {
+      "date": "2025-05",
+      "div_per_10": 9.8169,
+      "status": "实施"
+    },
+    {
+      "date": "2024-06",
+      "div_per_10": 9.8974,
+      "status": "实施"
+    },
+    {
+      "date": "2023-06",
+      "div_per_10": 8.9266,
+      "status": "实施"
+    },
+    {
+      "date": "2022-06",
+      "div_per_10": 5.174,
+      "status": "实施"
+    },
+    {
+      "date": "2021-06",
+      "div_per_10": 3.63,
+      "status": "实施"
+    },
+    {
+      "date": "2020-05",
+      "div_per_10": 3.37,
+      "status": "实施"
+    },
+    {
+      "date": "2019-06",
+      "div_per_10": 5.8002,
+      "status": "实施"
+    }
+  ]
+}

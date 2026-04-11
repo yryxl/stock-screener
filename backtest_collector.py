@@ -338,31 +338,51 @@ def build_monthly_snapshots(all_data, stocks):
 
 def main():
     ensure_dirs()
-    stocks = load_stock_list()
+    all_stocks = load_stock_list()
 
-    # 支持只采集指定股票
-    target_codes = sys.argv[1:] if len(sys.argv) > 1 else None
+    # 支持：
+    #   无参数       → 采集全部股票（全量覆盖）
+    #   --new-only   → 只采集本地 raw_*.json 缺失的股票（增量补充，
+    #                  从旧 raw 读已采集的，合并后重建月快照）
+    #   600519 ...   → 只采集指定代码，同样走增量逻辑
+    new_only = "--new-only" in sys.argv
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    target_codes = args if args else None
 
-    if target_codes:
-        stocks = [s for s in stocks if s["code"] in target_codes]
+    if new_only:
+        # 只拉本地没有 raw 文件的新股票
+        to_fetch = [s for s in all_stocks
+                    if not os.path.exists(os.path.join(DATA_DIR, f"raw_{s['id']}.json"))]
+        print(f"=== 增量采集模式：需新采集 {len(to_fetch)}/{len(all_stocks)} 只股票 ===")
+    elif target_codes:
+        to_fetch = [s for s in all_stocks if s["code"] in target_codes]
+        print(f"=== 指定代码模式：采集 {len(to_fetch)} 只股票（其余从本地读） ===")
+    else:
+        to_fetch = all_stocks
+        print(f"=== 全量采集模式：采集 {len(to_fetch)} 只股票 ===")
 
-    print(f"=== 历史数据采集 ({len(stocks)}只股票) ===")
-
-    all_data = []
-    for i, stock in enumerate(stocks, 1):
-        print(f"\n[{i}/{len(stocks)}]", end="")
+    # 新股票：调 akshare 拉
+    fetched_data = []
+    for i, stock in enumerate(to_fetch, 1):
+        print(f"\n[{i}/{len(to_fetch)}]", end="")
         data = collect_single_stock(stock)
-
-        # 保存原始数据
         raw_path = os.path.join(DATA_DIR, f"raw_{stock['id']}.json")
         with open(raw_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+        fetched_data.append(data)
+        time.sleep(2)
 
-        all_data.append(data)
-        time.sleep(2)  # 避免请求过快
+    # 汇总全量 all_data（本地 raw + 新采集），供 build_monthly_snapshots 构建完整月快照
+    all_data = []
+    for stock in all_stocks:
+        raw_path = os.path.join(DATA_DIR, f"raw_{stock['id']}.json")
+        if os.path.exists(raw_path):
+            with open(raw_path, "r", encoding="utf-8") as f:
+                all_data.append(json.load(f))
+        # 不存在的说明既不是目标也没有历史，自然被跳过
 
-    # 构建月度快照
-    build_monthly_snapshots(all_data, stocks)
+    print(f"\n=== 月快照重建：基于 {len(all_data)}/{len(all_stocks)} 只股票 ===")
+    build_monthly_snapshots(all_data, all_stocks)
 
     print(f"\n=== 采集完成 ===")
     print(f"原始数据: {DATA_DIR}/raw_*.json")

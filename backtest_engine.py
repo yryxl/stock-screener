@@ -818,14 +818,24 @@ def load_month_data(year, month):
     return None
 
 
-def load_stock_list():
-    """加载股票列表（含真实信息，不暴露给前端）"""
+def load_stock_list(subset_ids=None):
+    """
+    加载股票列表（含真实信息，不暴露给前端）
+
+    Args:
+      subset_ids: 可选的股票 ID 列表（如 ['S01', 'S05', ...]）
+                  传入时只返回这个子集，用于多批次不重叠抽样回测
+                  None 或空 list 时返回全部股票
+    """
     path = os.path.join(SCRIPT_DIR, "backtest_stocks.json")
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     stocks = {}
+    subset_set = set(subset_ids) if subset_ids else None
     for cat, items in data["categories"].items():
         for item in items:
+            if subset_set and item["id"] not in subset_set:
+                continue
             stocks[item["id"]] = {
                 "code": item["code"],
                 "name": item["name"],
@@ -1308,10 +1318,14 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
 # 7. 月度信号入口
 # ============================================================
 
-def get_month_signals(year, month, anon_map=None, industry_map=None):
+def get_month_signals(year, month, anon_map=None, industry_map=None, subset_ids=None):
     """
     获取某月全股票池的模型信号（匿名化输出）
     周期股会被直接过滤（CYCLE_STOCKS_ENABLED=False 时）
+
+    Args:
+      subset_ids: 可选的股票 ID 集合（用于多批次不重叠抽样回测）
+                  None 表示用全部股票，传入列表/集合时只返回这批
     返回：{匿名编号: {price, pe_ttm, signal, signal_text, score, ...}}
     """
     data = load_month_data(year, month)
@@ -1321,6 +1335,7 @@ def get_month_signals(year, month, anon_map=None, industry_map=None):
     events = load_events()
     month_str = f"{year}-{month:02d}"
     stocks = data.get("stocks", {})
+    subset_set = set(subset_ids) if subset_ids else None
 
     if anon_map is None:
         anon_map = {sid: sid for sid in stocks}
@@ -1329,6 +1344,9 @@ def get_month_signals(year, month, anon_map=None, industry_map=None):
 
     results = {}
     for sid, sdata in stocks.items():
+        # 多批次抽样：不在子集中的直接跳过
+        if subset_set and sid not in subset_set:
+            continue
         anon_id = anon_map.get(sid, sid)
         # 优先用外部传入的 industry_map，否则回退到 STOCK_INDUSTRY 默认映射
         industry = industry_map.get(sid) or STOCK_INDUSTRY.get(sid, "")
@@ -1346,6 +1364,9 @@ def get_month_signals(year, month, anon_map=None, industry_map=None):
         for evt in events.get(sid, []):
             if evt.get("date", "") == month_str:
                 stock_events.append(evt)
+
+        # 行业 PE 区间（给回测的"个股 PE 硬否决"规则用）
+        pe_range = match_industry_pe(industry) if industry else {}
 
         results[anon_id] = {
             "sid": sid,  # 内部ID，不暴露给前端
@@ -1366,6 +1387,9 @@ def get_month_signals(year, month, anon_map=None, industry_map=None):
             "is_10y_king": eval_result.get("is_10y_king", False),
             "king_avg_roe": eval_result.get("king_avg_roe"),
             "events": stock_events,
+            # 行业 PE 区间（供回测 backtest_autorun 的个股 PE 硬否决规则使用）
+            "industry": industry,
+            "pe_fair_high": pe_range.get("fair_high"),
         }
 
     return results

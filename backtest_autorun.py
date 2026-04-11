@@ -38,6 +38,10 @@ from backtest_engine import (
 # 1. 参数常量
 # ============================================================
 # -------- 仓位参数 --------
+# 回滚到 10 只：A 股环境找不到 5 只真正的"十年王者"，强制集中到 5 只
+# 反而在回测里让中期起点大幅退步（-30 pp）。MAX=10 让模型可以把
+# 风险分散到 8-10 只中等品质股票，而不是赌前 5 名全对。
+# A/B 实验结论见 2026-04-11 commits。
 MAX_HOLDINGS = 10         # 同时最多持有数量
 CASH_RESERVE = 0.05       # 预留现金比例
 
@@ -45,6 +49,17 @@ CASH_RESERVE = 0.05       # 预留现金比例
 BUDGET_HEAVY = 0.40       # 重仓买入
 BUDGET_MEDIUM = 0.20      # 中仓买入
 BUDGET_LIGHT = 0.10       # 轻仓买入
+
+# -------- 个股 PE 硬否决阈值（替代"大盘温度计硬否决"）--------
+# 巴菲特原则：好东西买在贵价就变坏。单只股票的 PE 严重超过行业合理区间
+# 上限（fair_high），无论大盘温度如何、无论它有多"优秀"，都拒绝买入。
+# 2026-04-11 实验记录：
+#   1.5× 太宽：2019-08 时点白酒 PE 30-40 还没触发（45 才拦），
+#              最难起点未能拯救
+#   1.2× 更紧：白酒 fair_high=30 → PE > 36 拦，真正拦住 2019 白酒顶部
+#              银行 fair_high=9 → PE > 10.8 拦
+#              医药 fair_high=30 → PE > 36 拦（2021 医药顶部）
+INDIVIDUAL_PE_HARD_VETO_MULTIPLIER = 1.2  # 单股 PE > 行业 fair_high × 1.2 硬否决
 
 # -------- 公司质量门槛 --------
 # 好公司：ROE 均值 ≥ 15%（巴菲特合格线），大量卖出才清仓
@@ -321,9 +336,15 @@ def compute_market_pe_median(signals):
     return pes[len(pes) // 2]
 
 
-def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
-    """严格按选股模型执行，返回统计结果"""
-    stocks = load_stock_list()
+def run_backtest(start_year, start_month, initial_capital=100000, verbose=True, subset_ids=None):
+    """
+    严格按选股模型执行，返回统计结果
+
+    Args:
+      subset_ids: 可选的股票 ID 子集（如 ['S01','S05',...]），
+                  用于多批次不重叠抽样回测。None 时用全股票池。
+    """
+    stocks = load_stock_list(subset_ids=subset_ids)
     anon_map = generate_anonymous_map(list(stocks.keys()), seed=42)
 
     cash = float(initial_capital)
@@ -337,7 +358,7 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
 
     year, month = start_year, start_month
     while year < 2025 or (year == 2025 and month <= 12):
-        signals = get_month_signals(year, month, anon_map=anon_map, industry_map={})
+        signals = get_month_signals(year, month, anon_map=anon_map, industry_map={}, subset_ids=subset_ids)
         if not signals:
             if month >= 12:
                 month = 1; year += 1
@@ -380,6 +401,11 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
         #   好公司（ROE均值≥15%）：只在大量卖出时清仓
         #   普通公司：大量卖出 + 中仓卖出 都清仓
         #   市场极热：所有持仓额外系统性减仓 25%（每年最多一次）
+        #
+        # 2026-04-11 实验记录：
+        #   尝试过"分级减仓"（浮盈>100%砍半、50-100%砍30%、<50%砍25%），
+        #   结果让 2015-06 起点相对原版 -50 pp —— 减仓减早了/减多了，
+        #   后续牛市恢复阶段没买回来。回滚为统一 25% 的原版策略。
         sids_to_sell = []
 
         # 市场极热系统性减仓（每持仓每年一次）
@@ -534,8 +560,29 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             if price <= 0:
                 continue
 
+            # ---- 个股 PE 硬否决（替代之前的"大盘温度计硬否决"）----
+            # 巴菲特原则：好东西买在贵价就变坏。
+            # 之前用的"大盘温度计硬否决"对 2019 年那种"大盘便宜 + 单行业
+            # 泡沫"场景无效（沪深300 PE 12 倍=正常，但白酒 PE 45 倍泡沫），
+            # A/B 回测证明没拦住 2019 起点（+6% → +10% 微改善）。
+            #
+            # 改用"个股 PE > 行业 fair_high × 1.5 硬否决"：
+            # 不管大盘状态如何，单只股票 PE 严重超过行业合理上限就拒绝买入。
+            # 示例：白酒 fair_high=30，PE > 45 拒买（2019-2020 年白酒顶部）；
+            #       银行 fair_high=9，PE > 13.5 拒买；
+            #       医药 fair_high=30，PE > 45 拒买（2021 年医药顶部）。
+            pe_ttm = sdata.get("pe_ttm")
+            pe_fair_high = sdata.get("pe_fair_high")
+            if (
+                pe_ttm is not None and pe_ttm > 0
+                and pe_fair_high is not None and pe_fair_high > 0
+                and pe_ttm > pe_fair_high * INDIVIDUAL_PE_HARD_VETO_MULTIPLIER
+            ):
+                # 静默拒绝（不记 log，避免刷屏）
+                continue
+
             # 按信号强度分配预算 × 温度系数（别人贪婪时我恐惧）
-            # 极冷 +30%、偏冷 +15%、正常 0%、偏热 -20%、极热 -40%
+            # 温度系数只在 -2/-1/0 档生效，+1/+2 档已被硬性规则拦截
             temp_multiplier = {-2: 1.30, -1: 1.15, 0: 1.0, 1: 0.80, 2: 0.60}.get(market_temp, 1.0)
             if sig == "buy_heavy":
                 budget = investable_cash * BUDGET_HEAVY * temp_multiplier
@@ -552,6 +599,9 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True):
             code = stocks[sid]["code"]
 
             # 小资金兜底：比例不够 100 股但手头钱够就买 1 手
+            # 2026-04-11 实验：取消兜底让 ¥1万 档均值从 +268% 崩到 +139%，
+            # 因为 ¥1万 × 40% heavy = ¥4000，在股价 >40 元的好股票上
+            # 连一手都买不起 → 小本金彻底错过好机会。恢复兜底。
             if shares < 100:
                 tentative_cost, _ = calc_buy_cost(exec_price, 100, code, year, month)
                 if cash >= tentative_cost:
@@ -681,9 +731,19 @@ def _print_capital_summary(time_label, results, years):
               f"¥{r['total_fees']:>7,.0f} | {swap_stat:>10}")
 
 
-def run_suite(time_points, capitals, verbose_first=True):
-    """跑多个起始时间 × 多档本金的完整套件"""
+def run_suite(time_points, capitals, verbose_first=True, subset_ids=None, subset_label=""):
+    """
+    跑多个起始时间 × 多档本金的完整套件
+
+    Args:
+      subset_ids: 可选的股票 ID 子集，用于多批次不重叠抽样回测
+      subset_label: 子集的显示名称（如 "批次1 30只"）
+    """
     all_runs = {}  # {(year, month): (years, [results...])}
+    if subset_label:
+        print(f"\n{'▓'*95}")
+        print(f"▓  股票子集：{subset_label}（{len(subset_ids) if subset_ids else '全部'} 只）")
+        print(f"{'▓'*95}")
     for idx, (sy, sm) in enumerate(time_points):
         years = _years_between(sy, sm)
         print(f"\n\n{'█'*95}")
@@ -696,7 +756,7 @@ def run_suite(time_points, capitals, verbose_first=True):
             print(f"{'─'*60}")
             # 只对第一个时间点 + 100万本金输出详细交易日志
             verbose = verbose_first and idx == 0 and cap == capitals[-1]
-            r = run_backtest(sy, sm, initial_capital=cap, verbose=verbose)
+            r = run_backtest(sy, sm, initial_capital=cap, verbose=verbose, subset_ids=subset_ids)
             results.append(r)
             if not verbose:
                 print(f"  收益 {r['final_pnl']:+.1f}% | "
@@ -730,6 +790,96 @@ def run_suite(time_points, capitals, verbose_first=True):
             pnls = [runs[i]['final_pnl'] for _, (_, runs) in all_runs.items()]
             cells.append(f"{stat_fn(pnls):>+9.1f}%")
         print(f"{stat_name:>8} | {'':>5} | " + " | ".join(cells))
+
+    return all_runs
+
+
+def run_multi_batch(time_points, capitals, total_pool=None,
+                    batch_size=30, n_batches=3, rng_seed=None):
+    """
+    多批次不重叠抽样回测 —— 验证模型在不同股票子集上的鲁棒性
+
+    做法：
+      1. 从全股票池随机洗牌
+      2. 按顺序切成 n_batches 批，每批 batch_size 只，互不重叠
+      3. 每批独立跑一次完整 run_suite
+      4. 汇总三批结果看模型是否稳定
+
+    Args:
+      time_points: 起点列表 [(y,m), ...]
+      capitals: 本金列表
+      total_pool: 全股票 ID 池（None 时从 load_stock_list 自动获取）
+      batch_size: 每批抽样多少只（默认 30）
+      n_batches: 抽样多少批（默认 3）
+      rng_seed: 随机种子（固定后可复现，None 时真随机）
+
+    Returns:
+      batches: [{"label": str, "ids": [...], "summary": all_runs}, ...]
+    """
+    if total_pool is None:
+        total_pool = list(load_stock_list().keys())
+
+    if len(total_pool) < batch_size * n_batches:
+        raise ValueError(
+            f"股票池太小：共 {len(total_pool)} 只，无法抽取 "
+            f"{n_batches} 批 × {batch_size} 只（需 {batch_size*n_batches} 只）"
+        )
+
+    if rng_seed is not None:
+        rng = random.Random(rng_seed)
+    else:
+        rng = random.Random()
+
+    pool_copy = list(total_pool)
+    rng.shuffle(pool_copy)
+
+    batches = []
+    for i in range(n_batches):
+        start = i * batch_size
+        end = start + batch_size
+        ids = pool_copy[start:end]
+        label = f"批次{i+1}（{batch_size}只·不重叠）"
+        print(f"\n{'#'*95}")
+        print(f"#  {label}   抽样 ID: {sorted(ids)}")
+        print(f"{'#'*95}")
+        summary = run_suite(
+            time_points, capitals,
+            verbose_first=False,
+            subset_ids=ids, subset_label=label,
+        )
+        batches.append({"label": label, "ids": ids, "summary": summary})
+
+    # 跨批次汇总：看模型在不同子集上的均值是否稳定
+    print(f"\n\n{'═'*95}")
+    print(f"  跨批次汇总（{n_batches} 批 × {batch_size} 只 × {len(time_points)} 起点）")
+    print(f"{'═'*95}")
+    print(f"{'批次':>8} | " + " | ".join(f"¥{c:>10,}" for c in capitals))
+    print(f"{'-'*95}")
+    batch_means = []
+    for bi, b in enumerate(batches):
+        cells = []
+        for i, cap in enumerate(capitals):
+            pnls = [runs[i]['final_pnl'] for _, (_, runs) in b["summary"].items()]
+            mean_pnl = sum(pnls) / len(pnls)
+            cells.append(f"{mean_pnl:>+9.1f}%")
+        print(f"  批次{bi+1}  | " + " | ".join(cells))
+        batch_means.append(cells)
+
+    print(f"{'-'*95}")
+    # 最大偏差 = 三批均值中最大减最小
+    print(f"{'偏差':>8} | ", end="")
+    for i, cap in enumerate(capitals):
+        pnls_all_batches = []
+        for b in batches:
+            pnls = [runs[i]['final_pnl'] for _, (_, runs) in b["summary"].items()]
+            pnls_all_batches.append(sum(pnls)/len(pnls))
+        spread = max(pnls_all_batches) - min(pnls_all_batches)
+        if i > 0:
+            print(" | ", end="")
+        print(f"{spread:>+9.1f}%", end="")
+    print()
+    print(f"\n  提示：偏差越小说明模型在不同股票子集上越稳定")
+    return batches
 
 
 if __name__ == "__main__":
