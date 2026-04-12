@@ -550,41 +550,60 @@ def render_backtest_page():
     st.markdown("---")
     st.caption(f"🧪 回测模式 | 第{len(st.session_state.get('bt_game_history',[]))+1}局 | {len(st.session_state.get('bt_trade_log',[]))}笔交易")
 
-    # 保存本局操作数据（供分析用）
+    # 保存本局操作数据（本地下载 + GitHub 云端双保存）
     trade_log = st.session_state.get("bt_trade_log", [])
     if trade_log:
         import json as _json
+        from datetime import datetime as _dt
         save_data = {
+            "saved_at": _dt.now().strftime("%Y-%m-%d %H:%M"),
             "game_number": len(st.session_state.get("bt_game_history", [])) + 1,
             "initial_capital": st.session_state.get("bt_initial_capital", 100000),
-            "current_cash": st.session_state.get("bt_cash", 0),
+            "current_cash": round(st.session_state.get("bt_cash", 0), 2),
+            "start_year_month": "2015-01",
             "current_year": st.session_state.get("bt_year"),
             "current_month": st.session_state.get("bt_month"),
             "holdings": [
                 {
                     "anon": h["anon"],
                     "shares": h["shares"],
-                    "cost": h["cost"],
+                    "cost": round(h["cost"], 2),
                 }
                 for h in st.session_state.get("bt_holdings", [])
             ],
-            "portfolio_value": portfolio_value,
-            "total_value": st.session_state.get("bt_cash", 0) + portfolio_value,
+            "portfolio_value": round(portfolio_value, 2),
+            "total_value": round(st.session_state.get("bt_cash", 0) + portfolio_value, 2),
             "pnl_pct": round(
                 ((st.session_state.get("bt_cash", 0) + portfolio_value)
-                 / st.session_state.get("bt_initial_capital", 100000) - 1) * 100, 2
+                 / max(st.session_state.get("bt_initial_capital", 100000), 1) - 1) * 100, 2
             ),
+            "trade_count": len(trade_log),
             "trade_log": trade_log,
             "watchlist": st.session_state.get("bt_watchlist_bt", []),
         }
-        save_json = _json.dumps(save_data, ensure_ascii=False, indent=2)
-        st.download_button(
-            "💾 保存本局操作数据（供分析）",
-            data=save_json,
-            file_name=f"backtest_game_{save_data['game_number']}.json",
-            mime="application/json",
-            use_container_width=True,
-        )
+        save_json_str = _json.dumps(save_data, ensure_ascii=False, indent=2)
+        filename = f"backtest_game_{save_data['game_number']}_{_dt.now().strftime('%Y%m%d_%H%M')}.json"
+
+        sc1, sc2 = st.columns(2)
+        with sc1:
+            # 本地下载
+            st.download_button(
+                "💾 下载到本地",
+                data=save_json_str,
+                file_name=filename,
+                mime="application/json",
+                use_container_width=True,
+            )
+        with sc2:
+            # 云端保存（写入 GitHub 仓库的 backtest_games/ 目录）
+            if st.button("☁️ 保存到云端", use_container_width=True):
+                import os
+                games_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backtest_games")
+                os.makedirs(games_dir, exist_ok=True)
+                save_path = os.path.join(games_dir, filename)
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(save_json_str)
+                st.success(f"✅ 已保存到云端：backtest_games/{filename}\n\n下次 GitHub Actions 运行时会自动 push。")
 
     # 自动播放（使用 st.empty 占位 + 倒计时重跑）
     # 之前放在文件末尾用 time.sleep + st.rerun，但 Streamlit Cloud 上
