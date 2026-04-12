@@ -632,15 +632,26 @@ def render_backtest_page():
                 use_container_width=True,
             )
         with sc2:
-            # 云端保存（写入 GitHub 仓库的 backtest_games/ 目录）
-            if st.button("☁️ 保存到云端", use_container_width=True):
+            # 保存到指定目录（本地分析用 + GitHub 云端备份）
+            if st.button("💾 保存到分析目录", use_container_width=True):
                 import os
-                games_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backtest_games")
-                os.makedirs(games_dir, exist_ok=True)
-                save_path = os.path.join(games_dir, filename)
-                with open(save_path, "w", encoding="utf-8") as f:
-                    f.write(save_json_str)
-                st.success(f"✅ 已保存到云端：backtest_games/{filename}\n\n下次 GitHub Actions 运行时会自动 push。")
+                # 双路径保存：分析目录 + GitHub 云端
+                save_dirs = [
+                    r"G:\Claude Code\ask\手动回测",           # 用户指定的分析目录
+                    os.path.join(os.path.dirname(os.path.abspath(__file__)), "backtest_games"),  # GitHub 云端
+                ]
+                saved = []
+                for d in save_dirs:
+                    try:
+                        os.makedirs(d, exist_ok=True)
+                        p = os.path.join(d, filename)
+                        with open(p, "w", encoding="utf-8") as f:
+                            f.write(save_json_str)
+                        saved.append(p)
+                    except Exception:
+                        pass
+                if saved:
+                    st.success(f"✅ 已保存到：\n" + "\n".join(f"- {p}" for p in saved))
 
     # 自动播放（使用 st.empty 占位 + 倒计时重跑）
     # 之前放在文件末尾用 time.sleep + st.rerun，但 Streamlit Cloud 上
