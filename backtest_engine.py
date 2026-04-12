@@ -853,23 +853,60 @@ def load_events():
     return {}
 
 
+_ANON_PLACES = [
+    "成都", "杭州", "苏州", "昆明", "西安", "长沙", "厦门", "青岛",
+    "南京", "武汉", "深圳", "重庆", "大连", "桂林", "丽江", "拉萨",
+    "敦煌", "三亚", "洛阳", "泉州", "济南", "贵阳", "兰州", "太原",
+    "福州", "合肥", "石家庄", "银川", "海口", "珠海",
+]
+_ANON_ADJS = [
+    "漂亮的", "勇敢的", "快乐的", "聪明的", "温柔的", "神秘的",
+    "金色的", "银色的", "飞翔的", "闪亮的", "安静的", "热情的",
+    "优雅的", "机灵的", "敏捷的", "沉稳的", "活泼的", "灵动的",
+    "坚韧的", "清澈的", "明亮的", "温暖的", "凉爽的", "幸运的",
+    "自由的", "勤劳的", "善良的", "高贵的", "纯净的", "古老的",
+]
+_ANON_NOUNS = [
+    "蝴蝶", "白鹤", "雪豹", "海豚", "凤凰", "麒麟", "熊猫", "孔雀",
+    "老虎", "白鹭", "仙鹤", "青龙", "玉兔", "金鱼", "银狐", "猎鹰",
+    "白马", "灵猫", "锦鲤", "翠鸟", "星辰", "明月", "流云", "春风",
+    "晴雪", "翡翠", "琥珀", "水晶", "珍珠", "碧玉",
+]
+
+
 def generate_anonymous_map(stock_ids, seed=None):
     """
-    生成匿名编号映射（每次重置随机不同）
-    S01 → "K7", S02 → "M3" 等
-    """
-    if seed is not None:
-        random.seed(seed)
-    letters = list(string.ascii_uppercase)
-    random.shuffle(letters)
-    digits = list(range(1, 100))
-    random.shuffle(digits)
+    生成匿名名称映射（每次重置随机不同）
 
+    命名方式："地名 + 形容词 + 名词"
+    示例：S01 → "成都漂亮的蝴蝶", S02 → "杭州勇敢的白鹤"
+
+    保证同一局内没有重复名称（30×30×30 = 27000 种组合，远超 90 只股票）
+    """
+    rng = random.Random(seed)
+    places = list(_ANON_PLACES)
+    adjs = list(_ANON_ADJS)
+    nouns = list(_ANON_NOUNS)
+    rng.shuffle(places)
+    rng.shuffle(adjs)
+    rng.shuffle(nouns)
+
+    used = set()
     mapping = {}
-    for i, sid in enumerate(sorted(stock_ids)):
-        letter = letters[i % len(letters)]
-        digit = digits[i % len(digits)]
-        mapping[sid] = f"{letter}{digit:02d}"
+    for sid in sorted(stock_ids):
+        # 生成唯一名称
+        for _ in range(1000):
+            p = rng.choice(places)
+            a = rng.choice(adjs)
+            n = rng.choice(nouns)
+            name = f"{p}{a}{n}"
+            if name not in used:
+                used.add(name)
+                mapping[sid] = name
+                break
+        else:
+            # 极端情况：fallback 到编号
+            mapping[sid] = f"股票{sid}"
     return mapping
 
 

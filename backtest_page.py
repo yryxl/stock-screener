@@ -85,6 +85,7 @@ def reset_game():
 
 
 def virtual_buy(sid, anon_id, price, shares):
+    date_str = f"{st.session_state['bt_year']}-{st.session_state['bt_month']:02d}"
     cost = price * shares
     if cost > st.session_state["bt_cash"]:
         st.error(f"资金不足！需¥{cost:,.0f}，可用¥{st.session_state['bt_cash']:,.0f}")
@@ -98,10 +99,18 @@ def virtual_buy(sid, anon_id, price, shares):
             old = h["shares"] * h["cost"]
             h["shares"] += shares
             h["cost"] = (old + cost) / h["shares"]
-            st.session_state["bt_trade_log"].append({"type": "buy", "anon": anon_id, "shares": shares, "price": price, "date": f"{st.session_state['bt_year']}-{st.session_state['bt_month']:02d}"})
+            # 追加时间记录
+            if "add_dates" not in h:
+                h["add_dates"] = []
+            h["add_dates"].append(date_str)
+            st.session_state["bt_trade_log"].append({"type": "buy", "anon": anon_id, "shares": shares, "price": price, "date": date_str})
             return True
-    st.session_state["bt_holdings"].append({"sid": sid, "anon": anon_id, "shares": shares, "cost": price})
-    st.session_state["bt_trade_log"].append({"type": "buy", "anon": anon_id, "shares": shares, "price": price, "date": f"{st.session_state['bt_year']}-{st.session_state['bt_month']:02d}"})
+    st.session_state["bt_holdings"].append({
+        "sid": sid, "anon": anon_id, "shares": shares, "cost": price,
+        "buy_date": date_str,     # 首次建仓时间
+        "add_dates": [],          # 追加时间列表
+    })
+    st.session_state["bt_trade_log"].append({"type": "buy", "anon": anon_id, "shares": shares, "price": price, "date": date_str})
     return True
 
 
@@ -444,6 +453,17 @@ def render_backtest_page():
         if not holdings:
             st.info("暂无虚拟持仓，去模型推荐页买入")
         else:
+            # 计算总持仓市值（用于各股占比）
+            total_holding_value = 0
+            for h in holdings:
+                sdata_tmp = {}
+                for k, v in signals.items():
+                    if v.get("sid") == h["sid"]:
+                        sdata_tmp = v
+                        break
+                total_holding_value += sdata_tmp.get("price", h["cost"]) * h["shares"]
+            total_value = st.session_state.get("bt_cash", 0) + total_holding_value
+
             for h in holdings:
                 sid = h["sid"]
                 anon_id = h["anon"]
@@ -455,30 +475,40 @@ def render_backtest_page():
                 cur_price = sdata.get("price", h["cost"])
                 pnl = (cur_price - h["cost"]) * h["shares"]
                 pnl_p = (cur_price / h["cost"] - 1) * 100 if h["cost"] > 0 else 0
+                holding_value = cur_price * h["shares"]
+                hold_pct = (holding_value / total_value * 100) if total_value > 0 else 0
                 sig = sdata.get("signal", "")
                 sig_label = SIGNAL_LABELS.get(sig, "")
 
-                c1, c2, c3, c4 = st.columns([2, 2, 2, 3])
+                # 建仓/追加时间
+                buy_date = h.get("buy_date", "—")
+                add_dates = h.get("add_dates", [])
+                time_info = f"建仓 {buy_date}"
+                if add_dates:
+                    time_info += f" | 追加 {', '.join(add_dates[-3:])}"
+                    if len(add_dates) > 3:
+                        time_info += f" 等{len(add_dates)}次"
+
+                c1, c2, c3, c4 = st.columns([2.5, 1.5, 2, 3])
                 with c1:
                     st.markdown(f"**{anon_id}**")
-                    st.caption(f"成本¥{h['cost']:.2f}")
+                    st.caption(f"成本¥{h['cost']:.2f} | 占比 **{hold_pct:.1f}%** | {time_info}")
                 with c2:
-                    st.metric("持有", f"{h['shares']}股")
+                    st.metric("持有", f"{h['shares']}股", f"¥{holding_value:,.0f}")
                 with c3:
                     color = "normal" if pnl >= 0 else "inverse"
                     st.metric("盈亏", f"¥{pnl:+,.0f}", f"{pnl_p:+.1f}%", delta_color=color)
                 with c4:
                     if sig_label:
                         st.markdown(sig_label)
-                    # 事件
                     events = sdata.get("events", [])
                     if events:
                         for evt in events:
                             etype = evt.get("type", "")
                             emoji = "🟢" if etype == "positive" else "🔴" if etype == "negative" else "⚪"
                             st.warning(f"📰 {emoji} {evt.get('text', '')}")
-                    # 卖出
-                    sc1, sc2, sc3 = st.columns(3)
+                    # 卖出 + 买入（加仓）按钮
+                    sc1, sc2, sc3, sc4 = st.columns(4)
                     with sc1:
                         if st.button("全部卖出", key=f"sa_{anon_id}"):
                             if virtual_sell(sid, h["shares"], cur_price):
@@ -492,6 +522,13 @@ def render_backtest_page():
                         sn = st.number_input("卖出", 1, h["shares"], min(100, h["shares"]), key=f"sn_{anon_id}")
                         if st.button("卖出", key=f"sx_{anon_id}"):
                             if virtual_sell(sid, int(sn), cur_price):
+                                st.rerun()
+                    with sc4:
+                        # 加仓按钮（和推荐页同功能）
+                        bn = st.number_input("加仓", 100, 100000, 100, 100, key=f"add_{anon_id}")
+                        if st.button("买入加仓", key=f"ab_{anon_id}"):
+                            if cur_price > 0 and virtual_buy(sid, anon_id, cur_price, int(bn)):
+                                st.success(f"加仓 {anon_id} {bn}股 @¥{cur_price:.2f}")
                                 st.rerun()
 
                 # 护城河松动警告（调用 check_moat）
