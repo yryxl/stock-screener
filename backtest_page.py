@@ -224,14 +224,38 @@ def render_backtest_page():
 
         st.markdown("---")
         st.caption("📅 数据范围：2001年1月 ~ 2025年12月（部分股票上市晚，早期月份无数据会自动跳过）")
+
+        # 年/月：用按钮控制，不用 number_input（避免 widget key 覆盖 session_state）
+        # 之前用 st.number_input(key="bty") 绑定 bt_year，导致前进/后退/播放按钮改了
+        # bt_year 后被 widget rerun 时的旧值覆盖回去 —— 所有按钮都失效。
         c1, c2 = st.columns(2)
         with c1:
-            st.session_state["bt_year"] = st.number_input(
-                "年", 2001, 2025, st.session_state["bt_year"], key="bty",
-                help="回测数据从 2001 年开始（茅台等老股票）"
-            )
+            st.markdown("**年**")
+            yc1, yc2, yc3 = st.columns([1, 2, 1])
+            with yc1:
+                if st.button("−", key="yr_dec"):
+                    st.session_state["bt_year"] = max(2001, st.session_state["bt_year"] - 1)
+                    st.rerun()
+            with yc2:
+                st.markdown(f"<div style='text-align:center;font-size:20px;padding:4px 0;'>{st.session_state['bt_year']}</div>", unsafe_allow_html=True)
+            with yc3:
+                if st.button("+", key="yr_inc"):
+                    st.session_state["bt_year"] = min(2025, st.session_state["bt_year"] + 1)
+                    st.rerun()
         with c2:
-            st.session_state["bt_month"] = st.number_input("月", 1, 12, st.session_state["bt_month"], key="btm")
+            st.markdown("**月**")
+            mc1, mc2, mc3 = st.columns([1, 2, 1])
+            with mc1:
+                if st.button("−", key="mo_dec"):
+                    st.session_state["bt_month"] = max(1, st.session_state["bt_month"] - 1)
+                    st.rerun()
+            with mc2:
+                st.markdown(f"<div style='text-align:center;font-size:20px;padding:4px 0;'>{st.session_state['bt_month']}</div>", unsafe_allow_html=True)
+            with mc3:
+                if st.button("+", key="mo_inc"):
+                    st.session_state["bt_month"] = min(12, st.session_state["bt_month"] + 1)
+                    st.rerun()
+
         st.session_state["bt_speed"] = st.select_slider("⏩ 倍速", [1, 2, 5], st.session_state.get("bt_speed", 1))
 
         # 历史战绩
