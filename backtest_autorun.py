@@ -35,6 +35,35 @@ from backtest_engine import (
 
 
 # ============================================================
+# 0. 策略模式切换（用于 A/B 对比实验）
+# ============================================================
+# 控制 backtest_autorun 在三种规则下运行，便于回测对照：
+#
+#   "baseline" - 当前精简版 D（commit 4320375 起作为 baseline）
+#                4 条规则：MAX=10、个股 PE>fair_high×1.2 否决、
+#                市场极热统一减仓 25%、保留小资金兜底
+#
+#   "path_a"   - 取消"市场极热减仓 25%"
+#                目的：让模型在大牛市能跟上沪深 300（巴菲特原则
+#                "牛市跟平就够"），代价是 2007/2015 顶部不主动卖
+#                影响：回测的 if market_temp == 2 减仓块整体跳过
+#
+#   "path_b"   - 大底加仓 + 暂停卖出
+#                目的：在沪深 300 历史 PE 分位 ≤ 15%（market_temp=-2）时，
+#                所有买入预算翻倍 + 所有 sell_* 信号忽略
+#                这是巴菲特"在恐惧时贪婪"的具体落地
+#                影响：买入预算 ×2，卖出全部跳过
+#
+#   "path_c"   - path_a + path_b 同时启用
+#                同时具备"取消牛顶减仓"和"大底加仓+暂停卖出"两种行为
+#                A 和 B 是正交的（一个解决牛顶不该卖、一个解决熊底要重仓）
+#
+# 切换方式：在 if __name__ == "__main__" 处设置 STRATEGY_MODE
+# 或 import 时通过 backtest_autorun.STRATEGY_MODE = "path_a" 修改
+STRATEGY_MODE = "path_c"  # 默认 path_c（2026-04-12 经 A/B/C 对比实验确认最优）
+
+
+# ============================================================
 # 1. 参数常量
 # ============================================================
 # -------- 仓位参数 --------
@@ -336,13 +365,23 @@ def compute_market_pe_median(signals):
     return pes[len(pes) // 2]
 
 
-def run_backtest(start_year, start_month, initial_capital=100000, verbose=True, subset_ids=None):
+def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
+                 subset_ids=None,
+                 initial_random_n_stocks=0,
+                 initial_random_seed=42,
+                 initial_random_cash_pct=0.20,
+                 initial_stock_ids=None):
     """
     严格按选股模型执行，返回统计结果
 
     Args:
       subset_ids: 可选的股票 ID 子集（如 ['S01','S05',...]），
                   用于多批次不重叠抽样回测。None 时用全股票池。
+      initial_random_n_stocks: 随机初始化股票数量。
+                  0 (默认) = 纯现金启动
+                  >0 = 在起始月随机抽 N 只股票等值建仓，模拟"半路接管"
+      initial_random_seed: 随机种子，固定后结果可复现
+      initial_random_cash_pct: 初始现金比例（0.20 表示 20% 现金 + 80% 股票）
     """
     stocks = load_stock_list(subset_ids=subset_ids)
     anon_map = generate_anonymous_map(list(stocks.keys()), seed=42)
@@ -355,6 +394,75 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True, 
     total_dividends = 0
     monthly_values = []
     market_pe_history = []  # 历史中位数 PE 序列（市场温度计）
+
+    # ---- 半路接管：配置初始持仓 ----
+    # 模拟用户已经持有一些股票后才用模型的真实场景
+    # 模型从这里开始接管，可能立即卖掉它认为高估的股票
+    #
+    # 两种模式：
+    #   initial_stock_ids 传入固定 sid 列表 → 指定质量初始化（好股/垃圾/普通）
+    #   initial_random_n_stocks > 0 且无 ids → 随机抽样初始化
+    if initial_random_n_stocks > 0 or initial_stock_ids:
+        init_signals = get_month_signals(
+            start_year, start_month, anon_map=anon_map, industry_map={}, subset_ids=subset_ids
+        )
+
+        if initial_stock_ids:
+            # 指定质量初始化：用传入的 sid 列表，只保留当月有价格的
+            picked_sids = [
+                sid for sid in initial_stock_ids
+                if any(sd["sid"] == sid and sd.get("price", 0) > 0
+                       for sd in init_signals.values())
+            ]
+        else:
+            # 随机抽样初始化
+            valid_sids = [
+                sdata["sid"] for sdata in init_signals.values()
+                if sdata.get("price", 0) > 0
+            ]
+            rng = random.Random(initial_random_seed)
+            picked_sids = rng.sample(valid_sids, min(initial_random_n_stocks, len(valid_sids)))
+
+        if len(picked_sids) >= 1:
+            stock_budget_total = initial_capital * (1 - initial_random_cash_pct)
+            per_stock_budget = stock_budget_total / len(picked_sids)
+
+            for sid in picked_sids:
+                # 找到 sdata
+                sdata = None
+                for sd in init_signals.values():
+                    if sd["sid"] == sid:
+                        sdata = sd
+                        break
+                if not sdata:
+                    continue
+                price = sdata.get("price", 0) or 0
+                if price <= 0:
+                    continue
+                # 滑点
+                exec_price = price * (1 + SLIPPAGE_RATE)
+                shares = int(per_stock_budget / exec_price // 100) * 100
+                if shares < 100:
+                    continue
+                code = stocks[sid]["code"]
+                buy_cost, fee = calc_buy_cost(exec_price, shares, code, start_year, start_month)
+                if buy_cost > cash:
+                    continue
+                cash -= buy_cost
+                total_fees += fee
+                # 找 anon
+                anon = sdata.get("anon")
+                for a, sd in init_signals.items():
+                    if sd["sid"] == sid:
+                        anon = a
+                        break
+                holdings[sid] = {
+                    "shares": shares, "cost": exec_price, "anon": anon, "code": code,
+                    "buy_year": start_year, "buy_month": start_month,
+                }
+                trade_log.append(
+                    f"{start_year}-{start_month:02d} 【初始配置】{anon} {shares}股 @¥{exec_price:.2f} 花费¥{buy_cost:.0f}"
+                )
 
     year, month = start_year, start_month
     while year < 2025 or (year == 2025 and month <= 12):
@@ -408,8 +516,16 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True, 
         #   后续牛市恢复阶段没买回来。回滚为统一 25% 的原版策略。
         sids_to_sell = []
 
+        # 路径 B / C 大底加仓 + 暂停卖出：market_temp == -2 时跳过所有卖出
+        # 巴菲特原话："Be greedy when others are fearful."
+        # 在历史最低 15% 分位区间，任何卖出都是错的
+        skip_all_sells_for_path_b = (
+            STRATEGY_MODE in ("path_b", "path_c") and market_temp == -2
+        )
+
         # 市场极热系统性减仓（每持仓每年一次）
-        if market_temp == 2:
+        # 路径 A / C 取消此规则：让模型在牛市能跟得上沪深 300
+        if market_temp == 2 and STRATEGY_MODE not in ("path_a", "path_c"):
             for sid, h in list(holdings.items()):
                 if h.get("sys_reduce_year") == year:
                     continue  # 今年已经减过了
@@ -427,6 +543,7 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True, 
                         )
                         h["sys_reduce_year"] = year
 
+        # 路径 B 大底时跳过所有 PE 类卖出（保留退市/护城河松动那种"必须卖"）
         for sid, h in list(holdings.items()):
             sdata_match = None
             for a, sdata in signals.items():
@@ -438,6 +555,12 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True, 
 
             sig = sdata_match.get("signal", "")
             price = sdata_match.get("price", 0) or 0
+
+            # 路径 B 大底逻辑：跳过所有 PE 类卖出信号（退市/护城河仍要卖）
+            if skip_all_sells_for_path_b and sig in (
+                "sell_heavy", "sell_medium", "sell_light", "sell_watch"
+            ):
+                continue
 
             # 退市 → 清仓
             if sig == "delisted" or price <= 0:
@@ -583,7 +706,13 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True, 
 
             # 按信号强度分配预算 × 温度系数（别人贪婪时我恐惧）
             # 温度系数只在 -2/-1/0 档生效，+1/+2 档已被硬性规则拦截
-            temp_multiplier = {-2: 1.30, -1: 1.15, 0: 1.0, 1: 0.80, 2: 0.60}.get(market_temp, 1.0)
+            #
+            # 路径 B / C 大底加仓：market_temp == -2 时预算翻倍（1.30 → 2.00）
+            # 这是巴菲特"别人恐惧时我贪婪"的具体落地
+            if STRATEGY_MODE in ("path_b", "path_c") and market_temp == -2:
+                temp_multiplier = 2.00
+            else:
+                temp_multiplier = {-2: 1.30, -1: 1.15, 0: 1.0, 1: 0.80, 2: 0.60}.get(market_temp, 1.0)
             if sig == "buy_heavy":
                 budget = investable_cash * BUDGET_HEAVY * temp_multiplier
                 sig_name = "重仓买入"
