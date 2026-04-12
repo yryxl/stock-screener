@@ -161,9 +161,16 @@ def check_watchlist(config, quotes_df):
                 signal = "hold"
                 signal_text = f"财务风险({health_warning})，继续观望"
 
-            # 清单3：基本面恶化
+            # 清单3：基本面恶化（传入真实 PE 和 PB）
             if signal and "buy" in signal:
-                is_healthy, problems = check_fundamental_health(code)
+                real_pb = None
+                if quotes_df is not None and not quotes_df.empty and "市净率" in quotes_df.columns:
+                    _qrow = quotes_df[quotes_df["代码"] == code]
+                    if not _qrow.empty:
+                        _pb_val = pd.to_numeric(_qrow.iloc[0].get("市净率"), errors="coerce")
+                        if not pd.isna(_pb_val):
+                            real_pb = float(_pb_val)
+                is_healthy, problems = check_fundamental_health(code, pe=pe_val, pb=real_pb)
                 if is_healthy is not None and not is_healthy:
                     signal = "hold"
                     signal_text = f"基本面恶化({','.join(problems[:2])})，继续观望"

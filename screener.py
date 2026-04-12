@@ -535,8 +535,10 @@ def check_holdings_sell_signals(holdings, config, market_temp_level=0):
         if cost_price > 0 and not pd.isna(price) and price > 0:
             holding_pnl = (price / cost_price - 1) * 100
             if holding_pnl <= -30:
-                # 亏损超30%，检查基本面
-                is_healthy, problems = check_fundamental_health(code)
+                # 亏损超30%，检查基本面（传入真实 PE 和 PB）
+                real_pb = pd.to_numeric(row.get("市净率"), errors="coerce") if "市净率" in quotes_df.columns else None
+                real_pb = real_pb if real_pb and not pd.isna(real_pb) else None
+                is_healthy, problems = check_fundamental_health(code, pe=pe, pb=real_pb)
                 if is_healthy is not None and not is_healthy:
                     signal = "true_decline"
                     signal_text = f"亏损{holding_pnl:.0f}%+基本面恶化({','.join(problems[:2])})→护城河可能消失，建议止损"
@@ -853,8 +855,14 @@ def check_watchlist_financial_health(code, industry=""):
 # 真假下跌判断
 # ============================================
 
-def check_fundamental_health(code):
-    """检查公司基本面是否健康（用于区分真假下跌）"""
+def check_fundamental_health(code, pe=None, pb=None):
+    """
+    检查公司基本面是否健康（用于区分真假下跌）
+
+    Args:
+      pe: 当前 PE(TTM)，用于规则 8 的 ROE-PB 背离检查
+      pb: 当前市净率（真实值，优先使用；None 时用 PE×ROE/100 近似）
+    """
     df = get_financial_indicator(code)
     if df is None:
         return None, []
@@ -955,45 +963,36 @@ def check_fundamental_health(code):
     # 8. ROE-PB 背离检查（ROE 下降但 PB 不降 = 死猫反弹/虚假拉升）
     #
     # 原理：健康公司的 PB 应该由 ROE 支撑。
-    #   ROE 高 → 赚钱能力强 → 市场给高 PB → 合理
     #   ROE 下降 → 赚钱能力衰退 → PB 应该跟着降
     #   如果 ROE 下降但 PB 反升 → 市场在"拉估值"，不是在"跟业绩"
-    #   → 这种拉升是假象，后续大概率回落
     #
-    # 实证：万科 2025（ROE=-21.8%，PB 短暂反弹后继续暴跌）
-    #       格力 2019（ROE 37→33%，PB 2.9→4.1，后续 ROE 跌到 19%）
-    #
-    # 用 PE(TTM) × ROE / 100 近似算 PB（误差可接受，验证过走势吻合）
-    # 需要至少 2 年数据。df_annual 是 latest-first 排序。
+    # 正式版：优先用真实 PB（stock_zh_a_spot_em 的"市净率"字段），
+    #         没有时才用 PE × ROE / 100 近似
     if roe_series is not None and len(roe_series) >= 2:
-        pe_col = find_column(df_annual, ["市盈率", "PE"])
-        if pe_col is None:
-            # 用动态 PE 数据（从 get_pe_ttm 拿，但 check_fundamental_health 里没有）
-            # 退而求其次：用净利率 × 每股收益反算
-            pass
-        else:
-            pe_series = pd.to_numeric(df_annual[pe_col], errors="coerce").dropna()
-            if len(pe_series) >= 2 and len(roe_series) >= 2:
-                # 近似 PB = PE × ROE / 100
-                latest_roe_8 = float(roe_series.iloc[0])
-                prev_roe_8 = float(roe_series.iloc[1])
-                latest_pe_8 = float(pe_series.iloc[0])
-                prev_pe_8 = float(pe_series.iloc[1])
+        latest_roe_8 = float(roe_series.iloc[0])
+        prev_roe_8 = float(roe_series.iloc[1])
 
-                if prev_roe_8 > 0 and latest_roe_8 > 0:
-                    latest_pb = latest_pe_8 * latest_roe_8 / 100
-                    prev_pb = prev_pe_8 * prev_roe_8 / 100
+        if prev_roe_8 > 0 and latest_roe_8 > 0:
+            roe_drop = prev_roe_8 - latest_roe_8  # 正值 = ROE 下降
 
-                    roe_drop = prev_roe_8 - latest_roe_8  # 正值 = ROE 下降
-                    pb_change = latest_pb - prev_pb         # 正值 = PB 上升
+            # 当前 PB：优先用传入的真实值，否则近似
+            if pb is not None and pb > 0:
+                current_pb = pb
+                pb_source = "真实"
+            elif pe is not None and pe > 0:
+                current_pb = pe * latest_roe_8 / 100
+                pb_source = "近似"
+            else:
+                current_pb = None
+                pb_source = ""
 
-                    # 触发条件：ROE 下降 ≥ 3pp 且 PB 不降（上升或基本持平）
-                    if roe_drop >= 3 and pb_change > -0.1:
-                        problems.append(
-                            f"ROE-PB背离（ROE从{prev_roe_8:.1f}%降至{latest_roe_8:.1f}%，"
-                            f"但PB从{prev_pb:.2f}升至{latest_pb:.2f}，"
-                            f"估值拉升可能是假象）"
-                        )
+            if current_pb is not None and roe_drop >= 3 and current_pb > 1.5:
+                # ROE 下降 ≥ 3pp 且 PB 仍高 → 警告
+                problems.append(
+                    f"ROE-PB背离（ROE从{prev_roe_8:.1f}%降至{latest_roe_8:.1f}%，"
+                    f"但PB={current_pb:.2f}仍偏高（{pb_source}），"
+                    f"估值拉升可能是假象）"
+                )
 
     is_healthy = len(problems) == 0
     return is_healthy, problems if problems else healthy
@@ -1030,8 +1029,15 @@ def check_decline_signals(stock_list, quotes_df):
 
         print(f"  {name}({code}) 下跌{change_pct:.1f}%，分析真假...")
 
-        # 检查基本面
-        is_healthy, details = check_fundamental_health(code)
+        # 检查基本面（传入 PE 和 PB）
+        _pb_decline = None
+        if "市净率" in quotes_df.columns:
+            _pb_val = pd.to_numeric(row.get("市净率"), errors="coerce")
+            if not pd.isna(_pb_val):
+                _pb_decline = float(_pb_val)
+        pe_decline = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
+        pe_decline = float(pe_decline) if not pd.isna(pe_decline) else None
+        is_healthy, details = check_fundamental_health(code, pe=pe_decline, pb=_pb_decline)
         if is_healthy is None:
             continue
 
