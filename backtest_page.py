@@ -550,6 +550,42 @@ def render_backtest_page():
     st.markdown("---")
     st.caption(f"🧪 回测模式 | 第{len(st.session_state.get('bt_game_history',[]))+1}局 | {len(st.session_state.get('bt_trade_log',[]))}笔交易")
 
+    # 保存本局操作数据（供分析用）
+    trade_log = st.session_state.get("bt_trade_log", [])
+    if trade_log:
+        import json as _json
+        save_data = {
+            "game_number": len(st.session_state.get("bt_game_history", [])) + 1,
+            "initial_capital": st.session_state.get("bt_initial_capital", 100000),
+            "current_cash": st.session_state.get("bt_cash", 0),
+            "current_year": st.session_state.get("bt_year"),
+            "current_month": st.session_state.get("bt_month"),
+            "holdings": [
+                {
+                    "anon": h["anon"],
+                    "shares": h["shares"],
+                    "cost": h["cost"],
+                }
+                for h in st.session_state.get("bt_holdings", [])
+            ],
+            "portfolio_value": portfolio_value,
+            "total_value": st.session_state.get("bt_cash", 0) + portfolio_value,
+            "pnl_pct": round(
+                ((st.session_state.get("bt_cash", 0) + portfolio_value)
+                 / st.session_state.get("bt_initial_capital", 100000) - 1) * 100, 2
+            ),
+            "trade_log": trade_log,
+            "watchlist": st.session_state.get("bt_watchlist_bt", []),
+        }
+        save_json = _json.dumps(save_data, ensure_ascii=False, indent=2)
+        st.download_button(
+            "💾 保存本局操作数据（供分析）",
+            data=save_json,
+            file_name=f"backtest_game_{save_data['game_number']}.json",
+            mime="application/json",
+            use_container_width=True,
+        )
+
     # 自动播放（使用 st.empty 占位 + 倒计时重跑）
     # 之前放在文件末尾用 time.sleep + st.rerun，但 Streamlit Cloud 上
     # sleep 会被 session timeout 打断导致播放无效。
