@@ -8,49 +8,30 @@
 
 **项目名称**：A 股选股与回测系统（stock_screener）
 
-**项目目标**：按巴菲特/芒格价值投资理念，构建一个"选股模型 + 回测验证"系统。用户需要：
+**项目目标**：按巴菲特/芒格价值投资理念，构建一个"选股模型 + 回测验证 + ETF 监测"系统。用户需要：
 1. **实时选股模型**：每天扫描关注的股票，给出买入/卖出/持有等多档信号
-2. **回测模型**：用 15 年历史数据验证选股模型的准确性
+2. **回测模型**：用 25 年历史数据验证选股模型的准确性
+3. **ETF 估值监测**：持仓 ETF 的跟踪指数 PE 分位 + 股债利差判定
+4. **浮盈三维评估**：防止机械减仓 / 必须割肉 / 牛顶提醒
 
-**项目性质**：这**不是**一个追求高收益的量化交易系统，而是一个**辅助价值投资决策**的工具。收益率是次要的，**信号准确度和宁可错过不可犯错**才是核心。
+**项目性质**：这**不是**一个追求高收益的量化交易系统，而是一个**辅助价值投资决策**的工具。信号准确度和"宁可错过不可犯错"才是核心。
 
 ---
 
 ## 二、用户画像（必读）
 
-**用户角色**：普通散户投资者，不是专业量化交易员，**不是巴菲特/芒格级别的投资者**。
-
-**用户的技术水平**：
-- **不懂编程**，看不懂英文代码术语（如 `sell_heavy`、`buy_light`、`TODO`、`bug`）
-- 看得懂中文自然语言
-- 能理解投资相关的中文术语（市盈率、净资产收益率、护城河、大量卖出、轻仓买入等）
+**用户角色**：普通散户投资者，不是专业量化交易员。
 
 **沟通偏好**：
-- **汇报一律用中文**，所有英文代码术语都必须翻译：
-  - `buy_heavy` → 重仓买入
-  - `buy_medium` → 中仓买入  
-  - `buy_light` → 轻仓买入
-  - `sell_heavy` → 大量卖出
-  - `sell_medium` → 适当卖出（明显偏高）
-  - `sell_light` → 关注卖出（偏高）
-  - `hold` → 继续观望
-  - `TODO/pending/in_progress` → 待办/进行中/已完成
-- 即使在"修复方向说明"、"规则解释"、"举例"里也不能出现英文代码术语
-- 表格里的列名也要中文
+- **汇报一律用中文**，所有英文代码术语都必须翻译（`sell_heavy` → 大量卖出，`buy_light` → 轻仓买入 等）
+- 即使在修复说明、规则解释、举例里也不能出现英文代码术语
 - **已经两次因为这个被用户提醒过**，必须严格遵守
-
-**决策风格**：
-- 用户会提问题、给方向，让 AI 做分析和实现
-- 用户会选多选题（如 "1、修改 / 2、不改 / 3、其他"）
-- 用户不喜欢 AI 擅自扩大工作范围，做完一件事就汇报、等指令
-- 对历史原话看重——查理·芒格、巴菲特的原话会反复引用作为决策依据
-- 期望 AI 在有依据的情况下（例如查证原文）做主动建议
 
 **核心原则**（用户反复强调）：
 1. **宁可错过好股票，也不能买错**（芒格原话）
-2. **宁可少赚也不能犯错赔钱**
-3. **净资产收益率是核心，其他指标是辅助**（巴菲特 1979 年致股东信）
-4. **长期持有，买后除非明确卖出信号不动**
+2. **净资产收益率是核心**（巴菲特 1979 年致股东信）
+3. **长期持有，买后除非明确信号不动**
+4. **宽基 ETF 不是类固收**，仍计入股票仓位
 
 ---
 
@@ -58,98 +39,196 @@
 
 ```
 G:/Claude Code/ask/stock_screener/
+├── app.py                   # Streamlit 前端界面（4 个 tab）
 ├── screener.py              # 实时选股模型（前端用）
-├── app.py                   # Streamlit 前端界面
+├── live_rules.py            # 纯规则函数（从 backtest_engine 镜像）
 ├── backtest_engine.py       # 回测评估引擎（信号生成+护城河检查）
-├── backtest_collector.py    # 历史数据采集脚本
-├── backtest_autorun.py      # 回测主程序（买卖逻辑+多档本金对比）
-├── backtest_page.py         # 前端回测页面
-├── data_fetcher.py          # 数据获取辅助
-├── data_cache.py            # 数据缓存
-├── scorer.py                # 评分器
-├── debug_model.py           # 调试工具
-├── main.py                  # 主入口
-├── notifier.py              # 通知
-├── config.yaml              # 配置
+├── backtest_collector.py    # 历史数据采集脚本（支持 --new-only 增量）
+├── backtest_autorun.py      # 回测主程序（买卖逻辑+多档本金+path_c策略）
+├── backtest_page.py         # 前端回测页面（互动式历史回测）
+├── etf_monitor.py           # ETF 估值监测模块（双通道数据源）
+├── market_temperature.py    # 实时市场温度计（沪深300 PE 分位）
+├── data_fetcher.py          # 数据获取（含 get_stock_industry 缓存）
+├── scorer.py                # 评分器（5维度打分）
+├── main.py                  # 主入口（每日 Cron 调用）
+├── notifier.py              # 微信推送
+├── import_csindex_xls.py    # 中证官网 XLS 估值导入脚本
 │
-├── backtest_stocks.json     # 股票池定义（70 只）
-├── backtest_events.json     # 脱敏事件（给前端的匿名事件）
-├── holdings.json            # 当前持仓
+├── backtest_stocks.json     # 股票池定义（90 只）
+├── etf_index_map.json       # ETF 代码 → 跟踪指数映射表
+├── holdings.json            # 当前真实持仓
 ├── watchlist.json           # 关注列表
-├── daily_results.json       # 每日扫描结果
-├── market_scan_cache.json   # 市场扫描缓存
+├── daily_results.json       # 每日扫描结果（含 ETF 信号+浮盈评估）
+├── stock_industry_cache.json # 个股行业缓存
 │
-├── MODEL_RULES.md           # ★ 模型完整规则清单（Markdown）
-├── model_rules.html         # ★ 模型规则清单（HTML 美化版）
+├── config.yaml              # 配置（微信推送等）
+├── MODEL_RULES.md           # 模型完整规则清单
 ├── HANDOVER.md              # ★ 本文档
-├── PROJECT_KNOWLEDGE.md     # 项目背景知识
-├── 操作指南.md              # 用户操作说明
 │
 ├── backtest_data/
-│   ├── raw_S01.json ~ raw_S70.json   # 70 只股票的原始数据
-│   └── monthly/2010-01.json ~ 2025-12.json  # 月度快照（共 192 个）
+│   ├── raw_S01.json ~ raw_S90.json   # 90 只股票的原始数据
+│   ├── monthly/2001-01.json ~ 2025-12.json  # 月度快照（300 个）
+│   └── etf_valuation/                # ETF 跟踪指数估值历史
+│       ├── 000300.json               # 沪深300（乐股网全历史 5000+ 条）
+│       ├── H30269.json               # 红利低波（反推 1200+ 条）
+│       ├── 000015.json               # 上证红利（反推 1200+ 条）
+│       └── ...
 │
-├── snapshots/                # 每日扫描快照
-└── .claude/settings.local.json  # Claude 配置
+├── backtest_games/          # 用户回测操作记录（自动 push 到 GitHub）
+├── backtest_compare_4modes.json  # 4 策略模式对比数据
+├── backtest_init_quality.json    # 6 种初始质量对比数据
+│
+├── run_random_init_compare.py    # 随机半路接管回测脚本
+├── run_init_quality_compare.py   # 6 种初始质量对比脚本
+│
+├── snapshots/               # 每周扫描快照
+└── .github/workflows/daily_screen.yml  # GitHub Actions 每日自动运行
 ```
-
-**关键文件优先级**（接手时按顺序看）：
-1. `HANDOVER.md`（本文档）
-2. `MODEL_RULES.md`（规则清单）
-3. `model_rules.html`（可视化版本）
-4. `backtest_engine.py` 的 `check_moat_normal`、`evaluate_stock`、`get_cash_flow_warnings`
-5. `backtest_autorun.py` 的 `run_backtest`、`apply_dividends`
-6. `screener.py` 的 `check_holdings_sell_signals`、`check_fundamental_health`
 
 ---
 
-## 四、环境依赖
+## 四、回测策略模式（path_c，当前默认）
 
-### Python 环境
-- Python 3.10+（有 f-string 和类型注解）
-- 运行平台：Windows（但代码使用正斜杠路径，跨平台兼容）
+`backtest_autorun.py` 的 `STRATEGY_MODE` 支持 4 种模式：
 
-### 关键依赖库
-```bash
-pip install akshare pandas numpy streamlit
-```
+| 模式 | 规则 | 均值（¥100万） |
+|---|---|---|
+| baseline | 原版4规则 | +105.0% |
+| path_a | 取消牛顶减仓 | +111.9% |
+| path_b | 大底加仓+暂停卖出 | +124.6% |
+| **path_c** | **A+B 同时启用** | **+133.9%** |
 
-- `akshare`：A 股数据接口（免费，基于爬虫，偶尔会失效）
-- `pandas` / `numpy`：数据处理
-- `streamlit`：前端展示
+**path_c 两条规则**：
+1. **取消"市场极热统一减仓 25%"**：牛市不主动卖出，跟上涨幅
+2. **大底加仓**：市场温度=-2（沪深300 PE 历史15%分位以下）时买入预算×2 + 跳过所有 PE 类卖出
 
-### 数据来源
-- **月度价格**：新浪（`ak.stock_zh_a_daily`）
-- **PE(TTM) 历史**：百度（`ak.stock_zh_valuation_baidu`）
-- **财务指标**：同花顺（`ak.stock_financial_abstract_ths`）
-- **分红历史**：东方财富（`ak.stock_history_dividend_detail`）
+**巴菲特 1957 letter 对标**：
+> "I would consider a year in which we declined 15% and the Average 30% to be much superior to a year when both we and the Average advanced 20%."
 
-**重要**：akshare 接口可能因源网站改版而失效。重新采集数据时要注意。
+**git tag**：`baseline-2026-04-11` 指向修改前的 commit，可随时回滚对比。
 
 ---
 
-## 五、如何运行
+## 五、ETF 监测模块
 
-### 重新采集全部 70 只股票的历史数据
+### 数据源双通道
+- **宽基**（沪深300/上证50/中证500）：乐股网 `stock_index_pe_lg`，15-21 年全历史
+- **策略/行业**（红利低波/上证红利）：中证官网 + 反推法一次性补齐 5 年历史
+
+### 反推法（PE / 收盘价 比值反推）
+- 用 indicator.xls（20 条真 PE）+ perf.xlsx（5 年收盘价）
+- 验证 PE/close 比值变异系数 < 0.05%，反推误差 < 0.1%
+- 反推值标记 `source="csindex_xls_derived"`，akshare 真值优先保留
+- 导入脚本：`import_csindex_xls.py`
+
+### 浮盈三维评估（etf_monitor.evaluate_sell_meaningfulness）
+
+| 优先级 | 触发条件 | 动作 |
+|---|---|---|
+| Level 1 致命 | signal=true_decline/moat_broken | must_sell=True（即使割肉） |
+| Level 2 牛顶 | 大盘温度=2 + 浮盈≥10% | bull_top_alert=True |
+| Level 3 预警 | 大盘温度=1 + 浮盈≥30% | 准备减仓 |
+| Level 4 估值 | 单股 sell_* 信号 | 按浮盈区间判定 |
+
+### ⚠ 重要提醒
+- **宽基 ETF 不是类固收**（写死在代码注释+前端 warning 里）
+- 2008 年标普500跌37%、2015 年沪深300半年跌43%
+- `stock_zh_a_spot_em` **不返回行业字段**，行业必须用 `get_stock_industry`
+
+---
+
+## 六、已知 bug 修复记录（重要经验）
+
+### latest-first 序列方向
+年报数据是 latest-first 排序。"连续下滑"的正确条件是 `values[0] < values[1] < values[2]`（最新<次新<最老）。写反会把"回升"误判为"下滑"。已在 `check_fundamental_health` 规则 6 和 `check_moat_live` 规则 3 修复过。
+
+### 个股行业获取
+`ak.stock_zh_a_spot_em` 不返回"所属行业"字段。必须用 `data_fetcher.get_stock_industry(code)` → `ak.stock_individual_info_em`，带本地持久化缓存 `stock_industry_cache.json`。
+
+### 持仓加仓门槛
+buy_add 信号必须过 `is_king`（十年王者）或 `is_good_quality_live`（5年ROE≥20%+毛利≥30%）门槛。不能只看 PE 低就给加仓建议。巴菲特："Don't add to the average. Add only to winners."
+
+### Streamlit HTML 渲染
+`st.markdown` 里不能用 `f"""多行HTML"""`（4格缩进会被 Markdown 当成代码块）。必须用 `f''` 单行字符串拼接。
+
+### Streamlit widget key 覆盖 session_state
+`st.number_input(key="xxx")` 在 rerun 时会用 widget 旧值覆盖 session_state。回测页的前进/后退/播放按钮因此全部失效过。解决：改成纯展示 + 独立按钮，不用 widget 绑定 session_state。
+
+---
+
+## 七、GitHub Actions 自动化
+
+### 每日 Cron 时间表（UTC）
+- 18:30 / 01:00 / 04:00 / 09:00 / 10:00
+
+### 自动执行的任务
+1. 按时段判断运行模式（full/send_ai/holdings/watchlist）
+2. 运行 `main.py --mode xxx --force`
+3. curl ping Streamlit 防止休眠
+4. 提交 daily_results.json / watchlist.json / snapshots/ / backtest_games/ 到 GitHub
+
+### Token 权限限制
+Personal Access Token 没有 `workflow` scope，无法通过 git push 修改 `.github/workflows/` 目录。修改 workflow 文件必须在 GitHub 网页上操作。
+
+---
+
+## 八、前端结构（app.py 4 个 tab）
+
+| Tab | 功能 |
+|---|---|
+| 模型推荐 | 全市场扫描结果（每周一自动更新） |
+| 持仓管理 | 6只持仓 + 组合分类四色卡片 + 浮盈评估 + 三类提醒 |
+| 重点关注表 | 11只关注股 + PE区间 + 评分 + 股息率 |
+| ETF 监测 | 5只ETF的指数PE/分位/温度/浮盈/买卖信号 |
+
+### 回测页（backtest_page.py）
+- 互动式历史回测：前进/后退/播放/暂停
+- 虚拟买入/卖出 + ⭐加入关注表
+- 💾下载到本地 / ☁️保存到云端（backtest_games/）
+
+---
+
+## 九、Claude 记忆系统
+
+记忆文件在 `C:\Users\Administrator\.claude\projects\G--Claude-Code-ask\memory\`：
+
+| 文件 | 内容 |
+|---|---|
+| feedback_chinese_only.md | 禁用英文代码术语 |
+| project_principles.md | 宁可错过不犯错、ROE 15%合格20%卓越 |
+| project_etf_module.md | ETF 监测双通道数据源 |
+| feedback_etf_risk.md | 宽基ETF不是类固收 |
+| project_stock_industry_source.md | 行业字段必须用 stock_individual_info_em |
+| feedback_latest_first_direction.md | latest-first "连续下滑" 是 [0]<[1]<[2] |
+| feedback_only_winners_add.md | buy_add 必须过 is_king 或 is_good_quality |
+| handover_location.md | HANDOVER.md 位置 |
+
+**如果换了 AI/账号**：记忆不会跟过来，但本 HANDOVER.md 已包含所有必要信息。
+
+---
+
+## 十、如何运行
+
+### 采集全部 90 只股票的历史数据
 ```bash
-cd stock_screener
-python backtest_collector.py
+python backtest_collector.py           # 全量（约 30 分钟）
+python backtest_collector.py --new-only # 增量（只拉缺失的）
 ```
-耗时约 10-15 分钟。会重建 `backtest_data/raw_S*.json` 和 `backtest_data/monthly/*.json`。
 
-### 跑回测（默认 3 个随机起始时间 × 4 档本金）
+### 跑回测
 ```bash
-python backtest_autorun.py
+python backtest_autorun.py                    # 默认 3 个随机起点
+python backtest_autorun.py --suite 10         # 10 个随机起点
+python backtest_autorun.py 2019 11            # 指定起点
+python run_init_quality_compare.py            # 6 种初始质量对比
+python run_random_init_compare.py             # 随机半路接管对比
 ```
 
-### 跑指定起始时间的单次回测
+### 导入 ETF 历史估值
 ```bash
-python backtest_autorun.py 2019 11
-```
-
-### 跑 10 个随机起始时间做稳定性测试
-```bash
-python backtest_autorun.py --suite 10
+# 1. 从中证官网下载 indicator.xls + perf.xlsx
+# 2. 放到 backtest_data/etf_valuation_import/
+python import_csindex_xls.py
 ```
 
 ### 启动前端
@@ -157,210 +236,49 @@ python backtest_autorun.py --suite 10
 streamlit run app.py
 ```
 
----
-
-## 六、工作流程（AI 必读）
-
-### 接到新任务时
-1. **先看 HANDOVER.md 和 MODEL_RULES.md**，了解项目状态
-2. **读相关的代码**（不要凭猜测改代码）
-3. **做小步改动**，每次改动后跑一次回测验证
-4. **向用户汇报**时用中文，不用英文代码术语
-5. **让用户决定方向**，不要擅自扩大工作范围
-
-### 每次改动规则后
-必须用以下配置验证：
+### 每日运行（GitHub Actions 自动）
 ```bash
-python backtest_autorun.py              # 默认 3 个时间点
-# 或
-python backtest_autorun.py --suite 10   # 10 个时间点（批量稳定性测试）
+python main.py --mode all --force
 ```
 
-**4 档本金固定为**：1 万 / 10 万 / 50 万 / 100 万（用户明确要求，不要擅自改）
+---
 
-### 汇报格式
-- 用表格对比"改动前 vs 改动后"
-- 列出具体案例（哪只股票、哪个时间点、判断对不对）
-- 最后给用户选项（让他选下一步）
+## 十一、工作流程（AI 必读）
+
+### 接到新任务时
+1. 先看 HANDOVER.md 和 MODEL_RULES.md
+2. 读相关代码（不要凭猜测改）
+3. 小步改动，每次改后跑回测验证
+4. 汇报时用中文，不用英文代码术语
+5. 让用户决定方向，不擅自扩大范围
+
+### 4 档本金
+固定为 1万 / 10万 / 50万 / 100万（用户明确要求，不要改）
 
 ### 禁止做的事
 - ❌ 汇报时用英文代码术语
 - ❌ 擅自改默认本金数额
 - ❌ 擅自删除股票池的股票
 - ❌ 修改规则时不验证就提交
-- ❌ 主动提交 git（除非用户明确说"提交"）
-- ❌ 绕过"护城河检查"的硬门槛（所有买入信号必须经过）
+- ❌ 绕过护城河检查的硬门槛
+- ❌ 把宽基 ETF 从权益仓位里剔除
 
 ---
 
-## 七、当前状态（2026-04-10，commit 08ffd6a 之后）
+## 十二、git 历史重要节点
 
-### 股票池：70 只
-覆盖 8 大类别、30+ 行业、价格从 3 元到 1400 元。详见 `backtest_stocks.json`。
-
-### 数据范围：2001-01 到 2025-12（300 个月度快照）
-- 原始财务数据 `backtest_data/raw_*.json`：部分股票可追溯到 1998 年
-- 月度快照 `backtest_data/monthly/*.json`：覆盖 2001-01 ~ 2025-12
-- 老股票（茅台等）2001 年上市就有数据；新股票自上市后才有
-- 回测窗口可以从 2001 年任意月开始，最长可跑 25 年
-
-### 核心规则（详见 MODEL_RULES.md）
-- **周期股完全过滤**（锂电、石油、煤炭、钢铁、稀土、养殖等）
-- **护城河检查 7 条规则**（ROE、毛利率、营收、负债率、现金流）
-- **消费龙头豁免**（ROE ≥ 15% 且毛利率 ≥ 50%）
-- **好公司豁免**（历史 ROE 均值 ≥ 15%）不因"适当卖出"信号清仓
-- **买入净资产收益率下降趋势检查**（避免价值陷阱）
-- **严格按信号买卖**（不加仓、不主观止损）
-- **100 股门槛兜底**（小资金遇到好机会也能买 1 手）
-
-### 费用模型（真实 A 股环境）
-佣金万2.5 + 过户费十万分之一 + 印花税万五/万十 + 股息税差别化 + 滑点 0.2%
-
-### 最近验证结果
-10 个随机起始时间 × 4 档本金 = 40 次回测全部正收益。
-- 均值：1万 +165%、10万 +116%、50万 +109%、100万 +113%
-- 最低 +8.8%（2019-10 起始，疫情+熊市）
-- 最高 +267.8%（2012-01 起始，13.9 年）
-
----
-
-## 八、历史决策记录（关键转折）
-
-按时间顺序排列。每条记录 = 用户要求 + 决策原因 + 实施结果。
-
-### 2026-04-09 之前的工作
-- 建立基础股票池（30 只）
-- 实现基本的 PE 信号、ROE 检查、护城河止损
-- 基础回测引擎
-
-### 2026-04-10 的改动（本次会话）
-**总体背景**：用户发现回测收益看起来不错，但细节分析后发现有很多"卖错、买错"的情况，决定深度重构。
-
-#### 重构 1：回测模型改为"严格按信号"
-- **原因**：用户不是巴菲特，复杂的加仓、主观止损对他没意义
-- **做法**：删除加仓逻辑，买入后除非明确卖出信号/护城河松动/退市，不动
-- **教训**：模型应该简单，复杂的仓位管理会掩盖信号本身的质量
-
-#### 重构 2：数据采集按列名匹配
-- **原因**：原代码用列索引硬编码，银行股列序不同导致全部字段为空
-- **发现的更大问题**：月度快照生成时用错了年份（取第一条而非最新可见）
-- **教训**：akshare 返回的数据默认是升序，不要假设降序
-
-#### 重构 3：周期股反向规则 + 地产独立规则
-- **原因**：模型错杀稀土（底部买入后被判顶部卖出），误判万科
-- **做法**：周期股用 ROE + PE 双重反向判定；地产从 cycle 改为 mature
-- **后续进展**：最终决定周期股**完全不参与**（第 10 点）
-
-#### 重构 4：护城河规则加入现金流维度
-- **原因**：用户问"是否有区分真假盈利（借债美化）"，查证发现缺失
-- **做法**：采集每股经营现金流，加入规则 7（连续 2 年比值 <0.3 判松动）
-- **巴菲特依据**：1979 年致股东信（ROE 要扣除杠杆）+ 1986 年致股东信（股东盈余概念）
-
-#### 重构 5：股票池从 30 只扩到 70 只
-- 第一批 +20 只：多样化覆盖所有类型
-- 第二批 +8 只：低价高分红蓝筹（农行、建行、宝钢等）
-- 第三批 +12 只：低价多样化（长江电力、中国电信、中国广核等）
-- **用户要求**："不然全是低金额全是起手重仓"（小资金体验）
-
-#### 重构 6：消费龙头豁免 + 多维度警示
-- **原因**：五粮液 2014 年被规则 7 误杀（现金流下滑是三公消费限制，不是造假）
-- **做法**：ROE ≥ 15% 且 毛利率 ≥ 50% 的公司豁免规则 7
-- **关键**：豁免后必须输出"重点关注"警示，让用户用多维度自行判断
-- **多维度线索**：ROE 趋势、毛利率趋势、应收账款周转、存货周转、营收同步下滑
-
-#### 重构 7：周期股完全不参与
-- **用户原话**："在筛选清单中加入该条，周期股直接 pass"
-- **做法**：`get_month_signals` 里 `is_cycle` 的股票直接 continue，不返回
-- **保留**：代码里的 `CYCLE_STOCKS_ENABLED` 开关，未来可能改
-- **副作用**：2019-11 1 万本金从 -9.7% 变成 +34.2%（因为不再买牧原股份）
-
-#### 重构 8：好公司的"适当卖出"豁免
-- **原因**：2017-10 茅台被误判"适当卖出"，后续涨到 1400+
-- **做法**：历史 ROE 均值 ≥ 15% 的公司，"适当卖出"信号不触发自动清仓
-- **巴菲特原话**："我从不因 PE 偏高就卖可口可乐"
-
-#### 重构 9：买入机制加 ROE 下降趋势检查
-- **原因**：兴业银行、平安"卖对但买错"，买的是正在走下坡的公司
-- **做法**：近 3 年 ROE 单调下降且总跌幅 ≥ 3pp 时，买入信号降级
-- **价值陷阱定义**：看起来便宜但盈利下滑，越跌越"贵"
-
-#### 重构 10：护城河规则 8（ROE 长期温水煮青蛙）
-- **原因**：用户问"5-10 年 ROE 下降但都在 15% 以上，巴菲特会继续持有吗"
-- **查证**：巴菲特原话"ROE 不是越高越好，而是要稳定且可持续"，持续下降预示护城河被破坏
-- **做法**：近 5 年 ROE 单调下降 + 累计跌幅 ≥ 10pp + **最新 < 20%（卓越线）** → 松动
-- **关键修复**：ROE<20% 的门槛避免了茅台 2017 误判（规模扩大后 ROE 从 45% 自然正常化到 24%，仍是好公司）
-- **commit**：0bd2dae
-
-#### 重构 11：回购加分机制
-- **原因**：用户问"巴菲特是否说过大量回购的公司是伟大公司"
-- **查证**：巴菲特 2020 年股东信原话"苹果的投资生动地说明了回购的力量"；伟大公司特征是"高分红**或**股票回购"
-- **数据层**：采集 A 股全量回购历史（akshare `stock_repurchase_em`），70 只里有 33 只有记录
-- **评分层**：近 5 年累计回购金额 ≥50 亿+15 分、≥10 亿+8 分、≥1 亿+3 分
-- **排序层**：信号强度 > 简单生意 > 回购加分 > 高评分
-- **commit**：691e089
-
-#### 决策 1：回购规则**保持排序维度**，不升级为硬门槛（2026-04-10）
-**问题**：回购加分效果显著（大本金均值 +28pp），是否升级为硬筛选门槛？
-
-**评估结论：不升级**。关键证据：
-1. **时间维度**：2015-06 时点 70 只里只有 1 只有回购（覆盖率 1.4%），硬门槛会毁掉早期回测
-2. **股票维度**：2024-06 仍有 48/70 只无大额回购，包括茅台、五粮液、招商银行、海天、片仔癀、中免、恒瑞、云南白药——**A 股最优质标的全在无回购名单里**
-3. **原话解读**：巴菲特说"高分红**或**回购"——"或"是关键字。茅台靠分红、格力靠回购，都符合巴菲特标准
-
-**给未来 AI 的提醒**：不要再尝试"回购硬门槛"方案。已经评估过并否决。
-- ❌ 禁用：没回购就不能买重仓/中仓
-- ⚠️ 慎用：有回购时升级档位（需要对比测试才能决定是否启用）
-
----
-
-## 九、未来可能的改进方向
-
-1. **周期股二次确认**（代码已保留但禁用）：连续 3 个月都判顶才卖
-2. **盈利质量动态基准**：用近 10 年平均比值做基准，而非固定 0.3
-3. **行业周期对比**：同行业对比，判断公司问题 vs 行业问题
-4. **非标审计意见识别**：从公告提取"非标准审计意见"
-5. **关联交易占比检查**：过高的关联交易是造假预警
-6. **滑点分场景**：涨停时滑点更大（当前固定 0.2%）
-7. **批量随机起始时间的均值/方差分析**：评估模型稳定性
-
----
-
-## 十、git 历史重要节点
-
-- `5674d4f` 回测验证完成：3次×4资金，全部盈利
-- `3e970bb` 优化中：轻仓可首次建仓+分红复利（待验证）
-- `0fe5fc9` 回测模型大改：按信号严格买卖+现金流质量+70只股票池
-- `08ffd6a` 周期股彻底过滤 + 消费龙头多维警示 + 买入净资产趋势检查
-- （本次提交号）HANDOVER 交接文档 + 批量稳定性测试 + 规则清单
-
-**回溯方法**：
-```bash
-git log --oneline -20              # 看历史提交
-git show <commit-hash>             # 看某次提交的改动
-git reset --hard <commit-hash>     # 回到某次提交（危险）
-git checkout <commit-hash> -- file # 只恢复某个文件
-```
-
----
-
-## 十一、重要说明
-
-### 关于 Claude 的记忆系统
-如果你是同一个 Claude 账号，会有 `C:\Users\Administrator\.claude\projects\G--Claude-Code-ask\memory\` 目录下的记忆文件（feedback_chinese_only.md、project_principles.md 等）。这些记忆会自动被加载。
-
-**如果换了 AI/账号**：记忆文件不会跟着过来，但本 HANDOVER.md 已经包含了所有必要的信息。
-
-### 关于代码命名
-- 代码内部可以用英文（`sell_heavy`、`buy_light` 等）
-- **但面向用户的文字一律中文**
-
-### 关于"擅自扩大范围"
-用户非常在意这一点。做完一件事要停下来汇报，而不是顺手把相关的其他问题也改了。
-
-### 关于 git 提交
-- 提交前必须用户明确同意
-- 提交 message 用中文
-- 每次提交都要有完整的描述（改了什么、为什么、验证结果）
+| 提交 | 内容 |
+|---|---|
+| baseline-2026-04-11 (tag) | 精简版 D（4规则）作为 baseline |
+| a0ac533 | path_c 转正为默认策略 |
+| 4320375 | 浮盈三维防线 + ETF 实时价格 |
+| 924c864 | 策略 ETF 历史估值反推补齐 |
+| 7183af3 | 修复持仓行业错判（get_stock_industry） |
+| 8999488 | 修复 ROE 方向反的 bug |
+| 434269d | 修复加仓信号误判（加入 is_king 门槛） |
+| c485411 | 回测模型精简修正版 + 股池扩到 90 只 |
+| 2dd3463 | 同步规则到正式版（live_rules.py） |
+| 220d0f4 | 温度计升级：5维度综合判定 |
 
 ---
 
@@ -371,5 +289,7 @@ git checkout <commit-hash> -- file # 只恢复某个文件
 > "巴菲特会这么做吗？芒格会怎么说？"
 
 如果答案模糊，宁可保守（宁可错过不可犯错）。
+
+**用户的回测操作记录存在 `backtest_games/` 目录**。新 AI 接手后可以读取这些记录，用巴菲特/芒格视角分析用户的操作进步方向。
 
 **祝你接手顺利。**
