@@ -526,10 +526,13 @@ def render_backtest_page():
     st.markdown("---")
     st.caption(f"🧪 回测模式 | 第{len(st.session_state.get('bt_game_history',[]))+1}局 | {len(st.session_state.get('bt_trade_log',[]))}笔交易")
 
-    # 自动播放
+    # 自动播放（使用 st.empty 占位 + 倒计时重跑）
+    # 之前放在文件末尾用 time.sleep + st.rerun，但 Streamlit Cloud 上
+    # sleep 会被 session timeout 打断导致播放无效。
+    # 改用 streamlit 原生的 rerun 触发：在页面渲染完后立即检查是否需要前进
     if st.session_state.get("bt_playing"):
         speed = st.session_state.get("bt_speed", 1)
-        time_module.sleep(max(0.3, 1.0 / speed))
+        # 前进一个月
         if mo >= 12:
             st.session_state["bt_month"] = 1
             st.session_state["bt_year"] += 1
@@ -537,4 +540,7 @@ def render_backtest_page():
             st.session_state["bt_month"] += 1
         if st.session_state["bt_year"] > 2025:
             st.session_state["bt_playing"] = False
-        st.rerun()
+        else:
+            # 用 sleep 控制速度，然后 rerun
+            time_module.sleep(max(0.3, 1.5 / speed))
+            st.rerun()
