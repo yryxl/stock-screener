@@ -369,9 +369,9 @@ def render_backtest_page():
                                 etype = evt.get("type", "neutral")
                                 emoji = "🟢" if etype == "positive" else "🔴" if etype == "negative" else "⚪"
                                 st.info(f"📰 {emoji} {evt.get('text', '')}")
-                        # 买入按钮（仅买入档位显示）
+                        # 买入按钮 + 加入关注表（仅买入档位显示）
                         if is_buy and price > 0:
-                            bc1, bc2, bc3 = st.columns(3)
+                            bc1, bc2, bc3, bc4 = st.columns(4)
                             with bc1:
                                 if st.button(f"虚拟买100股", key=f"bb1_{anon_id}"):
                                     if virtual_buy(sid, anon_id, price, 100):
@@ -386,6 +386,15 @@ def render_backtest_page():
                                 if st.button("买入", key=f"bbx_{anon_id}"):
                                     if virtual_buy(sid, anon_id, price, int(n)):
                                         st.rerun()
+                            with bc4:
+                                if st.button(f"⭐ 加入关注", key=f"bw_{anon_id}"):
+                                    wl = st.session_state.get("bt_watchlist_bt", [])
+                                    if anon_id not in wl:
+                                        wl.append(anon_id)
+                                        st.session_state["bt_watchlist_bt"] = wl
+                                        st.success(f"{anon_id} 已加入关注表")
+                                    else:
+                                        st.info(f"{anon_id} 已在关注表中")
                     st.divider()
 
             # 观望的也显示（不显示买入按钮）
@@ -485,9 +494,30 @@ def render_backtest_page():
     with tab3:
         wl = st.session_state.get("bt_watchlist_bt", [])
         if not wl:
-            st.info("暂无关注。在模型推荐里看到感兴趣的，手动记下编号。")
-        for item in wl:
-            st.markdown(f"**{item}**")
+            st.info("暂无关注。在模型推荐页点 ⭐ 加入关注。")
+        else:
+            for item in wl:
+                sdata = signals.get(item, {})
+                pe = sdata.get("pe_ttm")
+                price = sdata.get("price", 0)
+                score = sdata.get("score", 0)
+                sig_text = sdata.get("signal_text", "")
+
+                c1, c2, c3, c4, c5 = st.columns([1.5, 1.2, 1.2, 3, 1])
+                with c1:
+                    st.markdown(f"**{item}**")
+                with c2:
+                    st.metric("股价", f"¥{price:.2f}" if price else "—")
+                with c3:
+                    st.metric("PE", f"{pe:.1f}" if pe else "—")
+                with c4:
+                    st.caption(sig_text[:80] if sig_text else "—")
+                with c5:
+                    if st.button("移除", key=f"rw_{item}"):
+                        wl.remove(item)
+                        st.session_state["bt_watchlist_bt"] = wl
+                        st.rerun()
+                st.divider()
 
     st.markdown("---")
     st.caption(f"🧪 回测模式 | 第{len(st.session_state.get('bt_game_history',[]))+1}局 | {len(st.session_state.get('bt_trade_log',[]))}笔交易")
