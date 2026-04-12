@@ -1332,6 +1332,29 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
                             f"（{roes[2]:.0f}→{roes[1]:.0f}→{roes[0]:.0f}%）降级"
                         )
 
+        # ---- ROE-PB 背离检查（ROE 下降 + PB 不降 = 估值拉升假象）----
+        # 健康：高 ROE 支撑高 PB → ROE 降 → PB 也应降
+        # 危险：ROE 降但 PB 升 → 市场在炒估值，不是跟业绩
+        # 实证：万科 2025（ROE=-21.8%，PB 短暂反弹后暴跌）
+        #       格力 2019（ROE 37→33%，PB 2.9→4.1，后续 ROE 继续降到 19%）
+        # 用 PE(TTM) × ROE / 100 近似算 PB
+        if "buy" in result["signal"] and sid and year and month and pe and pe > 0:
+            reports_pb = get_annual_reports_before(sid, year, month, lookback_years=3)
+            roes_pb = [r.get("roe") for r in reports_pb[:2] if r.get("roe") is not None]
+            if len(roes_pb) >= 2 and roes_pb[0] > 0 and roes_pb[1] > 0:
+                # 当前 PB 近似值
+                current_pb = pe * roes_pb[0] / 100
+                # 上一年 PB 近似值（用上一年 ROE + 当月 PE 的同期估算）
+                # 简化：用上一年 ROE 跌幅判断 + 当前 PB 是否"不降"
+                roe_drop_pb = roes_pb[1] - roes_pb[0]  # 正值 = ROE 下降
+                if roe_drop_pb >= 5 and current_pb > 1.5:
+                    # ROE 下降 ≥5pp 但 PB 仍在较高位 → 警告
+                    result["signal"] = "hold"
+                    result["signal_text"] = (
+                        f"ROE-PB背离（ROE从{roes_pb[1]:.1f}%降至{roes_pb[0]:.1f}%"
+                        f"但PB≈{current_pb:.1f}偏高，估值拉升可能是假象）"
+                    )
+
     # 简单评分（展示用）
     score = 0
     if roe and roe >= 20: score += 8

@@ -952,6 +952,49 @@ def check_fundamental_health(code):
             if latest_roe > 15 and latest_fcf < 0:
                 problems.append(f"ROE={latest_roe:.1f}%但现金流为负（虚假ROE）")
 
+    # 8. ROE-PB 背离检查（ROE 下降但 PB 不降 = 死猫反弹/虚假拉升）
+    #
+    # 原理：健康公司的 PB 应该由 ROE 支撑。
+    #   ROE 高 → 赚钱能力强 → 市场给高 PB → 合理
+    #   ROE 下降 → 赚钱能力衰退 → PB 应该跟着降
+    #   如果 ROE 下降但 PB 反升 → 市场在"拉估值"，不是在"跟业绩"
+    #   → 这种拉升是假象，后续大概率回落
+    #
+    # 实证：万科 2025（ROE=-21.8%，PB 短暂反弹后继续暴跌）
+    #       格力 2019（ROE 37→33%，PB 2.9→4.1，后续 ROE 跌到 19%）
+    #
+    # 用 PE(TTM) × ROE / 100 近似算 PB（误差可接受，验证过走势吻合）
+    # 需要至少 2 年数据。df_annual 是 latest-first 排序。
+    if roe_series is not None and len(roe_series) >= 2:
+        pe_col = find_column(df_annual, ["市盈率", "PE"])
+        if pe_col is None:
+            # 用动态 PE 数据（从 get_pe_ttm 拿，但 check_fundamental_health 里没有）
+            # 退而求其次：用净利率 × 每股收益反算
+            pass
+        else:
+            pe_series = pd.to_numeric(df_annual[pe_col], errors="coerce").dropna()
+            if len(pe_series) >= 2 and len(roe_series) >= 2:
+                # 近似 PB = PE × ROE / 100
+                latest_roe_8 = float(roe_series.iloc[0])
+                prev_roe_8 = float(roe_series.iloc[1])
+                latest_pe_8 = float(pe_series.iloc[0])
+                prev_pe_8 = float(pe_series.iloc[1])
+
+                if prev_roe_8 > 0 and latest_roe_8 > 0:
+                    latest_pb = latest_pe_8 * latest_roe_8 / 100
+                    prev_pb = prev_pe_8 * prev_roe_8 / 100
+
+                    roe_drop = prev_roe_8 - latest_roe_8  # 正值 = ROE 下降
+                    pb_change = latest_pb - prev_pb         # 正值 = PB 上升
+
+                    # 触发条件：ROE 下降 ≥ 3pp 且 PB 不降（上升或基本持平）
+                    if roe_drop >= 3 and pb_change > -0.1:
+                        problems.append(
+                            f"ROE-PB背离（ROE从{prev_roe_8:.1f}%降至{latest_roe_8:.1f}%，"
+                            f"但PB从{prev_pb:.2f}升至{latest_pb:.2f}，"
+                            f"估值拉升可能是假象）"
+                        )
+
     is_healthy = len(problems) == 0
     return is_healthy, problems if problems else healthy
 
