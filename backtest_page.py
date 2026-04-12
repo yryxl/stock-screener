@@ -69,6 +69,10 @@ def reset_game():
     st.session_state["bt_speed"] = 1
     st.session_state["bt_trade_log"] = []
     st.session_state["bt_skip_alerts"] = {}
+    # 清掉 number_input widget 的缓存 key，否则 rerun 后 widget 旧值会覆盖
+    for wkey in ("bty", "btm"):
+        if wkey in st.session_state:
+            del st.session_state[wkey]
 
     # 重新生成匿名编号（每局不同）
     stocks = load_stock_list()
