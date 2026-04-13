@@ -85,6 +85,13 @@ SIGNAL_LABELS = {
 
 BUY_SIGNALS = ["buy_heavy", "buy_medium", "buy_light", "buy_watch"]
 
+# 全部信号展示顺序（和消息推送 notifier.py 的 SIGNAL_GROUPS 对齐）
+ALL_SIGNAL_ORDER = [
+    "buy_heavy", "buy_medium", "buy_light", "buy_watch",
+    "sell_watch", "sell_light", "sell_medium", "sell_heavy",
+    "true_decline",
+]
+
 # 行业 PE 区间和复杂度：从 screener.INDUSTRY_PE 动态生成，避免两处硬编码不同步
 # 单一真相源：screener.INDUSTRY_PE
 # 以前是 app.py 自己维护一份 INDUSTRY_PE_DISPLAY 和 INDUSTRY_COMPLEXITY，
@@ -302,13 +309,23 @@ with tab1:
         st.caption(data_info)
 
         ai_recs = daily.get("ai_recommendations", [])
-        if not ai_recs:
+        # 合并持仓信号到推荐页（和消息推送一致）
+        holding_sigs = daily.get("holding_signals", [])
+        # 用 code 去重：ai_recs 优先，holding_signals 补充
+        seen_codes = set(s.get("code") for s in ai_recs)
+        all_recs = list(ai_recs)
+        for hs in holding_sigs:
+            if hs.get("code") not in seen_codes and hs.get("signal"):
+                all_recs.append(hs)
+                seen_codes.add(hs.get("code"))
+
+        if not all_recs:
             st.info("暂无模型推荐，点击上方按钮触发全盘扫描")
         else:
-            # 先按信号等级分，再按行业分
-            for signal_key in BUY_SIGNALS:
+            # 按信号等级分组（和消息推送顺序一致）
+            for signal_key in ALL_SIGNAL_ORDER:
                 signal_label = SIGNAL_LABELS.get(signal_key, signal_key)
-                group = [s for s in ai_recs if s.get("signal") == signal_key]
+                group = [s for s in all_recs if s.get("signal") == signal_key]
                 if not group:
                     continue
 
@@ -317,7 +334,7 @@ with tab1:
                 # 按行业分组
                 cat_groups = {}
                 for s in group:
-                    cat = s.get("category", "") or "其他"
+                    cat = s.get("category", "") or s.get("industry", "") or "其他"
                     if cat not in cat_groups:
                         cat_groups[cat] = []
                     cat_groups[cat].append(s)
@@ -354,6 +371,28 @@ with tab1:
                                         st.session_state["watchlist"] = watchlist
                                     st.success(f"已添加 {s.get('name','')} 到关注表")
                                     st.rerun()
+                st.divider()
+
+            # 持仓附加信号（加仓/持有建议）
+            extra_sigs = [s for s in all_recs
+                          if s.get("signal") in ("buy_add", "hold_keep")]
+            if extra_sigs:
+                st.subheader("📋 持仓信号")
+                for s in extra_sigs:
+                    code = s.get("code", "")
+                    sig_label = SIGNAL_LABELS.get(s.get("signal", ""), "")
+                    col1, col2, col3, col4 = st.columns([2.5, 1.5, 1.5, 4])
+                    with col1:
+                        st.markdown(f"**{s.get('name', '')}**（{code}）")
+                    with col2:
+                        pe = s.get("pe", 0)
+                        st.metric("PE(TTM)", f"{pe:.1f}" if pe else "—")
+                    with col3:
+                        price = s.get("price", 0)
+                        st.metric("股价", f"¥{price:.2f}" if price else "—")
+                    with col4:
+                        st.markdown(f"{sig_label}")
+                        st.caption(s.get("signal_text", ""))
                 st.divider()
 
 # ============================================
