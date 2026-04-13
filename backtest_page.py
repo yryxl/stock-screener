@@ -84,6 +84,18 @@ def reset_game():
     st.session_state["bt_industry_map"] = {}
 
 
+def _get_current_roe_for_sid(sid):
+    """从当月 signals 拿某只股票的当前 ROE"""
+    yr = st.session_state.get("bt_year", 2015)
+    mo = st.session_state.get("bt_month", 1)
+    anon_map = st.session_state.get("bt_anon_map", {})
+    signals = get_month_signals(yr, mo, anon_map=anon_map, industry_map={})
+    for _, s in signals.items():
+        if s.get("sid") == sid:
+            return s.get("roe")
+    return None
+
+
 def virtual_buy(sid, anon_id, price, shares):
     date_str = f"{st.session_state['bt_year']}-{st.session_state['bt_month']:02d}"
     cost = price * shares
@@ -94,21 +106,30 @@ def virtual_buy(sid, anon_id, price, shares):
         st.error("买入最少100股，100股为单位")
         return False
     st.session_state["bt_cash"] -= cost
+    current_roe = _get_current_roe_for_sid(sid)
+
     for h in st.session_state["bt_holdings"]:
         if h["sid"] == sid:
-            old = h["shares"] * h["cost"]
+            old_shares = h["shares"]
+            old = old_shares * h["cost"]
             h["shares"] += shares
             h["cost"] = (old + cost) / h["shares"]
             # 追加时间记录
             if "add_dates" not in h:
                 h["add_dates"] = []
             h["add_dates"].append(date_str)
+            # 加仓时更新 ROE 基准（加权平均）
+            old_roe = h.get("roe_baseline") or h.get("roe_at_buy")
+            if old_roe and current_roe:
+                h["roe_baseline"] = (old_roe * old_shares + current_roe * shares) / h["shares"]
             st.session_state["bt_trade_log"].append({"type": "buy", "anon": anon_id, "shares": shares, "price": price, "date": date_str})
             return True
     st.session_state["bt_holdings"].append({
         "sid": sid, "anon": anon_id, "shares": shares, "cost": price,
-        "buy_date": date_str,     # 首次建仓时间
-        "add_dates": [],          # 追加时间列表
+        "buy_date": date_str,
+        "add_dates": [],
+        "roe_at_buy": current_roe,      # 首次建仓时的 ROE
+        "roe_baseline": current_roe,    # 加仓后加权基准
     })
     st.session_state["bt_trade_log"].append({"type": "buy", "anon": anon_id, "shares": shares, "price": price, "date": date_str})
     return True
@@ -560,6 +581,34 @@ def render_backtest_page():
                         h["moat_alert_months"] = 0
                 except Exception:
                     pass
+
+                # 买入后 ROE 监测（长春高新教训：3年从28%滑到12%无预警）
+                roe_baseline = h.get("roe_baseline")
+                if roe_baseline and roe_baseline > 0:
+                    cur_roe = sdata.get("roe") if sdata else None
+                    if cur_roe is not None:
+                        roe_drop = roe_baseline - cur_roe
+                        if roe_drop >= 15 or cur_roe < 15:
+                            st.error(
+                                f"🔴 **{anon_id} ROE严重衰退**\n\n"
+                                f"买入基准 **{roe_baseline:.1f}%** → 当前 **{cur_roe:.1f}%**"
+                                f"（降 {roe_drop:.1f}pp）\n\n"
+                                f"**建议：立即减仓或清仓**"
+                            )
+                        elif roe_drop >= 10:
+                            st.warning(
+                                f"🟠 **{anon_id} ROE明显下滑**\n\n"
+                                f"买入基准 **{roe_baseline:.1f}%** → 当前 **{cur_roe:.1f}%**"
+                                f"（降 {roe_drop:.1f}pp）\n\n"
+                                f"**建议：考虑减仓一半**"
+                            )
+                        elif roe_drop >= 5:
+                            st.info(
+                                f"⚠ **{anon_id} ROE轻微下滑**\n\n"
+                                f"买入基准 **{roe_baseline:.1f}%** → 当前 **{cur_roe:.1f}%**"
+                                f"（降 {roe_drop:.1f}pp）\n\n"
+                                f"持续观察，暂不操作"
+                            )
 
                 # 消费龙头现金流警示（已豁免但需重点关注）
                 try:

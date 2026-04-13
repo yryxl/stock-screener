@@ -649,6 +649,43 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
                 # 护城河完好 → 清除计数器
                 h["moat_alert_months"] = 0
 
+            # ---- 买入后 ROE 监测（长春高新教训）----
+            # 对比当前 ROE 与加权基准 roe_baseline，捕捉"温水煮蛙"式衰退
+            roe_baseline = h.get("roe_baseline")
+            if roe_baseline and sdata_match:
+                cur_roe = sdata_match.get("roe")
+                if cur_roe is not None and roe_baseline > 0:
+                    roe_drop = roe_baseline - cur_roe
+                    if roe_drop >= 15 or cur_roe < 15:
+                        # 🔴 严重衰退：下降≥15pp 或跌破15%底线 → 清仓
+                        reason = (
+                            f"🔴ROE严重衰退(基准{roe_baseline:.1f}%→当前{cur_roe:.1f}%，"
+                            f"降{roe_drop:.1f}pp)"
+                        )
+                        sids_to_sell.append((sid, sdata_match, reason, None))
+                        trade_log.append(
+                            f"{year}-{month:02d} 🔴ROE监测 {h['anon']} "
+                            f"基准{roe_baseline:.1f}%→{cur_roe:.1f}% 降{roe_drop:.1f}pp 触发清仓"
+                        )
+                    elif roe_drop >= 10:
+                        # 🟠 明显下滑：减半仓
+                        half = h["shares"] // 2
+                        if half >= 100:
+                            half = half // 100 * 100
+                            sids_to_sell.append((sid, sdata_match,
+                                f"🟠ROE明显下滑(基准{roe_baseline:.1f}%→{cur_roe:.1f}%，降{roe_drop:.1f}pp)",
+                                half))
+                        trade_log.append(
+                            f"{year}-{month:02d} 🟠ROE监测 {h['anon']} "
+                            f"基准{roe_baseline:.1f}%→{cur_roe:.1f}% 降{roe_drop:.1f}pp 建议减仓"
+                        )
+                    elif roe_drop >= 5:
+                        # 🟡 轻微下滑：观察，记录日志
+                        trade_log.append(
+                            f"{year}-{month:02d} ⚠ROE监测 {h['anon']} "
+                            f"基准{roe_baseline:.1f}%→{cur_roe:.1f}% 降{roe_drop:.1f}pp 持续观察"
+                        )
+
         for sid, sdata, reason, sell_shares in sids_to_sell:
             h = holdings[sid]
             # None 表示全部卖出
@@ -808,9 +845,13 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
             cash -= buy_cost
             total_fees += fee
             investable_cash -= buy_cost
+            # 记录买入时的 ROE（供"买入后 ROE 监测"用）
+            buy_roe = sdata.get("roe")
             holdings[sid] = {
                 "shares": shares, "cost": exec_price, "anon": anon, "code": code,
                 "buy_year": year, "buy_month": month,
+                "roe_at_buy": buy_roe,       # 首次建仓时的 ROE
+                "roe_baseline": buy_roe,     # 加权基准 ROE（加仓时更新）
             }
             trade_log.append(
                 f"{year}-{month:02d} 买入 {anon} {shares}股 @¥{exec_price:.2f} "
