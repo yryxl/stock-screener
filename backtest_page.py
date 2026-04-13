@@ -531,14 +531,33 @@ def render_backtest_page():
                                 st.success(f"加仓 {anon_id} {bn}股 @¥{cur_price:.2f}")
                                 st.rerun()
 
-                # 护城河松动警告（调用 check_moat）
+                # 护城河松动分级警告（黄色观察 vs 红色行动）
                 try:
                     is_intact, moat_problems = check_moat(sid, yr, mo)
                     if not is_intact:
-                        st.error(
-                            f"🚨 **{anon_id} 护城河松动**\n\n"
-                            + "\n".join(f"- {p}" for p in moat_problems[:3])
-                        )
+                        # 更新连续松动计数
+                        prev_alert = h.get("moat_alert_months", 0)
+                        h["moat_alert_months"] = prev_alert + 1
+                        n_probs = len(moat_problems)
+
+                        if h["moat_alert_months"] >= 2 or n_probs >= 2:
+                            # 🚨 红色行动
+                            st.error(
+                                f"🚨 **{anon_id} 护城河确认恶化**"
+                                f"（连续{h['moat_alert_months']}月·{n_probs}条规则）\n\n"
+                                + "\n".join(f"- {p}" for p in moat_problems[:3])
+                                + "\n\n**建议：执行减仓或清仓**"
+                            )
+                        else:
+                            # ⚠ 黄色观察
+                            st.warning(
+                                f"⚠ **{anon_id} 护城河首次松动**（观察中）\n\n"
+                                + "\n".join(f"- {p}" for p in moat_problems[:3])
+                                + "\n\n暂不动，等下个月确认是否持续"
+                            )
+                    else:
+                        # 恢复 → 清零
+                        h["moat_alert_months"] = 0
                 except Exception:
                     pass
 

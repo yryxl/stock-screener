@@ -394,6 +394,7 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
     total_dividends = 0
     monthly_values = []
     market_pe_history = []  # 历史中位数 PE 序列（市场温度计）
+    moat_broken_registry = {}  # {sid: {broken_at, roe_at_break, problems}} 松动标签
 
     # ---- 半路接管：配置初始持仓 ----
     # 模拟用户已经持有一些股票后才用模型的真实场景
@@ -614,12 +615,39 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
                         )
                 continue
 
-            # 护城河松动 → 清仓（兜底检查，防止基本面恶化）
+            # 护城河松动分级检查（黄色观察 vs 红色行动）
+            #
+            # ⚠ 黄色观察：首次触发 或 只有 1 条规则 → 不卖，等 2 个月确认
+            # 🚨 红色行动：连续 ≥2 月触发 或 ≥2 条规则同时 → 执行清仓
+            #
+            # 巴菲特原则："chronically leaking boat" 要换船，
+            # 但 "一次漏水" 可能只是暂时——等它自己修好
             is_intact, probs = check_moat(sid, year, month)
             if not is_intact:
-                reason = f"护城河松动({'; '.join(probs[:2])})"
-                sids_to_sell.append((sid, sdata_match, reason, None))
+                # 计数器：连续几个月触发松动
+                prev_count = h.get("moat_alert_months", 0)
+                h["moat_alert_months"] = prev_count + 1
+                n_problems = len(probs)
+
+                if h["moat_alert_months"] >= 2 or n_problems >= 2:
+                    # 🚨 红色行动：确认恶化，清仓 + 打上松动标签
+                    reason = f"🚨护城河确认恶化({h['moat_alert_months']}月连续·{n_problems}条规则：{'; '.join(probs[:2])})"
+                    sids_to_sell.append((sid, sdata_match, reason, None))
+                    # 打上"松动标签"，记住这只股票松动时的 ROE 和时间
+                    moat_broken_registry[sid] = {
+                        "broken_at": f"{year}-{month:02d}",
+                        "roe_at_break": sdata_match.get("roe"),
+                        "problems": probs[:3],
+                    }
+                else:
+                    # ⚠ 黄色观察：首次触发，暂不卖，日志记录
+                    trade_log.append(
+                        f"{year}-{month:02d} ⚠观察 {h['anon']} 护城河首次松动({probs[0]})，暂不卖出"
+                    )
                 continue
+            else:
+                # 护城河完好 → 清除计数器
+                h["moat_alert_months"] = 0
 
         for sid, sdata, reason, sell_shares in sids_to_sell:
             h = holdings[sid]
@@ -680,6 +708,41 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
                 continue
             if sid in holdings:
                 continue
+
+            # ---- 松动标签检查：之前被标记"护城河松动"的股票需要额外恢复验证 ----
+            # 不是"冷却期不让买"，而是"通过恢复验证才让买"
+            # 验证条件（3 条全过才移除标签允许买入）：
+            #   1. 最新 ROE ≥ 15%（回到巴菲特合格线）
+            #   2. ROE 比松动时上升 ≥ 3pp（真正在恢复，不是横盘）
+            #   3. 毛利率不能继续下滑（止跌或回升）
+            if sid in moat_broken_registry:
+                broken_info = moat_broken_registry[sid]
+                current_roe = sdata.get("roe")
+                current_gm = sdata.get("gross_margin")
+                roe_at_break = broken_info.get("roe_at_break")
+
+                # 默认不通过
+                recovered = False
+                if current_roe is not None and current_roe >= 15:
+                    if roe_at_break is not None and current_roe >= roe_at_break + 3:
+                        # ROE 回到合格线 + 比松动时升 ≥3pp
+                        # 还要看毛利率有没有继续跌
+                        reports_check = get_annual_reports_before(sid, year, month, lookback_years=3)
+                        gm_list = [r.get("gross_margin") for r in reports_check if r.get("gross_margin") is not None]
+                        if len(gm_list) >= 2 and gm_list[0] >= gm_list[1] - 1:
+                            # 毛利率止跌（不再连续下滑）
+                            recovered = True
+
+                if recovered:
+                    # 恢复确认！移除标签，允许买入
+                    del moat_broken_registry[sid]
+                    trade_log.append(
+                        f"{year}-{month:02d} ✅恢复 {anon} 护城河恢复确认"
+                        f"（ROE从{roe_at_break:.1f}%恢复到{current_roe:.1f}%），重新允许买入"
+                    )
+                else:
+                    # 未恢复，跳过买入
+                    continue
             if price <= 0:
                 continue
 
