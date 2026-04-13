@@ -12,7 +12,15 @@ import json
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+# GitHub Actions 默认 UTC，统一用北京时间
+_BEIJING = timezone(timedelta(hours=8))
+
+
+def beijing_now():
+    """返回北京时间的 datetime"""
+    return datetime.now(_BEIJING)
 
 import pandas as pd
 import numpy as np
@@ -57,7 +65,7 @@ def save_json(filename, data):
 
 def is_trading_day():
     """通过AKShare交易日历判断今天是否交易日（考虑节假日）"""
-    today_str = datetime.now().strftime("%Y%m%d")
+    today_str = beijing_now().strftime("%Y%m%d")
     try:
         # 获取交易日历
         df = safe_fetch(ak.tool_trade_date_hist_sina)
@@ -67,7 +75,7 @@ def is_trading_day():
     except Exception as e:
         print(f"  获取交易日历失败: {e}")
     # 失败时回退到简单判断（排除周末）
-    return datetime.now().weekday() < 5
+    return beijing_now().weekday() < 5
 
 
 def update_watchlist_industries(watchlist):
@@ -79,7 +87,7 @@ def update_watchlist_industries(watchlist):
         if industry:
             stock["industry_auto"] = industry
             updated = True
-        time.sleep(0.3)
+        time.sleep(0.05)
     return updated
 
 
@@ -229,7 +237,7 @@ def get_market_date():
         quotes = get_realtime_quotes()
         if quotes is not None and not quotes.empty:
             # 用上证指数或任意一只股票的日期
-            return datetime.now().strftime("%Y-%m-%d")
+            return beijing_now().strftime("%Y-%m-%d")
     except Exception:
         pass
     return None
@@ -269,7 +277,7 @@ def should_run_and_update(mode, new_data=None):
     if mode in ("holdings", "watchlist"):
         try:
             last_time = datetime.strptime(date_str[:16], "%Y-%m-%d %H:%M")
-            diff_hours = (datetime.now() - last_time).total_seconds() / 3600
+            diff_hours = (beijing_now() - last_time).total_seconds() / 3600
             if diff_hours < 3 and last_mode == mode:
                 return False, f"{mode}模式{diff_hours:.1f}小时前刚跑过"
         except Exception:
@@ -278,7 +286,7 @@ def should_run_and_update(mode, new_data=None):
 
     # full模式：同一天只跑一次
     if mode == "full":
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = beijing_now().strftime("%Y-%m-%d")
         if date_str[:10] == today and last_mode == "full":
             return False, "今天已跑过全盘扫描"
         return True, "需要全盘扫描"
@@ -357,7 +365,7 @@ def run_full_scan(config):
     candidates = screen_all_stocks(config)
     ai_recs = [s for s in candidates if s.get("signal") and s["signal"] not in ("hold", None)]
     save_json("market_scan_cache.json", {
-        "date": datetime.now().strftime("%Y-%m-%d"),
+        "date": beijing_now().strftime("%Y-%m-%d"),
         "ai_recommendations": ai_recs,
     })
     print(f"  AI推荐: {len(ai_recs)}只")
@@ -429,7 +437,7 @@ def _inject_etf_monitor():
 
 def main():
     mode = get_mode()
-    now = datetime.now()
+    now = beijing_now()
     print(f"=== 芒格选股系统 {now.strftime('%Y-%m-%d %H:%M')} 模式:{mode} ===\n")
 
     config = load_config()

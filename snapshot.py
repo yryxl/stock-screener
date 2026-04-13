@@ -9,7 +9,9 @@
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+_BEIJING = timezone(timedelta(hours=8))
 
 from screener import INDUSTRY_PE, COMPLEXITY_ROE_ADJUST
 
@@ -157,7 +159,7 @@ def _enrich_watchlist_signals(watchlist_signals):
 
 def save_snapshot():
     """保存本周快照"""
-    now = datetime.now()
+    now = datetime.now(_BEIJING)
     snapshot_dir = os.path.join(os.path.dirname(__file__), "snapshots")
     os.makedirs(snapshot_dir, exist_ok=True)
 

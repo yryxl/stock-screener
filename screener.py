@@ -316,11 +316,11 @@ def screen_single_stock(code, config, quotes_df):
             return result
 
     # ---- 第二关：完整 8 条护城河检查（从 live_rules 同步 backtest_engine 规则）----
+    # 行业只查一次，后续复用（之前重复调两次 get_stock_industry）
+    industry = get_stock_industry(code)
     try:
         from live_rules import check_moat_live, check_10_year_king_live, is_good_quality_live
-        # 行业必须走 get_stock_industry（带缓存），quotes_df 没有行业列
-        industry_for_moat = get_stock_industry(code)
-        moat_intact, moat_problems = check_moat_live(df_annual, industry=industry_for_moat)
+        moat_intact, moat_problems = check_moat_live(df_annual, industry=industry)
         if not moat_intact:
             result["checks"]["moat"] = {"passed": False, "detail": "; ".join(moat_problems[:2])}
             return result
@@ -353,8 +353,7 @@ def screen_single_stock(code, config, quotes_df):
                 pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
             result["pe"] = pe
 
-            # 行业：stock_zh_a_spot_em 不含行业字段，必须走 get_stock_industry
-            industry = get_stock_industry(code)
+            # 行业已在上方查过一次，直接复用
             signal, signal_text = get_pe_signal(pe, industry)
 
             # 合理价格买好公司（巴菲特 1989）：好公司在合理区间内也可以买入
@@ -430,7 +429,7 @@ def screen_all_stocks(config):
             name_row = stocks[stocks["code"] == code]
             result["name"] = name_row.iloc[0]["name"] if not name_row.empty else code
             passed.append(result)
-        time.sleep(0.3)
+        time.sleep(0.05)  # 最小防限流间隔（原0.3秒，节省约80秒/374只）
 
     signal_order = {"buy_heavy": 0, "buy_medium": 1, "buy_light": 2, "buy_watch": 3, "hold_keep": 4, "hold": 5, "sell_watch": 6, "sell_light": 7, "sell_medium": 8, "sell_heavy": 9, "true_decline": 10, None: 11}
     passed.sort(key=lambda x: signal_order.get(x.get("signal"), 7))
@@ -604,7 +603,7 @@ def check_holdings_sell_signals(holdings, config, market_temp_level=0):
             "bull_top_alert": pnl_eval.get("bull_top_alert", False),
             "cf_warning": cf_warning,
         })
-        time.sleep(0.3)
+        time.sleep(0.05)
 
     return signals
 

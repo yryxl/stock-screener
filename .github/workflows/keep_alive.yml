@@ -1,0 +1,15 @@
+name: Streamlit 防休眠
+
+on:
+  schedule:
+    # 北京时间 8:00-23:00 每 25 分钟 ping 一次（Streamlit 30 分钟不活跃就休眠）
+    - cron: '*/25 0-15 * * *'   # UTC 0:00-15:00 = 北京 8:00-23:00
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Streamlit
+        run: |
+          curl -s -o /dev/null -w "HTTP %{http_code}" https://yryxlstock.streamlit.app/ || true
+          echo " - pinged at $(TZ='Asia/Shanghai' date '+%H:%M')"

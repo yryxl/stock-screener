@@ -72,9 +72,6 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
 
-      - name: 防止 Streamlit 休眠
-        run: curl -s https://yryxlstock.streamlit.app/ > /dev/null || true
-
       - name: 提交每日结果
         run: |
           git config user.name "github-actions"
