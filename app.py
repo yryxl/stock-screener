@@ -157,12 +157,23 @@ def format_industry_tag(category):
 # 加载数据
 # ============================================
 
-def load_all_data():
-    if "data_loaded" not in st.session_state:
+def load_all_data(force=False):
+    """
+    从 GitHub 加载数据。
+    自动刷新：每 10 分钟重新拉取一次，确保前端数据和推送同步。
+    force=True 时强制刷新（用于手动刷新按钮）。
+    """
+    import time as _time
+    now = _time.time()
+    last_load = st.session_state.get("data_loaded_at", 0)
+    stale = (now - last_load) > 600  # 10 分钟过期
+
+    if force or stale or "data_loaded" not in st.session_state:
         st.session_state["holdings"], st.session_state["holdings_sha"] = load_from_github("holdings.json")
         st.session_state["watchlist"], st.session_state["watchlist_sha"] = load_from_github("watchlist.json")
         st.session_state["daily"], _ = load_from_github("daily_results.json")
         st.session_state["data_loaded"] = True
+        st.session_state["data_loaded_at"] = now
 
 load_all_data()
 
@@ -227,6 +238,18 @@ def render_market_temperature_banner():
 
 
 render_market_temperature_banner()
+
+# 数据刷新提示 + 手动刷新按钮
+_daily = st.session_state.get("daily", {})
+_data_date = _daily.get("date", "") if _daily else ""
+_rc1, _rc2 = st.columns([4, 1])
+with _rc1:
+    if _data_date:
+        st.caption(f"📅 数据：{_data_date} | {_daily.get('data_source', '')} | 每10分钟自动刷新")
+with _rc2:
+    if st.button("🔄 刷新数据"):
+        load_all_data(force=True)
+        st.rerun()
 
 tab1, tab2, tab3, tab4 = st.tabs(["🎯 模型推荐", "📋 持仓管理", "⭐ 重点关注表", "🧊 ETF 监测"])
 
@@ -308,16 +331,35 @@ with tab1:
             data_info += f" | {daily['data_source']}"
         st.caption(data_info)
 
-        ai_recs = daily.get("ai_recommendations", [])
-        # 合并持仓信号到推荐页（和消息推送一致）
+        # 合并全部信号源（和消息推送完全对齐）
+        # 优先级：holding_signals > watchlist_signals(非hold) > ai_recommendations
+        # 持仓信号最优先——模型知道你持有，信号更精准
+        # 同一股票只出现一次，避免"一个说买一个说持有"的矛盾
         holding_sigs = daily.get("holding_signals", [])
-        # 用 code 去重：ai_recs 优先，holding_signals 补充
-        seen_codes = set(s.get("code") for s in ai_recs)
-        all_recs = list(ai_recs)
+        watchlist_sigs = daily.get("watchlist_signals", [])
+        ai_recs = daily.get("ai_recommendations", [])
+
+        all_recs = []
+        seen_codes = set()
+        # 第一优先：持仓信号（最了解你的仓位状况）
         for hs in holding_sigs:
-            if hs.get("code") not in seen_codes and hs.get("signal"):
+            code = hs.get("code")
+            if code and hs.get("signal") and code not in seen_codes:
                 all_recs.append(hs)
-                seen_codes.add(hs.get("code"))
+                seen_codes.add(code)
+        # 第二优先：关注表中非"hold"的信号
+        for ws in watchlist_sigs:
+            code = ws.get("code")
+            sig = ws.get("signal", "")
+            if code and sig and sig != "hold" and code not in seen_codes:
+                all_recs.append(ws)
+                seen_codes.add(code)
+        # 第三优先：全市场扫描推荐
+        for ar in ai_recs:
+            code = ar.get("code")
+            if code and ar.get("signal") and code not in seen_codes:
+                all_recs.append(ar)
+                seen_codes.add(code)
 
         if not all_recs:
             st.info("暂无模型推荐，点击上方按钮触发全盘扫描")
@@ -393,6 +435,15 @@ with tab1:
                     with col4:
                         st.markdown(f"{sig_label}")
                         st.caption(s.get("signal_text", ""))
+                st.divider()
+
+            # 仓位警告（和消息推送一致）
+            pos_warnings = daily.get("position_warnings", [])
+            if pos_warnings:
+                st.subheader("⚠️ 仓位警告")
+                for w in pos_warnings:
+                    emoji = "🚨" if w.get("level") == "danger" else "⚠️"
+                    st.warning(f"{emoji} **{w.get('name', '')}**（{w.get('code', '')}）\n\n{w.get('text', '')}")
                 st.divider()
 
 # ============================================

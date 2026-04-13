@@ -139,17 +139,27 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
     template_id = wx["template_id"]
     today = datetime.now().strftime("%m-%d")
 
-    # 合并所有信号
+    # 合并所有信号（持仓优先去重，避免同一股票两条矛盾信号）
+    # 优先级：holding_signals > candidates > watchlist_signals
+    # 同一 code 只保留最优先的那条
     all_signals = []
-    for s in watchlist_signals:
-        if s.get("signal") and s["signal"] not in ("hold", None):
-            all_signals.append(s)
-    for s in candidates:
-        if s.get("signal") and s["signal"] not in ("hold", None):
-            all_signals.append(s)
+    seen_codes = set()
     for s in holding_signals:
+        code = s.get("code")
         if s.get("signal") and s["signal"] not in (None,):
             all_signals.append(s)
+            if code:
+                seen_codes.add(code)
+    for s in candidates:
+        code = s.get("code")
+        if code and code not in seen_codes and s.get("signal") and s["signal"] not in ("hold", None):
+            all_signals.append(s)
+            seen_codes.add(code)
+    for s in watchlist_signals:
+        code = s.get("code")
+        if code and code not in seen_codes and s.get("signal") and s["signal"] not in ("hold", None):
+            all_signals.append(s)
+            seen_codes.add(code)
 
     # 按信号分组发送
     sent_any = False
