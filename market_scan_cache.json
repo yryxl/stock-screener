@@ -1,45 +1,4 @@
 {
-  "date": "2026-04-13",
-  "ai_recommendations": [
-    {
-      "code": "000538",
-      "name": "云南白药",
-      "category": "中药Ⅱ",
-      "note": "国家绝密配方+百年品牌",
-      "price": 54.73,
-      "pe": 18.95,
-      "signal": "buy_watch",
-      "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 26,
-      "dividend_yield": 4.75,
-      "dimensions": {
-        "ROE质量": {
-          "score": 3,
-          "max": 10,
-          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
-        },
-        "财务健康": {
-          "score": 5,
-          "max": 10,
-          "detail": "负债26%极低 | 流动比率2.6"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率29% | 10年数据"
-        },
-        "股息率": {
-          "score": 5,
-          "max": 10,
-          "detail": "股息率4.8%高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=18.9低估 | 简单生意"
-        }
-      },
-      "source": "关注表"
-    }
-  ]
+  "date": "2026-04-14",
+  "ai_recommendations": []
 }
