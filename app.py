@@ -385,15 +385,35 @@ with tab1:
                     st.markdown(f"{format_industry_tag(cat)}")
                     for s in stocks:
                         code = s.get("code", "")
-                        col1, col2, col3, col4, col5 = st.columns([2.5, 1.5, 1.5, 3, 1.5])
+                        # 构建指标摘要行
+                        metrics = []
+                        pe = s.get("pe", 0)
+                        if pe and pe > 0:
+                            metrics.append(f"市盈率 {pe:.1f}")
+                        roe = s.get("roe")
+                        if roe is not None:
+                            metrics.append(f"净收益率 {roe}%")
+                        gm = s.get("gross_margin")
+                        if gm is not None:
+                            metrics.append(f"毛利 {gm}%")
+                        debt = s.get("debt_ratio")
+                        if debt is not None:
+                            metrics.append(f"负债 {debt}%")
+                        div_y = s.get("dividend_yield", 0)
+                        if div_y and div_y > 0:
+                            metrics.append(f"股息 {div_y:.1f}%")
+                        metrics_str = " | ".join(metrics)
+
+                        col1, col2, col3, col4 = st.columns([3, 1.2, 1.2, 1.5])
                         with col1:
                             st.markdown(f"**{s.get('name', '')}**（{code}）")
+                            st.caption(metrics_str)
                         with col2:
-                            pe = s.get("pe", 0)
-                            st.metric("PE(TTM)", f"{pe:.1f}" if pe else "—")
-                        with col3:
                             price = s.get("price", 0)
                             st.metric("股价", f"¥{price:.2f}" if price else "—")
+                        with col3:
+                            score = s.get("total_score", 0)
+                            st.metric("评分", f"{score}/50" if score else "—")
                         with col4:
                             st.caption(s.get("signal_text", ""))
                         with col5:
@@ -423,16 +443,31 @@ with tab1:
                 for s in extra_sigs:
                     code = s.get("code", "")
                     sig_label = SIGNAL_LABELS.get(s.get("signal", ""), "")
-                    col1, col2, col3, col4 = st.columns([2.5, 1.5, 1.5, 4])
+                    metrics = []
+                    pe = s.get("pe", 0)
+                    if pe and pe > 0:
+                        metrics.append(f"市盈率 {pe:.1f}")
+                    roe = s.get("roe")
+                    if roe is not None:
+                        metrics.append(f"净收益率 {roe}%")
+                    gm = s.get("gross_margin")
+                    if gm is not None:
+                        metrics.append(f"毛利 {gm}%")
+                    debt = s.get("debt_ratio")
+                    if debt is not None:
+                        metrics.append(f"负债 {debt}%")
+                    div_y = s.get("dividend_yield", 0)
+                    if div_y and div_y > 0:
+                        metrics.append(f"股息 {div_y:.1f}%")
+
+                    col1, col2, col3 = st.columns([3, 1.2, 4])
                     with col1:
                         st.markdown(f"**{s.get('name', '')}**（{code}）")
+                        st.caption(" | ".join(metrics))
                     with col2:
-                        pe = s.get("pe", 0)
-                        st.metric("PE(TTM)", f"{pe:.1f}" if pe else "—")
-                    with col3:
                         price = s.get("price", 0)
                         st.metric("股价", f"¥{price:.2f}" if price else "—")
-                    with col4:
+                    with col3:
                         st.markdown(f"{sig_label}")
                         st.caption(s.get("signal_text", ""))
                 st.divider()
@@ -610,6 +645,22 @@ with tab2:
                     caption = f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.0f}"
                     if is_etf and index_name:
                         caption += f" | 跟踪 {index_name}"
+                    # 财务指标摘要（和回测版对齐）
+                    _fm = []
+                    _roe = sig_data.get("roe")
+                    if _roe is not None:
+                        _fm.append(f"净收益率 {_roe}%")
+                    _gm = sig_data.get("gross_margin")
+                    if _gm is not None:
+                        _fm.append(f"毛利 {_gm}%")
+                    _dr = sig_data.get("debt_ratio")
+                    if _dr is not None:
+                        _fm.append(f"负债 {_dr}%")
+                    _dy = sig_data.get("dividend_yield", 0)
+                    if _dy and _dy > 0:
+                        _fm.append(f"股息 {_dy:.1f}%")
+                    if _fm:
+                        caption += f"\n{' | '.join(_fm)}"
                     st.caption(caption)
                 with col2:
                     # 现价 + 浮盈百分比（Streamlit 会自动上涨绿色、下跌红色）
@@ -753,7 +804,22 @@ with tab3:
                 col1, col2, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 3, 0.8])
                 with col1:
                     st.markdown(f"**{item['name']}**（{code}）")
-                    st.caption(item.get("note", ""))
+                    # 财务指标摘要
+                    _fm = []
+                    if pe and pe > 0:
+                        _fm.append(f"市盈率 {pe:.1f}")
+                    _roe = data.get("roe")
+                    if _roe is not None:
+                        _fm.append(f"净收益率 {_roe}%")
+                    _gm = data.get("gross_margin")
+                    if _gm is not None:
+                        _fm.append(f"毛利 {_gm}%")
+                    _dr = data.get("debt_ratio")
+                    if _dr is not None:
+                        _fm.append(f"负债 {_dr}%")
+                    if div_yield and div_yield > 0:
+                        _fm.append(f"股息 {div_yield:.1f}%")
+                    st.caption(" | ".join(_fm) if _fm else item.get("note", ""))
                 with col2:
                     st.metric("PE(TTM)", f"{pe:.1f}" if pe and pe > 0 else "—")
                 with col3:

@@ -205,6 +205,24 @@ def check_watchlist(config, quotes_df):
                 )
                 total_score = score_data.get("total_score", 0)
 
+        # 提取核心财务指标原始值（前端展示用）
+        roe_val = None
+        gm_val = None
+        debt_val = None
+        if df_indicator is not None:
+            _df_a = extract_annual_data(df_indicator, years=3) if 'df_annual' not in dir() or df_annual.empty else df_annual
+            if not _df_a.empty:
+                _latest = _df_a.iloc[0]
+                _r = _latest.get("roe")
+                if _r is not None and not pd.isna(_r):
+                    roe_val = round(float(_r), 1)
+                _g = _latest.get("gross_margin")
+                if _g is not None and not pd.isna(_g):
+                    gm_val = round(float(_g), 1)
+                _d = _latest.get("debt_ratio")
+                if _d is not None and not pd.isna(_d):
+                    debt_val = round(float(_d), 1)
+
         signals.append({
             "code": code, "name": name, "category": category,
             "note": stock.get("note", ""),
@@ -213,6 +231,9 @@ def check_watchlist(config, quotes_df):
             "total_score": total_score,
             "dividend_yield": div_yield,
             "dimensions": score_data.get("dimensions", {}),
+            "roe": roe_val,
+            "gross_margin": gm_val,
+            "debt_ratio": debt_val,
         })
 
     # 通过清单的股票按总分排序（分高的排前面）

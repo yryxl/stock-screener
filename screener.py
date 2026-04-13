@@ -372,6 +372,19 @@ def screen_single_stock(code, config, quotes_df):
             result["signal"] = signal
             result["signal_text"] = signal_text
 
+    # 提取核心财务指标原始值（前端展示用）
+    if not df_annual.empty:
+        _latest = df_annual.iloc[0]
+        _r = _latest.get("roe")
+        if _r is not None and not pd.isna(_r):
+            result["roe"] = round(float(_r), 1)
+        _g = _latest.get("gross_margin")
+        if _g is not None and not pd.isna(_g):
+            result["gross_margin"] = round(float(_g), 1)
+        _d = _latest.get("debt_ratio")
+        if _d is not None and not pd.isna(_d):
+            result["debt_ratio"] = round(float(_d), 1)
+
     result["passed"] = True
     return result
 
@@ -588,6 +601,29 @@ def check_holdings_sell_signals(holdings, config, market_temp_level=0):
         if pnl_eval.get("override_signal") and pnl_eval.get("advice"):
             signal_text = f"{signal_text} | {pnl_eval['advice']}"
 
+        # 提取核心财务指标原始值（前端展示用）
+        roe_val = None
+        gm_val = None
+        debt_val = None
+        div_yield = 0
+        try:
+            if df_indicator is not None:
+                df_annual_h = extract_annual_data(df_indicator, years=3)
+                if not df_annual_h.empty:
+                    _latest = df_annual_h.iloc[0]
+                    _r = _latest.get("roe")
+                    if _r is not None and not pd.isna(_r):
+                        roe_val = round(float(_r), 1)
+                    _g = _latest.get("gross_margin")
+                    if _g is not None and not pd.isna(_g):
+                        gm_val = round(float(_g), 1)
+                    _d = _latest.get("debt_ratio")
+                    if _d is not None and not pd.isna(_d):
+                        debt_val = round(float(_d), 1)
+            div_yield = get_dividend_yield(code, price if not pd.isna(price) else 0, industry=industry)
+        except Exception:
+            pass
+
         signals.append({
             "code": code, "name": name,
             "shares": h.get("shares", 0), "cost": h.get("cost", 0),
@@ -602,6 +638,10 @@ def check_holdings_sell_signals(holdings, config, market_temp_level=0):
             "must_sell": pnl_eval.get("must_sell", False),
             "bull_top_alert": pnl_eval.get("bull_top_alert", False),
             "cf_warning": cf_warning,
+            "roe": roe_val,
+            "gross_margin": gm_val,
+            "debt_ratio": debt_val,
+            "dividend_yield": div_yield,
         })
         time.sleep(0.05)
 
