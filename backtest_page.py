@@ -105,6 +105,22 @@ def virtual_buy(sid, anon_id, price, shares):
     if shares < 100 or shares % 100 != 0:
         st.error("买入最少100股，100股为单位")
         return False
+
+    # ---- 护城河预检：买入前先检查，防止「买了马上松动」----
+    yr = st.session_state.get("bt_year", 2015)
+    mo = st.session_state.get("bt_month", 1)
+    try:
+        is_intact, moat_probs = check_moat(sid, yr, mo)
+        if not is_intact:
+            st.error(
+                f"🚫 **{anon_id} 护城河当前松动，禁止买入！**\n\n"
+                + "\n".join(f"- {p}" for p in moat_probs[:3])
+                + "\n\n巴菲特：永远不要买入护城河有裂缝的公司"
+            )
+            return False
+    except Exception:
+        pass  # 数据不足时不阻止
+
     st.session_state["bt_cash"] -= cost
     current_roe = _get_current_roe_for_sid(sid)
 
