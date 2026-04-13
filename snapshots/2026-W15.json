@@ -1,0 +1,1043 @@
+{
+  "snapshot_date": "2026-04-13 10:37",
+  "week_id": "2026-W15",
+  "data_source_date": "2026-04-13 08:31",
+  "market_context": {
+    "market_temperature": {
+      "level": 0,
+      "label": "⚪ 正常·按节奏",
+      "description": "估值处于合理区间（历史 30%-70% 分位）。按自己的定投/选股节奏执行，不因估值做大调整。巴菲特大多数时候都处在这个状态。",
+      "current_pe_median": 21.65,
+      "percentile": 52.5,
+      "as_of": "2026-04"
+    }
+  },
+  "model_params": {
+    "industry_pe_ranges": {
+      "白酒": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "食品饮料": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "调味品": {
+        "fair_low": 22,
+        "fair_high": 35,
+        "complexity": "simple"
+      },
+      "调味发酵品": {
+        "fair_low": 22,
+        "fair_high": 35,
+        "complexity": "simple"
+      },
+      "乳制品": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "simple"
+      },
+      "饮料乳品": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "simple"
+      },
+      "中药": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "家电": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "simple"
+      },
+      "传媒": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "银行": {
+        "fair_low": 6,
+        "fair_high": 9,
+        "complexity": "simple"
+      },
+      "保险": {
+        "fair_low": 8,
+        "fair_high": 12,
+        "complexity": "simple"
+      },
+      "证券": {
+        "fair_low": 14,
+        "fair_high": 22,
+        "complexity": "medium"
+      },
+      "券商": {
+        "fair_low": 14,
+        "fair_high": 22,
+        "complexity": "medium"
+      },
+      "多元金融": {
+        "fair_low": 14,
+        "fair_high": 22,
+        "complexity": "medium"
+      },
+      "免税": {
+        "fair_low": 25,
+        "fair_high": 40,
+        "complexity": "simple"
+      },
+      "旅游零售": {
+        "fair_low": 25,
+        "fair_high": 40,
+        "complexity": "simple"
+      },
+      "医药": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "生物制品": {
+        "fair_low": 20,
+        "fair_high": 30,
+        "complexity": "simple"
+      },
+      "电力": {
+        "fair_low": 10,
+        "fair_high": 18,
+        "complexity": "medium"
+      },
+      "公用事业": {
+        "fair_low": 10,
+        "fair_high": 18,
+        "complexity": "medium"
+      },
+      "交通运输": {
+        "fair_low": 12,
+        "fair_high": 16,
+        "complexity": "medium"
+      },
+      "铁路": {
+        "fair_low": 10,
+        "fair_high": 16,
+        "complexity": "medium"
+      },
+      "铁路公路": {
+        "fair_low": 10,
+        "fair_high": 16,
+        "complexity": "medium"
+      },
+      "高速": {
+        "fair_low": 10,
+        "fair_high": 16,
+        "complexity": "medium"
+      },
+      "通信": {
+        "fair_low": 20,
+        "fair_high": 35,
+        "complexity": "medium"
+      },
+      "通信服务": {
+        "fair_low": 20,
+        "fair_high": 35,
+        "complexity": "medium"
+      },
+      "医疗器械": {
+        "fair_low": 22,
+        "fair_high": 35,
+        "complexity": "medium"
+      },
+      "半导体": {
+        "fair_low": 40,
+        "fair_high": 65,
+        "complexity": "complex"
+      },
+      "芯片": {
+        "fair_low": 40,
+        "fair_high": 65,
+        "complexity": "complex"
+      },
+      "软件": {
+        "fair_low": 40,
+        "fair_high": 60,
+        "complexity": "medium"
+      },
+      "军工": {
+        "fair_low": 35,
+        "fair_high": 55,
+        "complexity": "complex"
+      },
+      "航空航天": {
+        "fair_low": 35,
+        "fair_high": 55,
+        "complexity": "complex"
+      },
+      "新能源": {
+        "fair_low": 30,
+        "fair_high": 50,
+        "complexity": "complex"
+      },
+      "锂电": {
+        "fair_low": 30,
+        "fair_high": 50,
+        "complexity": "complex"
+      },
+      "电池": {
+        "fair_low": 30,
+        "fair_high": 50,
+        "complexity": "complex"
+      },
+      "光伏": {
+        "fair_low": 25,
+        "fair_high": 45,
+        "complexity": "complex"
+      },
+      "轨道交通": {
+        "fair_low": 13,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "轨交设备": {
+        "fair_low": 13,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "铁路装备": {
+        "fair_low": 13,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "铁路设备": {
+        "fair_low": 13,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "机械制造": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "complex"
+      },
+      "汽车玻璃": {
+        "fair_low": 14,
+        "fair_high": 22,
+        "complexity": "complex"
+      },
+      "汽车零部件": {
+        "fair_low": 14,
+        "fair_high": 22,
+        "complexity": "complex"
+      },
+      "建筑": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "complex"
+      },
+      "钢铁": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "complex"
+      },
+      "煤炭": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "complex"
+      },
+      "煤炭开采": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "complex"
+      },
+      "化工": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "化学制品": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "农化制品": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "有色金属": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "工业金属": {
+        "fair_low": 12,
+        "fair_high": 20,
+        "complexity": "complex"
+      },
+      "稀土": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "complex"
+      },
+      "小金属": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "complex"
+      },
+      "矿业": {
+        "fair_low": 10,
+        "fair_high": 18,
+        "complexity": "complex"
+      },
+      "石油": {
+        "fair_low": 9,
+        "fair_high": 15,
+        "complexity": "complex"
+      },
+      "石油石化": {
+        "fair_low": 9,
+        "fair_high": 15,
+        "complexity": "complex"
+      },
+      "油气": {
+        "fair_low": 9,
+        "fair_high": 15,
+        "complexity": "complex"
+      },
+      "房地产": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "medium"
+      },
+      "地产": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "medium"
+      },
+      "房地产开发": {
+        "fair_low": 7,
+        "fair_high": 12,
+        "complexity": "medium"
+      },
+      "面板": {
+        "fair_low": 18,
+        "fair_high": 30,
+        "complexity": "complex"
+      },
+      "显示": {
+        "fair_low": 18,
+        "fair_high": 30,
+        "complexity": "complex"
+      },
+      "光学光电子": {
+        "fair_low": 20,
+        "fair_high": 35,
+        "complexity": "complex"
+      },
+      "电子": {
+        "fair_low": 22,
+        "fair_high": 35,
+        "complexity": "medium"
+      },
+      "消费电子": {
+        "fair_low": 22,
+        "fair_high": 35,
+        "complexity": "medium"
+      },
+      "电子制造": {
+        "fair_low": 22,
+        "fair_high": 35,
+        "complexity": "medium"
+      },
+      "互联网": {
+        "fair_low": 25,
+        "fair_high": 40,
+        "complexity": "medium"
+      },
+      "互联网服务": {
+        "fair_low": 25,
+        "fair_high": 40,
+        "complexity": "medium"
+      },
+      "农业": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "medium"
+      },
+      "养殖": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "medium"
+      },
+      "农牧": {
+        "fair_low": 15,
+        "fair_high": 25,
+        "complexity": "medium"
+      }
+    },
+    "roe_thresholds_by_complexity": {
+      "simple": {
+        "heavy": 20,
+        "light": 15,
+        "watch": 12
+      },
+      "medium": {
+        "heavy": 22,
+        "light": 17,
+        "watch": 14
+      },
+      "complex": {
+        "heavy": 25,
+        "light": 20,
+        "watch": 15
+      }
+    }
+  },
+  "recommendations": [
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "category": "中药Ⅱ",
+      "note": "国家绝密配方+百年品牌",
+      "price": 54.73,
+      "pe": 18.95,
+      "signal": "buy_watch",
+      "signal_text": "PE偏低，ROE限制最高关注",
+      "total_score": 26,
+      "dividend_yield": 4.75,
+      "dimensions": {
+        "ROE质量": {
+          "score": 3,
+          "max": 10,
+          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
+        },
+        "财务健康": {
+          "score": 5,
+          "max": 10,
+          "detail": "负债26%极低 | 流动比率2.6"
+        },
+        "盈利能力": {
+          "score": 5,
+          "max": 10,
+          "detail": "毛利率29% | 10年数据"
+        },
+        "股息率": {
+          "score": 5,
+          "max": 10,
+          "detail": "股息率4.8%高"
+        },
+        "估值": {
+          "score": 8,
+          "max": 10,
+          "detail": "PE=18.9低估 | 简单生意"
+        }
+      },
+      "source": "关注表"
+    }
+  ],
+  "watchlist_signals": [
+    {
+      "code": "000661",
+      "name": "长春高新",
+      "category": "生物制品",
+      "note": "生长激素国内市占70%+",
+      "price": 85.35,
+      "pe": 36.3,
+      "signal": "hold",
+      "signal_text": "PE=36.3，超出合理区间20-30，等待回落",
+      "total_score": 29,
+      "dividend_yield": 8.32,
+      "dimensions": {
+        "ROE质量": {
+          "score": 7,
+          "max": 10,
+          "detail": "均值22.5%优秀 | 最低11.7% | 稳定 | 低杠杆16%"
+        },
+        "财务健康": {
+          "score": 5,
+          "max": 10,
+          "detail": "负债16%极低 | 流动比率4.8"
+        },
+        "盈利能力": {
+          "score": 7,
+          "max": 10,
+          "detail": "毛利率84%极强 | 10年数据"
+        },
+        "股息率": {
+          "score": 6,
+          "max": 10,
+          "detail": "股息率8.3%极高"
+        },
+        "估值": {
+          "score": 4,
+          "max": 10,
+          "detail": "PE=36.3偏高 | 简单生意"
+        }
+      },
+      "moat_status": "松动（ROE连续3年下滑至11.7%（<15%底线）; ROE近5年持续下降且跌破卓越线（31→29→26→23→12%，累计降20pp））",
+      "moat_problems": [
+        "ROE连续3年下滑至11.7%（<15%底线）",
+        "ROE近5年持续下降且跌破卓越线（31→29→26→23→12%，累计降20pp）"
+      ]
+    },
+    {
+      "code": "603288",
+      "name": "海天味业",
+      "category": "调味发酵品Ⅱ",
+      "note": "酱油市占30%+",
+      "price": 40.99,
+      "pe": 34.08,
+      "signal": "hold",
+      "signal_text": "PE=34.1，处于合理区间22-35，等待更低点",
+      "total_score": 27,
+      "dividend_yield": 2.68,
+      "dimensions": {
+        "ROE质量": {
+          "score": 8,
+          "max": 10,
+          "detail": "均值28.5%卓越 | 从未破15% | 下滑 | 低杠杆20%"
+        },
+        "财务健康": {
+          "score": 5,
+          "max": 10,
+          "detail": "负债20%极低 | 流动比率3.9"
+        },
+        "盈利能力": {
+          "score": 6,
+          "max": 10,
+          "detail": "毛利率41%强 | 10年数据"
+        },
+        "股息率": {
+          "score": 3,
+          "max": 10,
+          "detail": "股息率2.7%"
+        },
+        "估值": {
+          "score": 5,
+          "max": 10,
+          "detail": "PE=34.1合理偏高 | 简单生意"
+        }
+      },
+      "moat_status": "完好",
+      "moat_problems": []
+    },
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "category": "中药Ⅱ",
+      "note": "国家绝密配方+百年品牌",
+      "price": 54.73,
+      "pe": 18.95,
+      "signal": "buy_watch",
+      "signal_text": "PE偏低，ROE限制最高关注",
+      "total_score": 26,
+      "dividend_yield": 4.75,
+      "dimensions": {
+        "ROE质量": {
+          "score": 3,
+          "max": 10,
+          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
+        },
+        "财务健康": {
+          "score": 5,
+          "max": 10,
+          "detail": "负债26%极低 | 流动比率2.6"
+        },
+        "盈利能力": {
+          "score": 5,
+          "max": 10,
+          "detail": "毛利率29% | 10年数据"
+        },
+        "股息率": {
+          "score": 5,
+          "max": 10,
+          "detail": "股息率4.8%高"
+        },
+        "估值": {
+          "score": 8,
+          "max": 10,
+          "detail": "PE=18.9低估 | 简单生意"
+        }
+      },
+      "source": "关注表",
+      "moat_status": "完好",
+      "moat_problems": []
+    },
+    {
+      "code": "600941",
+      "name": "中国移动",
+      "category": "通信服务",
+      "note": "9亿用户+通信牌照",
+      "price": 93.66,
+      "pe": 14.8,
+      "signal": "hold",
+      "signal_text": "PE偏低但ROE不达标，继续观望",
+      "total_score": 24,
+      "dividend_yield": 5.1,
+      "dimensions": {
+        "ROE质量": {
+          "score": 4,
+          "max": 10,
+          "detail": "均值10.3%一般 | 最低9.8%曾破线 | 稳定 | 低杠杆33%"
+        },
+        "财务健康": {
+          "score": 2,
+          "max": 10,
+          "detail": "负债33%健康 | 流动比率0.8偏紧"
+        },
+        "盈利能力": {
+          "score": 4,
+          "max": 10,
+          "detail": "毛利率30%"
+        },
+        "股息率": {
+          "score": 5,
+          "max": 10,
+          "detail": "股息率5.1%高"
+        },
+        "估值": {
+          "score": 9,
+          "max": 10,
+          "detail": "PE=14.8极低估 | 中等复杂"
+        }
+      },
+      "moat_status": "完好",
+      "moat_problems": []
+    },
+    {
+      "code": "601006",
+      "name": "大秦铁路",
+      "category": "铁路公路",
+      "note": "西煤东运主通道独家",
+      "price": 5.21,
+      "pe": 15.76,
+      "signal": "hold",
+      "signal_text": "PE=15.8，处于合理区间10-16，等待更低点",
+      "total_score": 22,
+      "dividend_yield": 6.7,
+      "dimensions": {
+        "ROE质量": {
+          "score": 3,
+          "max": 10,
+          "detail": "均值10.6%一般 | 最低6.1%曾破线 | 下滑 | 低杠杆18%"
+        },
+        "财务健康": {
+          "score": 5,
+          "max": 10,
+          "detail": "负债18%极低 | 流动比率4.9"
+        },
+        "盈利能力": {
+          "score": 4,
+          "max": 10,
+          "detail": "毛利率22%偏低 | 10年数据"
+        },
+        "股息率": {
+          "score": 6,
+          "max": 10,
+          "detail": "股息率6.7%极高"
+        },
+        "估值": {
+          "score": 4,
+          "max": 10,
+          "detail": "PE=15.8合理偏高 | 中等复杂"
+        }
+      },
+      "moat_status": "完好",
+      "moat_problems": []
+    },
+    {
+      "code": "600887",
+      "name": "伊利股份",
+      "category": "饮料乳品",
+      "note": "乳业双寡头",
+      "price": 25.96,
+      "pe": 20.5,
+      "signal": "hold",
+      "signal_text": "PE=20.5，处于合理区间15-25，等待更低点",
+      "total_score": 22,
+      "dividend_yield": 6.55,
+      "dimensions": {
+        "ROE质量": {
+          "score": 6,
+          "max": 10,
+          "detail": "均值23.2%优秀 | 从未破15% | 下滑"
+        },
+        "财务健康": {
+          "score": 0,
+          "max": 10,
+          "detail": "负债63%高 | 流动比率0.7偏紧"
+        },
+        "盈利能力": {
+          "score": 5,
+          "max": 10,
+          "detail": "毛利率35% | 10年数据"
+        },
+        "股息率": {
+          "score": 6,
+          "max": 10,
+          "detail": "股息率6.5%极高"
+        },
+        "估值": {
+          "score": 5,
+          "max": 10,
+          "detail": "PE=20.5合理偏高 | 简单生意"
+        }
+      },
+      "moat_status": "完好",
+      "moat_problems": []
+    },
+    {
+      "code": "600085",
+      "name": "同仁堂",
+      "category": "中药Ⅱ",
+      "note": "350年国药老字号",
+      "price": 27.66,
+      "pe": 31.89,
+      "signal": "hold",
+      "signal_text": "PE=31.9，超出合理区间20-30，等待回落",
+      "total_score": 21,
+      "dividend_yield": 3.62,
+      "dimensions": {
+        "ROE质量": {
+          "score": 4,
+          "max": 10,
+          "detail": "均值11.8%一般 | 最低8.9%曾破线 | 稳定 | 低杠杆30%"
+        },
+        "财务健康": {
+          "score": 4,
+          "max": 10,
+          "detail": "负债30%健康 | 流动比率3.6"
+        },
+        "盈利能力": {
+          "score": 6,
+          "max": 10,
+          "detail": "毛利率46%强 | 10年数据"
+        },
+        "股息率": {
+          "score": 3,
+          "max": 10,
+          "detail": "股息率3.6%"
+        },
+        "估值": {
+          "score": 4,
+          "max": 10,
+          "detail": "PE=31.9偏高 | 简单生意"
+        }
+      },
+      "moat_status": "松动（ROE连续3年下滑至8.9%（<15%底线））",
+      "moat_problems": [
+        "ROE连续3年下滑至8.9%（<15%底线）"
+      ]
+    },
+    {
+      "code": "601888",
+      "name": "中国中免",
+      "category": "旅游零售Ⅱ",
+      "note": "国内唯一免税全牌照",
+      "price": 68.9,
+      "pe": 39.92,
+      "signal": "hold",
+      "signal_text": "PE=39.9，处于合理区间25-40，等待更低点",
+      "total_score": 21,
+      "dividend_yield": 1.02,
+      "dimensions": {
+        "ROE质量": {
+          "score": 4,
+          "max": 10,
+          "detail": "均值18.9%良好 | 最低6.5%曾破线 | 下滑 | 低杠杆18%"
+        },
+        "财务健康": {
+          "score": 5,
+          "max": 10,
+          "detail": "负债18%极低 | 流动比率5.8"
+        },
+        "盈利能力": {
+          "score": 5,
+          "max": 10,
+          "detail": "毛利率35% | 10年数据"
+        },
+        "股息率": {
+          "score": 2,
+          "max": 10,
+          "detail": "股息率1.0%偏低"
+        },
+        "估值": {
+          "score": 5,
+          "max": 10,
+          "detail": "PE=39.9合理偏高 | 简单生意"
+        }
+      },
+      "moat_status": "松动（ROE连续3年下滑至6.5%（<15%底线）; 营收连续2年负增长（-16.4%, -4.9%）+ ROE仅6.5%）",
+      "moat_problems": [
+        "ROE连续3年下滑至6.5%（<15%底线）",
+        "营收连续2年负增长（-16.4%, -4.9%）+ ROE仅6.5%",
+        "ROE近5年持续下降且跌破卓越线（37→14→13→8→6%，累计降31pp）"
+      ]
+    },
+    {
+      "code": "600900",
+      "name": "长江电力",
+      "category": "电力",
+      "note": "长江6大梯级电站独家运营",
+      "price": 26.42,
+      "pe": 18.92,
+      "signal": "hold",
+      "signal_text": "PE=18.9，超出合理区间10-18，等待回落",
+      "total_score": 20,
+      "dividend_yield": 4.36,
+      "dimensions": {
+        "ROE质量": {
+          "score": 5,
+          "max": 10,
+          "detail": "均值15.1%良好 | 最低11.7% | 稳定"
+        },
+        "财务健康": {
+          "score": 0,
+          "max": 10,
+          "detail": "负债61%高 | 流动比率0.1偏紧"
+        },
+        "盈利能力": {
+          "score": 7,
+          "max": 10,
+          "detail": "毛利率61%极强 | 10年数据"
+        },
+        "股息率": {
+          "score": 5,
+          "max": 10,
+          "detail": "股息率4.4%高"
+        },
+        "估值": {
+          "score": 3,
+          "max": 10,
+          "detail": "PE=18.9偏高 | 中等复杂"
+        }
+      },
+      "moat_status": "完好",
+      "moat_problems": []
+    },
+    {
+      "code": "601816",
+      "name": "京沪高铁",
+      "category": "铁路公路",
+      "note": "最黄金高铁线路独家",
+      "price": 4.93,
+      "pe": 18.48,
+      "signal": "hold",
+      "signal_text": "PE=18.5，超出合理区间10-16，等待回落",
+      "total_score": 18,
+      "dividend_yield": 5.44,
+      "dimensions": {
+        "ROE质量": {
+          "score": 1,
+          "max": 10,
+          "detail": "均值4.8%不足 | 最低-0.3% | 下滑 | 低杠杆21%"
+        },
+        "财务健康": {
+          "score": 4,
+          "max": 10,
+          "detail": "负债21%极低 | 流动比率1.5"
+        },
+        "盈利能力": {
+          "score": 5,
+          "max": 10,
+          "detail": "毛利率40%强"
+        },
+        "股息率": {
+          "score": 5,
+          "max": 10,
+          "detail": "股息率5.4%高"
+        },
+        "估值": {
+          "score": 3,
+          "max": 10,
+          "detail": "PE=18.5偏高 | 中等复杂"
+        }
+      },
+      "moat_status": "完好",
+      "moat_problems": []
+    },
+    {
+      "code": "601398",
+      "name": "工商银行",
+      "category": "银行Ⅱ",
+      "note": "国家信用+金融压舱石",
+      "price": 7.37,
+      "pe": 7.36,
+      "signal": "hold",
+      "signal_text": "PE=7.4，处于合理区间6-9，等待更低点",
+      "total_score": 18,
+      "dividend_yield": 6.44,
+      "dimensions": {
+        "ROE质量": {
+          "score": 2,
+          "max": 10,
+          "detail": "均值12.2%一般 | 最低9.4%曾破线 | 下滑"
+        },
+        "财务健康": {
+          "score": 0,
+          "max": 10,
+          "detail": "负债92%高"
+        },
+        "盈利能力": {
+          "score": 3,
+          "max": 10,
+          "detail": "10年数据"
+        },
+        "股息率": {
+          "score": 6,
+          "max": 10,
+          "detail": "股息率6.4%极高"
+        },
+        "估值": {
+          "score": 7,
+          "max": 10,
+          "detail": "PE=7.4合理偏低 | 简单生意"
+        }
+      },
+      "moat_status": "松动（ROE连续3年下滑至9.4%（<15%底线））",
+      "moat_problems": [
+        "ROE连续3年下滑至9.4%（<15%底线）"
+      ]
+    }
+  ],
+  "holdings": [
+    {
+      "code": "159326",
+      "name": "电网设备etf华夏",
+      "shares": 500,
+      "cost": 2.097
+    },
+    {
+      "code": "510330",
+      "name": "沪深300etf",
+      "shares": 700,
+      "cost": 4.915
+    },
+    {
+      "code": "512890",
+      "name": "红利低波etf华泰",
+      "shares": 10800,
+      "cost": 1.191
+    },
+    {
+      "code": "510880",
+      "name": "红利etf华泰",
+      "shares": 400,
+      "cost": 3.353
+    },
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "shares": 100,
+      "cost": 56.4,
+      "category": "医药"
+    },
+    {
+      "code": "510500",
+      "name": "中证500etf南方",
+      "shares": 100,
+      "cost": 8.502
+    }
+  ],
+  "holding_signals": [
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "shares": 100,
+      "cost": 56.4,
+      "price": 54.73,
+      "pe": 18.95,
+      "signal": "hold_keep",
+      "signal_text": "非十年王者/好公司 → 建议持有不加仓 | PE=18.9，低于行业合理区间20-30→可以轻仓买入",
+      "industry": "中药Ⅱ",
+      "holding_pnl": -2.9609929078014185,
+      "pnl_pct": -2.96,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "",
+      "must_sell": false,
+      "bull_top_alert": false,
+      "cf_warning": null,
+      "moat_status": "完好",
+      "moat_problems": []
+    }
+  ],
+  "watchlist_config": [
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "category": "中药",
+      "note": "国家绝密配方+百年品牌",
+      "industry_auto": "中药Ⅱ"
+    },
+    {
+      "code": "600085",
+      "name": "同仁堂",
+      "category": "中药",
+      "note": "350年国药老字号",
+      "industry_auto": "中药Ⅱ"
+    },
+    {
+      "code": "600900",
+      "name": "长江电力",
+      "category": "电力",
+      "note": "长江6大梯级电站独家运营",
+      "industry_auto": "电力"
+    },
+    {
+      "code": "601888",
+      "name": "中国中免",
+      "category": "免税",
+      "note": "国内唯一免税全牌照",
+      "industry_auto": "旅游零售Ⅱ"
+    },
+    {
+      "code": "600941",
+      "name": "中国移动",
+      "category": "通信",
+      "note": "9亿用户+通信牌照",
+      "industry_auto": "通信服务"
+    },
+    {
+      "code": "601006",
+      "name": "大秦铁路",
+      "category": "铁路",
+      "note": "西煤东运主通道独家",
+      "industry_auto": "铁路公路"
+    },
+    {
+      "code": "601816",
+      "name": "京沪高铁",
+      "category": "铁路",
+      "note": "最黄金高铁线路独家",
+      "industry_auto": "铁路公路"
+    },
+    {
+      "code": "601398",
+      "name": "工商银行",
+      "category": "银行",
+      "note": "国家信用+金融压舱石",
+      "industry_auto": "银行Ⅱ"
+    },
+    {
+      "code": "000661",
+      "name": "长春高新",
+      "category": "医药",
+      "note": "生长激素国内市占70%+",
+      "industry_auto": "生物制品"
+    },
+    {
+      "code": "603288",
+      "name": "海天味业",
+      "category": "调味品",
+      "note": "酱油市占30%+",
+      "industry_auto": "调味发酵品Ⅱ"
+    },
+    {
+      "code": "600887",
+      "name": "伊利股份",
+      "category": "乳制品",
+      "note": "乳业双寡头",
+      "industry_auto": "饮料乳品"
+    }
+  ]
+}
