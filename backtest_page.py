@@ -100,6 +100,58 @@ def _get_current_roe_for_sid(sid):
     return None
 
 
+def _build_trade_context(sid):
+    """构建交易时的环境快照：市场温度、模型信号、个股指标"""
+    from backtest_engine import get_hs300_temperature
+    yr = st.session_state.get("bt_year", 2015)
+    mo = st.session_state.get("bt_month", 1)
+
+    # 市场温度
+    temp_labels = {
+        2: "牛市顶部·极度高估", 1: "偏热市·谨慎",
+        0: "正常市", -1: "偏冷市·机会显现", -2: "熊市底部·大机会",
+    }
+    temp_lv = get_hs300_temperature(yr, mo)
+    ctx = {"市场温度": temp_labels.get(temp_lv, f"等级{temp_lv}")}
+
+    # 个股信号和指标
+    anon_map = st.session_state.get("bt_anon_map", {})
+    signals = get_month_signals(yr, mo, anon_map=anon_map, industry_map={})
+    for _, sdata in signals.items():
+        if sdata.get("sid") == sid:
+            sig = sdata.get("signal", "")
+            sig_text = sdata.get("signal_text", "")
+            ctx["模型信号"] = SIGNAL_LABELS.get(sig, sig)
+            ctx["信号说明"] = sig_text
+            pe = sdata.get("pe_ttm")
+            if pe is not None:
+                ctx["市盈率"] = round(pe, 1)
+            roe = sdata.get("roe")
+            if roe is not None:
+                ctx["净资产收益率"] = round(roe, 1)
+            gm = sdata.get("gross_margin")
+            if gm is not None:
+                ctx["毛利率"] = round(gm, 1)
+            debt = sdata.get("debt_ratio")
+            if debt is not None:
+                ctx["资产负债率"] = round(debt, 1)
+            score = sdata.get("score", 0)
+            ctx["模型评分"] = score
+            events = sdata.get("events", [])
+            if events:
+                ctx["当月事件"] = [e.get("text", "") for e in events[:3]]
+            break
+
+    # 护城河状态
+    try:
+        is_intact, probs = check_moat(sid, yr, mo)
+        ctx["护城河"] = "完好" if is_intact else f"松动（{'; '.join(probs[:2])}）"
+    except Exception:
+        ctx["护城河"] = "数据不足"
+
+    return ctx
+
+
 def virtual_buy(sid, anon_id, price, shares):
     date_str = f"{st.session_state['bt_year']}-{st.session_state['bt_month']:02d}"
     cost = price * shares
@@ -135,8 +187,16 @@ def virtual_buy(sid, anon_id, price, shares):
     except Exception:
         pass  # 数据不足时不阻止
 
+    # 构建环境快照
+    ctx = _build_trade_context(sid)
+
     st.session_state["bt_cash"] -= cost
     current_roe = _get_current_roe_for_sid(sid)
+
+    trade_entry = {
+        "type": "buy", "anon": anon_id, "shares": shares,
+        "price": price, "date": date_str, "context": ctx,
+    }
 
     for h in st.session_state["bt_holdings"]:
         if h["sid"] == sid:
@@ -152,7 +212,7 @@ def virtual_buy(sid, anon_id, price, shares):
             old_roe = h.get("roe_baseline") or h.get("roe_at_buy")
             if old_roe and current_roe:
                 h["roe_baseline"] = (old_roe * old_shares + current_roe * shares) / h["shares"]
-            st.session_state["bt_trade_log"].append({"type": "buy", "anon": anon_id, "shares": shares, "price": price, "date": date_str})
+            st.session_state["bt_trade_log"].append(trade_entry)
             return True
     st.session_state["bt_holdings"].append({
         "sid": sid, "anon": anon_id, "shares": shares, "cost": price,
@@ -161,7 +221,7 @@ def virtual_buy(sid, anon_id, price, shares):
         "roe_at_buy": current_roe,      # 首次建仓时的 ROE
         "roe_baseline": current_roe,    # 加仓后加权基准
     })
-    st.session_state["bt_trade_log"].append({"type": "buy", "anon": anon_id, "shares": shares, "price": price, "date": date_str})
+    st.session_state["bt_trade_log"].append(trade_entry)
     return True
 
 
@@ -172,8 +232,27 @@ def virtual_sell(sid, shares, current_price):
                 st.error(f"持有{h['shares']}股，不能卖{shares}股")
                 return False
             st.session_state["bt_cash"] += current_price * shares
+
+            # 构建卖出环境快照
+            ctx = _build_trade_context(sid)
+            # 补充持仓相关信息
+            pnl_pct = (current_price / h["cost"] - 1) * 100 if h["cost"] > 0 else 0
+            ctx["持仓成本"] = round(h["cost"], 2)
+            ctx["持仓盈亏"] = f"{pnl_pct:+.1f}%"
+            ctx["建仓时间"] = h.get("buy_date", "—")
+            if h.get("roe_at_buy"):
+                ctx["买入时净资产收益率"] = round(h["roe_at_buy"], 1)
+            # 松动标签状态
+            moat_broken = st.session_state.get("bt_moat_broken", {})
+            if sid in moat_broken:
+                ctx["松动标签"] = moat_broken[sid].get("broken_at", "有")
+
             h["shares"] -= shares
-            st.session_state["bt_trade_log"].append({"type": "sell", "anon": h["anon"], "shares": shares, "price": current_price, "date": f"{st.session_state['bt_year']}-{st.session_state['bt_month']:02d}"})
+            date_str = f"{st.session_state['bt_year']}-{st.session_state['bt_month']:02d}"
+            st.session_state["bt_trade_log"].append({
+                "type": "sell", "anon": h["anon"], "shares": shares,
+                "price": current_price, "date": date_str, "context": ctx,
+            })
             if h["shares"] <= 0:
                 st.session_state["bt_holdings"].remove(h)
             return True
@@ -763,6 +842,14 @@ def render_backtest_page():
             "trade_count": len(trade_log),
             "trade_log": trade_log,
             "watchlist": st.session_state.get("bt_watchlist_bt", []),
+            "moat_broken": {
+                sid: {
+                    "anon": info.get("anon", ""),
+                    "broken_at": info.get("broken_at", ""),
+                    "problems": info.get("problems", []),
+                }
+                for sid, info in st.session_state.get("bt_moat_broken", {}).items()
+            },
         }
         save_json_str = _json.dumps(save_data, ensure_ascii=False, indent=2)
         filename = f"backtest_game_{save_data['game_number']}_{_dt.now().strftime('%Y%m%d_%H%M')}.json"
