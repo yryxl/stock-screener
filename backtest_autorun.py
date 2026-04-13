@@ -746,39 +746,44 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
             if sid in holdings:
                 continue
 
-            # ---- 松动标签检查：之前被标记"护城河松动"的股票需要额外恢复验证 ----
-            # 不是"冷却期不让买"，而是"通过恢复验证才让买"
-            # 验证条件（3 条全过才移除标签允许买入）：
-            #   1. 最新 ROE ≥ 15%（回到巴菲特合格线）
-            #   2. ROE 比松动时上升 ≥ 3pp（真正在恢复，不是横盘）
-            #   3. 毛利率不能继续下滑（止跌或回升）
+            # ---- 松动标签检查（巴菲特铁律：10 年连续 ROE ≥ 15% 才重新考虑）----
+            # 原理：巴菲特要求好公司连续 10-15 年 ROE ≥ 15%。
+            # 一旦公司 ROE 跌破这条线（触发护城河松动），
+            # 必须从那一刻起重新积累 10 年的连续达标记录，
+            # 才能证明"这不是暂时回光返照，而是真正恢复了护城河"。
+            #
+            # 在 17 年回测周期中，这基本等于永久封禁——
+            # 和巴菲特实际操作一致：卖掉的股票极少回购。
+            MOAT_RECOVERY_YEARS = 10  # 恢复所需的连续达标年数
             if sid in moat_broken_registry:
                 broken_info = moat_broken_registry[sid]
-                current_roe = sdata.get("roe")
-                current_gm = sdata.get("gross_margin")
-                roe_at_break = broken_info.get("roe_at_break")
+                broken_year = int(broken_info["broken_at"][:4])
+                years_since = year - broken_year
 
-                # 默认不通过
                 recovered = False
-                if current_roe is not None and current_roe >= 15:
-                    if roe_at_break is not None and current_roe >= roe_at_break + 3:
-                        # ROE 回到合格线 + 比松动时升 ≥3pp
-                        # 还要看毛利率有没有继续跌
-                        reports_check = get_annual_reports_before(sid, year, month, lookback_years=3)
-                        gm_list = [r.get("gross_margin") for r in reports_check if r.get("gross_margin") is not None]
-                        if len(gm_list) >= 2 and gm_list[0] >= gm_list[1] - 1:
-                            # 毛利率止跌（不再连续下滑）
-                            recovered = True
+                if years_since >= MOAT_RECOVERY_YEARS:
+                    # 时间够了，检查松动后每一年的 ROE 是否都 ≥ 15%
+                    reports_check = get_annual_reports_before(
+                        sid, year, month, lookback_years=MOAT_RECOVERY_YEARS + 1
+                    )
+                    # 只取松动之后的年报
+                    post_break = [
+                        r for r in reports_check
+                        if int(str(r["date"])[:4]) >= broken_year
+                    ]
+                    roes = [r.get("roe") for r in post_break if r.get("roe") is not None]
+                    if (len(roes) >= MOAT_RECOVERY_YEARS
+                            and all(r >= 15 for r in roes)):
+                        recovered = True
 
                 if recovered:
-                    # 恢复确认！移除标签，允许买入
                     del moat_broken_registry[sid]
                     trade_log.append(
                         f"{year}-{month:02d} ✅恢复 {anon} 护城河恢复确认"
-                        f"（ROE从{roe_at_break:.1f}%恢复到{current_roe:.1f}%），重新允许买入"
+                        f"（松动后连续{MOAT_RECOVERY_YEARS}年ROE≥15%），重新允许买入"
                     )
                 else:
-                    # 未恢复，跳过买入
+                    # 未达标，跳过买入
                     continue
             if price <= 0:
                 continue

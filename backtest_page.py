@@ -12,6 +12,7 @@ from backtest_engine import (
     get_month_signals, generate_anonymous_map,
     load_stock_list, load_events,
     check_moat, get_cash_flow_warnings, _roe_historical_avg,
+    get_annual_reports_before,
 )
 
 SIGNAL_LABELS = {
@@ -69,6 +70,9 @@ def reset_game():
     st.session_state["bt_speed"] = 1
     st.session_state["bt_trade_log"] = []
     st.session_state["bt_skip_alerts"] = {}
+    # 松动标签注册表：{sid: {broken_at, roe_at_break, anon, problems}}
+    # 一旦护城河确认恶化，永久记录，10年连续ROE≥15%才解除
+    st.session_state["bt_moat_broken"] = {}
     # 清掉 number_input widget 的缓存 key，否则 rerun 后 widget 旧值会覆盖
     for wkey in ("bty", "btm"):
         if wkey in st.session_state:
@@ -106,7 +110,18 @@ def virtual_buy(sid, anon_id, price, shares):
         st.error("买入最少100股，100股为单位")
         return False
 
-    # ---- 护城河预检：买入前先检查，防止「买了马上松动」----
+    # ---- 松动标签检查：有标签的股票禁止买入 ----
+    moat_broken = st.session_state.get("bt_moat_broken", {})
+    if sid in moat_broken:
+        info = moat_broken[sid]
+        st.error(
+            f"🏷️ **{anon_id} 有护城河松动标签（{info['broken_at']}），禁止买入！**\n\n"
+            f"巴菲特标准：需连续10年ROE≥15%才能解除标签\n\n"
+            + "\n".join(f"- {p}" for p in info.get("problems", [])[:3])
+        )
+        return False
+
+    # ---- 护城河实时预检：即使没有标签，当前松动也不能买 ----
     yr = st.session_state.get("bt_year", 2015)
     mo = st.session_state.get("bt_month", 1)
     try:
@@ -115,7 +130,6 @@ def virtual_buy(sid, anon_id, price, shares):
             st.error(
                 f"🚫 **{anon_id} 护城河当前松动，禁止买入！**\n\n"
                 + "\n".join(f"- {p}" for p in moat_probs[:3])
-                + "\n\n巴菲特：永远不要买入护城河有裂缝的公司"
             )
             return False
     except Exception:
@@ -443,8 +457,16 @@ def render_backtest_page():
                                 etype = evt.get("type", "neutral")
                                 emoji = "🟢" if etype == "positive" else "🔴" if etype == "negative" else "⚪"
                                 st.info(f"📰 {emoji} {evt.get('text', '')}")
-                        # 买入按钮 + 加入关注表（仅买入档位显示）
-                        if is_buy and price > 0:
+                        # 松动标签警告（有标签的股票即使信号为买入也不可操作）
+                        _moat_reg = st.session_state.get("bt_moat_broken", {})
+                        if sid in _moat_reg:
+                            _bi = _moat_reg[sid]
+                            st.error(
+                                f"🏷️ **松动标签**（{_bi['broken_at']}）"
+                                f"：需10年连续ROE≥15%才解除，禁止买入"
+                            )
+                        # 买入按钮 + 加入关注表（仅买入档位 且 无松动标签 才显示）
+                        if is_buy and price > 0 and sid not in _moat_reg:
                             bc1, bc2, bc3, bc4 = st.columns(4)
                             with bc1:
                                 if st.button(f"虚拟买100股", key=f"bb1_{anon_id}"):
@@ -480,7 +502,8 @@ def render_backtest_page():
                             continue
                         pe = sdata.get("pe_ttm")
                         pe_str = f"{pe:.1f}" if pe else "—"
-                        st.caption(f"{anon_id} | 市盈率={pe_str} | ¥{sdata.get('price',0):.2f} | {sdata.get('signal_text','')}")
+                        _tag = "🏷️松动 | " if sdata.get("sid") in st.session_state.get("bt_moat_broken", {}) else ""
+                        st.caption(f"{_tag}{anon_id} | 市盈率={pe_str} | ¥{sdata.get('price',0):.2f} | {sdata.get('signal_text','')}")
 
     # ========================================
     # Tab2: 模拟持仓（含护城河松动和消费龙头警示）
@@ -490,6 +513,26 @@ def render_backtest_page():
         if not holdings:
             st.info("暂无虚拟持仓，去模型推荐页买入")
         else:
+            # ---- 松动标签恢复校验（每次渲染时检查）----
+            # 巴菲特铁律：10 年连续 ROE ≥ 15% 才能解除松动标签
+            MOAT_RECOVERY_YEARS = 10
+            _moat_reg = st.session_state.get("bt_moat_broken", {})
+            _to_remove = []
+            for _sid, _info in _moat_reg.items():
+                _broken_yr = int(_info["broken_at"][:4])
+                if yr - _broken_yr >= MOAT_RECOVERY_YEARS:
+                    _reps = get_annual_reports_before(_sid, yr, mo, lookback_years=MOAT_RECOVERY_YEARS + 1)
+                    _post = [r for r in _reps if int(str(r["date"])[:4]) >= _broken_yr]
+                    _roes = [r.get("roe") for r in _post if r.get("roe") is not None]
+                    if len(_roes) >= MOAT_RECOVERY_YEARS and all(r >= 15 for r in _roes):
+                        _to_remove.append(_sid)
+                        st.success(
+                            f"✅ **{_info.get('anon', _sid)} 松动标签解除！**"
+                            f"（松动后连续{MOAT_RECOVERY_YEARS}年ROE≥15%，恢复信任）"
+                        )
+            for _sid in _to_remove:
+                del _moat_reg[_sid]
+
             # 计算总持仓市值（用于各股占比）
             total_holding_value = 0
             for h in holdings:
@@ -568,6 +611,17 @@ def render_backtest_page():
                                 st.success(f"加仓 {anon_id} {bn}股 @¥{cur_price:.2f}")
                                 st.rerun()
 
+                # ---- 松动标签持久显示 ----
+                moat_broken = st.session_state.get("bt_moat_broken", {})
+                if sid in moat_broken:
+                    bi = moat_broken[sid]
+                    st.error(
+                        f"🏷️ **{anon_id} 护城河松动标签**"
+                        f"（{bi['broken_at']} 确认恶化）\n\n"
+                        + "\n".join(f"- {p}" for p in bi.get("problems", [])[:3])
+                        + f"\n\n**需连续10年ROE≥15%才能解除，建议清仓**"
+                    )
+
                 # 护城河松动分级警告（黄色观察 vs 红色行动）
                 try:
                     is_intact, moat_problems = check_moat(sid, yr, mo)
@@ -578,12 +632,20 @@ def render_backtest_page():
                         n_probs = len(moat_problems)
 
                         if h["moat_alert_months"] >= 2 or n_probs >= 2:
-                            # 🚨 红色行动
+                            # 🚨 红色行动 → 自动打上松动标签
+                            if sid not in moat_broken:
+                                cur_roe_val = sdata.get("roe")
+                                st.session_state.setdefault("bt_moat_broken", {})[sid] = {
+                                    "broken_at": f"{yr}-{mo:02d}",
+                                    "roe_at_break": cur_roe_val,
+                                    "anon": anon_id,
+                                    "problems": moat_problems[:3],
+                                }
                             st.error(
                                 f"🚨 **{anon_id} 护城河确认恶化**"
                                 f"（连续{h['moat_alert_months']}月·{n_probs}条规则）\n\n"
                                 + "\n".join(f"- {p}" for p in moat_problems[:3])
-                                + "\n\n**建议：执行减仓或清仓**"
+                                + "\n\n**已打上松动标签，建议清仓**"
                             )
                         else:
                             # ⚠ 黄色观察
@@ -593,7 +655,7 @@ def render_backtest_page():
                                 + "\n\n暂不动，等下个月确认是否持续"
                             )
                     else:
-                        # 恢复 → 清零
+                        # 数据恢复 → 清零观察计数（但松动标签不消失！）
                         h["moat_alert_months"] = 0
                 except Exception:
                     pass
