@@ -321,6 +321,146 @@ def get_etf_action_signal(temp):
 
 
 # ============================================================
+# 5 档具体行动信号（基于 PE 分位 + 持仓盈亏 + 仓位占比）
+# 阈值：15% / 35% / 70% / 85%
+# ============================================================
+
+ACTION_THRESHOLDS = {
+    "加仓": 15,      # ≤15% 分位：重点建仓/超配
+    "定投": 35,      # 15-35%：稳步小额买入
+    "持仓": 70,      # 35-70%：观望不动
+    "减仓": 85,      # 70-85%：分批卖出约1/3
+    # ≥85% 分位：割肉/止盈卖大部分
+}
+
+# 单只 ETF 仓位占比上限（超过触发减仓提醒）
+POSITION_CAP_PCT = 40.0
+
+
+def decide_etf_action(
+    temp,
+    *,
+    is_held=False,
+    cost=None,
+    current_price=None,
+    portfolio_ratio=None,
+):
+    """
+    给一只 ETF 输出 5 档行动建议：加仓 / 定投 / 持仓 / 减仓 / 割肉
+
+    参数：
+      temp: compute_etf_temperature 返回的 dict
+      is_held: 是否当前持有（未持有时"减仓/割肉"降级为"不买"）
+      cost: 持仓成本价
+      current_price: 现价（算盈亏用）
+      portfolio_ratio: 此ETF占总持仓%（>40% 触发强制减仓）
+
+    返回：dict
+      action: 加仓/定投/持仓/减仓/割肉/不买/观察
+      action_level: 数值 -2(加仓) ~ +2(割肉)，便于排序
+      detail: 具体操作建议
+      reasons: list[str] 触发原因
+      pnl_pct: 浮盈百分比（若持仓）
+    """
+    pct = temp.get("percentile")
+    data_points = temp.get("data_points", 0)
+    reasons = []
+
+    # 计算浮盈
+    pnl_pct = None
+    if cost and current_price and cost > 0:
+        pnl_pct = (current_price / cost - 1) * 100
+
+    # 数据不足：不给结论
+    if pct is None or data_points < 60:
+        return {
+            "action": "观察",
+            "action_level": 0,
+            "detail": f"数据仅{data_points}条，<60条无法判定历史分位，暂不给行动建议",
+            "reasons": ["数据不足"],
+            "pnl_pct": pnl_pct,
+        }
+
+    # --- 基础档位：按 PE 分位 ---
+    if pct <= ACTION_THRESHOLDS["加仓"]:
+        base = "加仓"
+        base_detail = f"PE分位{pct}%处于历史最便宜15%区间"
+    elif pct <= ACTION_THRESHOLDS["定投"]:
+        base = "定投"
+        base_detail = f"PE分位{pct}%偏便宜"
+    elif pct <= ACTION_THRESHOLDS["持仓"]:
+        base = "持仓"
+        base_detail = f"PE分位{pct}%合理区间"
+    elif pct <= ACTION_THRESHOLDS["减仓"]:
+        base = "减仓"
+        base_detail = f"PE分位{pct}%偏热"
+    else:
+        base = "割肉"
+        base_detail = f"PE分位{pct}%明显偏贵（≥85%历史）"
+
+    reasons.append(base_detail)
+    action = base
+
+    # --- 调整1：未持有时，卖出类动作降级为"不买"，买入类保留 ---
+    if not is_held:
+        if action in ("割肉", "减仓"):
+            action = "不买"
+            reasons.append("未持有·高估时不建仓")
+        elif action == "持仓":
+            action = "观察"
+            reasons.append("未持有·合理估值观察即可")
+        # "加仓"和"定投"对未持有一样适用（建仓 vs 分批建仓）
+
+    # --- 调整2：持仓超 40% 仓位，即使估值合理也要减仓 ---
+    if is_held and portfolio_ratio and portfolio_ratio > POSITION_CAP_PCT:
+        over = portfolio_ratio - POSITION_CAP_PCT
+        reasons.append(f"仓位{portfolio_ratio:.1f}%>40%超标{over:.1f}个点")
+        # 如果已经是减仓/割肉，文案加粗
+        if action in ("加仓", "定投", "持仓"):
+            action = "减仓"
+            reasons.append("仓位集中度强制降级为减仓")
+
+    # --- 调整3：持仓浮盈>20% + 高估区，确认止盈割肉 ---
+    if is_held and pnl_pct is not None:
+        if pnl_pct > 20 and pct >= 85:
+            # 原本就是割肉，这里加理由
+            reasons.append(f"浮盈{pnl_pct:+.1f}%+高估，止盈时机")
+        # 浮亏 < -10% 但估值也低：别认错，转定投
+        elif pnl_pct < -10 and pct <= 35:
+            if action in ("持仓", "观察"):
+                action = "定投"
+                reasons.append(f"浮亏{pnl_pct:+.1f}%但估值低，价值没坏别认错")
+
+    # --- 生成最终 detail 文案 ---
+    action_texts = {
+        "加仓": "🟢🟢 大力加仓 / 重点建仓（超配）",
+        "定投": "🟢 定投小额买入",
+        "持仓": "⚪ 持仓不动（无操作）",
+        "减仓": "🟡 减仓约 1/3（分批卖）",
+        "割肉": "🔴 卖大部分留底仓（止盈）",
+        "不买": "⛔ 不买（高估区不建仓）",
+        "观察": "👀 观察（合理估值，未持有）",
+    }
+    level_map = {"加仓": -2, "定投": -1, "持仓": 0, "观察": 0,
+                 "不买": 1, "减仓": 1, "割肉": 2}
+
+    detail_parts = [action_texts.get(action, action)]
+    if pnl_pct is not None:
+        detail_parts.append(f"浮盈{pnl_pct:+.1f}%")
+    if portfolio_ratio is not None:
+        detail_parts.append(f"仓位{portfolio_ratio:.1f}%")
+    detail = " | ".join(detail_parts)
+
+    return {
+        "action": action,
+        "action_level": level_map.get(action, 0),
+        "detail": detail,
+        "reasons": reasons,
+        "pnl_pct": round(pnl_pct, 2) if pnl_pct is not None else None,
+    }
+
+
+# ============================================================
 # 主流程：扫描持仓中的 ETF 并更新
 # ============================================================
 
