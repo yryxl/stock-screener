@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>选股模型理念与数据标准</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f5f7fa; color: #2c3e50; line-height: 1.7;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff; padding: 40px 30px; border-radius: 12px; margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(102,126,234,0.3);
+}
+header h1 { font-size: 32px; margin-bottom: 8px; }
+header p { opacity: 0.95; font-size: 16px; }
+
+.layout { display: grid; grid-template-columns: 240px 1fr; gap: 24px; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+aside {
+  background: #fff; padding: 20px; border-radius: 10px;
+  position: sticky; top: 20px; height: fit-content;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+aside h3 { font-size: 14px; color: #888; margin-bottom: 12px; letter-spacing: 2px; }
+aside ul { list-style: none; }
+aside li {
+  padding: 8px 12px; cursor: pointer; border-radius: 6px;
+  margin-bottom: 4px; color: #555; font-size: 14px; transition: all 0.2s;
+}
+aside li:hover { background: #eef1f7; color: #667eea; }
+aside a { color: inherit; text-decoration: none; display: block; }
+
+main { min-width: 0; }
+section {
+  background: #fff; padding: 30px; border-radius: 10px; margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+section h2 {
+  color: #2c3e50; font-size: 22px; margin-bottom: 18px;
+  padding-bottom: 12px; border-bottom: 2px solid #eef1f7;
+  display: flex; align-items: center; gap: 10px;
+}
+section h2 .badge {
+  background: #667eea; color: #fff; font-size: 12px;
+  padding: 4px 10px; border-radius: 12px; font-weight: normal;
+}
+section h3 {
+  color: #444; font-size: 17px; margin: 20px 0 12px;
+  padding-left: 10px; border-left: 4px solid #667eea;
+}
+section h4 { color: #555; font-size: 15px; margin: 16px 0 8px; }
+
+.quote {
+  background: #fef9e7; border-left: 4px solid #f39c12;
+  padding: 14px 18px; margin: 14px 0; border-radius: 6px;
+  font-style: italic; color: #7a6000;
+}
+.quote strong { color: #b9770e; font-style: normal; }
+
+.rule-box {
+  background: #f0f4f9; padding: 16px; margin: 12px 0;
+  border-radius: 8px; border-left: 4px solid #3498db;
+}
+.rule-box .label {
+  display: inline-block; background: #3498db; color: #fff;
+  padding: 2px 10px; border-radius: 10px; font-size: 12px;
+  margin-bottom: 6px; font-weight: 600;
+}
+.rule-box .why {
+  color: #666; font-size: 14px; margin-top: 8px; padding-top: 8px;
+  border-top: 1px dashed #ccd6df;
+}
+.rule-box .why::before { content: "💡 为什么这么定："; font-weight: 600; color: #3498db; }
+
+.criteria-table {
+  width: 100%; border-collapse: collapse; margin: 12px 0;
+  font-size: 14px;
+}
+.criteria-table th, .criteria-table td {
+  padding: 10px 12px; border: 1px solid #e1e7ed; text-align: left;
+}
+.criteria-table th { background: #667eea; color: #fff; font-weight: 600; }
+.criteria-table tr:nth-child(even) { background: #f8f9fb; }
+
+.threshold {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-weight: 600; font-family: "Consolas", monospace;
+}
+.th-danger { background: #fadbd8; color: #c0392b; }
+.th-warning { background: #fef5e7; color: #b9770e; }
+.th-normal { background: #eef1f7; color: #5d6d7e; }
+.th-good { background: #d5f5e3; color: #1e8449; }
+.th-excellent { background: #d6eaf8; color: #1b4f72; }
+
+.tier-list { list-style: none; }
+.tier-list li {
+  padding: 10px 14px; margin: 6px 0; border-radius: 6px;
+  display: flex; align-items: center; gap: 12px;
+}
+.tier-list .emoji { font-size: 20px; }
+
+.principle-card {
+  background: linear-gradient(135deg, #fff5f5, #fff 50%);
+  border-left: 4px solid #e74c3c;
+  padding: 16px 20px; margin: 14px 0; border-radius: 8px;
+}
+.principle-card h4 { color: #c0392b; margin-bottom: 6px; font-size: 16px; }
+.principle-card .source { color: #888; font-size: 12px; margin-top: 6px; }
+
+.comparison {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin: 12px 0;
+}
+.comparison > div {
+  padding: 14px; border-radius: 8px; font-size: 14px;
+}
+.comparison .wrong { background: #fadbd8; border-left: 3px solid #e74c3c; }
+.comparison .right { background: #d5f5e3; border-left: 3px solid #27ae60; }
+
+.code-block {
+  background: #2c3e50; color: #ecf0f1; padding: 14px 18px;
+  border-radius: 6px; font-family: "Consolas", "Monaco", monospace;
+  font-size: 13px; margin: 10px 0; overflow-x: auto;
+  line-height: 1.5;
+}
+
+.warn-box {
+  background: #fadbd8; border-left: 4px solid #e74c3c;
+  padding: 14px 18px; margin: 14px 0; border-radius: 6px;
+}
+.warn-box strong { color: #c0392b; }
+
+.info-box {
+  background: #d6eaf8; border-left: 4px solid #2980b9;
+  padding: 14px 18px; margin: 14px 0; border-radius: 6px;
+}
+
+footer {
+  text-align: center; color: #888; padding: 30px 0;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>📘 选股模型理念与数据标准</h1>
+  <p>这份文档说清楚：模型为什么给你这个信号、标准是怎么定的、每条规则背后的巴芒依据。</p>
+  <p style="margin-top: 8px; opacity: 0.8;">版本 v1.0 · 2026-04-14</p>
+</header>
+
+<div class="layout">
+
+<aside>
+  <h3>导航</h3>
+  <ul>
+    <li><a href="#core">一、四大核心理念</a></li>
+    <li><a href="#roe">二、净资产收益率（ROE）</a></li>
+    <li><a href="#pe">三、市盈率（PE）</a></li>
+    <li><a href="#industry">四、行业与复杂度</a></li>
+    <li><a href="#moat">五、护城河 8 条规则</a></li>
+    <li><a href="#king">六、十年王者与好公司</a></li>
+    <li><a href="#health">七、财务健康检查</a></li>
+    <li><a href="#temperature">八、市场温度计</a></li>
+    <li><a href="#etf">九、ETF 5 档行动</a></li>
+    <li><a href="#broken">十、松动标签机制</a></li>
+    <li><a href="#monitor">十一、买入后监测</a></li>
+    <li><a href="#sell">十二、三维卖出评估</a></li>
+    <li><a href="#signal">十三、信号分级体系</a></li>
+    <li><a href="#score">十四、评分维度</a></li>
+  </ul>
+</aside>
+
+<main>
+
+<!-- ============================ 一、核心理念 ============================ -->
+<section id="core">
+<h2>一、四大核心理念 <span class="badge">根本原则</span></h2>
+
+<p style="color:#666;">所有规则都是这四条核心理念的延伸。如果规则和理念冲突，以理念为准。</p>
+
+<div class="principle-card">
+  <h4>理念 1：宁可错过好股票，也不能买错</h4>
+  <p>这是所有决策的最高优先级。遇到模糊情况一律选择"不买"而非"可能错过"。</p>
+  <p>具体体现：PE 在临界点 → 降级为观望；ROE 数据不足 → 不给买入信号；护城河有疑问 → 打标签。</p>
+  <div class="source">📖 来源：查理·芒格《穷查理宝典》</div>
+</div>
+
+<div class="principle-card">
+  <h4>理念 2：净资产收益率（ROE）是衡量企业最核心的指标</h4>
+  <p>不看市值、不看股价、不看成交量，只看企业有多"能赚钱"。ROE 高且持续的公司才是好公司。</p>
+  <div class="quote">
+    <strong>巴菲特 1979 年致股东信：</strong>"如果只让我选一项指标来衡量企业表现，那就是净资产收益率。"
+  </div>
+</div>
+
+<div class="principle-card">
+  <h4>理念 3：长期持有，买后除非明确信号不动</h4>
+  <p>但前提是"买对了"。长期持有不是"买了就不看"，而是"基本面不变就不卖"。基本面恶化时必须止损（巴菲特 2020 清空航空股即是例证）。</p>
+  <div class="quote">
+    <strong>巴菲特："</strong>If you don't feel comfortable owning a stock for 10 years, you shouldn't own it for 10 minutes.<strong>"</strong>
+  </div>
+</div>
+
+<div class="principle-card">
+  <h4>理念 4：宽基 ETF 不是类固收，仍计入股票仓位</h4>
+  <p>沪深 300 历史上出现过半年跌 43%（2015），标普 500 跌 37%（2008）。不要把 ETF 当存款看。</p>
+  <div class="source">📖 来源：用户本人的认知纠正（基于历史数据）</div>
+</div>
+
+</section>
+
+<!-- ============================ 二、ROE ============================ -->
+<section id="roe">
+<h2>二、净资产收益率（ROE）<span class="badge">核心指标</span></h2>
+
+<p>ROE = 净利润 / 净资产。表示股东投入 1 元，企业一年赚回多少。</p>
+
+<h3>2.1 基础门槛：15%</h3>
+<div class="rule-box">
+<span class="label">硬门槛</span>
+<p>ROE <span class="threshold th-normal">≥ 15%</span> 才算"合格的公司"</p>
+<div class="why">巴菲特经验值：长期 ROE 超过 15% 的公司，大概率是有护城河的（定价权、品牌、规模效应）。低于 15% 多是资本密集型的平庸企业。</div>
+</div>
+
+<h3>2.2 按行业复杂度分档</h3>
+<table class="criteria-table">
+<thead>
+<tr><th>生意类型</th><th>代表行业</th><th>ROE 要求</th><th>理由</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>简单生意</td>
+  <td>白酒、食品、调味品、银行、中药</td>
+  <td><span class="threshold th-normal">≥ 15%</span></td>
+  <td>生意模式成熟，资本回报可预测</td>
+</tr>
+<tr>
+  <td>中等生意</td>
+  <td>医疗器械、电力、通信、铁路</td>
+  <td><span class="threshold th-warning">≥ 17%</span></td>
+  <td>行业变量多，需要更高回报补偿</td>
+</tr>
+<tr>
+  <td>复杂生意</td>
+  <td>半导体、新能源、军工、光伏</td>
+  <td><span class="threshold th-danger">≥ 20%</span></td>
+  <td>技术迭代快、资本投入大，必须有超额回报</td>
+</tr>
+</tbody>
+</table>
+<div class="quote">
+  <strong>巴菲特 1987 年股东信：</strong>"不同生意的合理 ROE 标准不同。对复杂的高资本投入生意，15% 不够；对稳定的消费品生意，15% 就很好。"
+</div>
+
+<h3>2.3 ROE 的三个衍生判定</h3>
+<div class="rule-box">
+<span class="label">十年王者</span>
+<p>连续 <span class="threshold th-excellent">10 年 ROE ≥ 15%</span> + 最低年份 <span class="threshold th-excellent">≥ 12%</span></p>
+<div class="why">10 年覆盖一轮经济周期（含一次衰退）。能保持 ROE 不破线的公司，证明护城河扎实。巴菲特对可口可乐持仓就是在看到它连续 10 年以上高 ROE 后才买的。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">好公司（放宽档）</span>
+<p>5 年 ROE 均值 <span class="threshold th-good">≥ 20%</span> + 毛利率 <span class="threshold th-good">≥ 30%</span></p>
+<div class="why">上市不满 10 年但财务表现优异的公司不能一刀切。均值 20% 比连续 15% 门槛高，毛利 30% 证明有定价权，组合起来能筛出真正优秀的"新锐"。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">平庸公司</span>
+<p>ROE 介于 10-15%，或波动较大的</p>
+<div class="why">不反对持有，但<b>绝对不加仓</b>。芒格原话："Don't average down on mediocre businesses."（不要在平庸的企业上摊平成本）</div>
+</div>
+
+</section>
+
+<!-- ============================ 三、PE ============================ -->
+<section id="pe">
+<h2>三、市盈率（PE）<span class="badge">估值指标</span></h2>
+
+<p>PE = 股价 / 每股盈利。表示按当前盈利水平，多少年回本。</p>
+
+<h3>3.1 为什么用 PE(TTM) 而不是动态 PE</h3>
+<div class="rule-box">
+<span class="label">数据源</span>
+<p>统一使用 PE(TTM)：过去 12 个月滚动盈利</p>
+<div class="why">动态 PE 是"今年预测盈利 × 4"，误差大。例如伊利的动态 PE 曾显示 12.0，TTM 实际 20.78，差距巨大。用 TTM 能避免被"季节性高利润"误导。</div>
+</div>
+
+<h3>3.2 各行业 PE 合理区间</h3>
+<table class="criteria-table">
+<thead>
+<tr><th>行业</th><th>合理下限</th><th>合理上限</th><th>复杂度</th></tr>
+</thead>
+<tbody>
+<tr><td>白酒 / 食品饮料</td><td>20</td><td>30</td><td>简单</td></tr>
+<tr><td>调味品</td><td>22</td><td>35</td><td>简单</td></tr>
+<tr><td>乳制品</td><td>15</td><td>25</td><td>简单</td></tr>
+<tr><td>中药</td><td>20</td><td>30</td><td>简单</td></tr>
+<tr><td>银行</td><td>6</td><td>9</td><td>简单</td></tr>
+<tr><td>保险</td><td>8</td><td>12</td><td>简单</td></tr>
+<tr><td>电力</td><td>10</td><td>18</td><td>中等</td></tr>
+<tr><td>铁路 / 高速</td><td>10</td><td>16</td><td>中等</td></tr>
+<tr><td>通信服务</td><td>20</td><td>35</td><td>中等</td></tr>
+<tr><td>医疗器械</td><td>22</td><td>35</td><td>中等</td></tr>
+<tr><td>半导体 / 芯片</td><td>40</td><td>65</td><td>复杂</td></tr>
+<tr><td>软件</td><td>40</td><td>60</td><td>中等</td></tr>
+<tr><td>军工 / 航空航天</td><td>35</td><td>55</td><td>复杂</td></tr>
+<tr><td>新能源 / 锂电</td><td>30</td><td>50</td><td>复杂</td></tr>
+</tbody>
+</table>
+
+<h3>3.3 基于 PE 的信号分级</h3>
+<ul class="tier-list">
+<li style="background:#d5f5e3;"><span class="emoji">🟢🟢🟢</span> <b>重仓买入</b>：PE < 合理下限 × 0.8（远低于区间）</li>
+<li style="background:#d5f5e3;"><span class="emoji">🟢🟢</span> <b>中仓买入</b>：PE < 合理下限（低于区间但接近）</li>
+<li style="background:#eef1f7;"><span class="emoji">🟢</span> <b>轻仓买入</b>：合理下限 ≤ PE ≤ 合理中值</li>
+<li style="background:#eef1f7;"><span class="emoji">⚪</span> <b>观望</b>：合理中值 &lt; PE ≤ 合理上限</li>
+<li style="background:#fef5e7;"><span class="emoji">🟡</span> <b>关注卖出</b>：PE 略超上限</li>
+<li style="background:#fef5e7;"><span class="emoji">🟠</span> <b>适当卖出</b>：PE 明显超上限</li>
+<li style="background:#fadbd8;"><span class="emoji">🔴</span> <b>中仓卖出</b>：PE 远超上限</li>
+<li style="background:#fadbd8;"><span class="emoji">🔴🔴</span> <b>大量卖出</b>：PE 超出上限 50%+</li>
+</ul>
+
+</section>
+
+<!-- ============================ 四、行业与复杂度 ============================ -->
+<section id="industry">
+<h2>四、行业与复杂度分类<span class="badge">重要前提</span></h2>
+
+<h3>4.1 为什么要分复杂度</h3>
+<div class="info-box">
+<p>不分复杂度，相当于用同一把尺子量白酒和半导体——白酒 PE 50 肯定偏贵，半导体 PE 50 可能刚合理。</p>
+</div>
+
+<h3>4.2 周期股彻底过滤</h3>
+<div class="warn-box">
+<strong>模型不推荐周期股买卖信号</strong>（钢铁、煤炭、有色金属、化工等）。
+<p style="margin-top:8px;">原因：周期股 PE 反映的是"此刻盈利 × 当前股价"，但它的盈利本身就是周期性的。PE 看起来低往往是因为盈利处于周期高点——下一轮就崩。不符合"简单生意"标准，巴菲特也很少碰。</p>
+</div>
+
+</section>
+
+<!-- ============================ 五、护城河 8 条规则 ============================ -->
+<section id="moat">
+<h2>五、护城河 8 条规则<span class="badge">基本面检查</span></h2>
+
+<p>这 8 条规则是"护城河是否还在"的硬指标。任何一条触发，降级为"观望"，不给买入信号。</p>
+
+<div class="rule-box">
+<span class="label">规则 1</span>
+<p>最新 ROE <span class="threshold th-danger">&lt; 0</span>（亏损）</p>
+<div class="why">亏损说明当前盈利能力已经丢失，任何 PE 都无意义（负盈利算 PE 无效）。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">规则 2</span>
+<p>ROE 年度下降 <span class="threshold th-danger">≥ 6pp</span> 且新 ROE <span class="threshold th-danger">&lt; 15%</span>（仅非王者）</p>
+<div class="why">大幅下滑说明遇到结构性问题。十年王者允许有波动（周期性原因），非王者没有缓冲余地。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">规则 3</span>
+<p>3 年 ROE 连续下滑 + 最新 <span class="threshold th-danger">&lt; 15%</span></p>
+<div class="why">一次下滑可能是波动，连续 3 年下滑就是趋势。配合破 15% 底线，确认护城河丧失。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">规则 4</span>
+<p>3 年毛利率连续下滑 + 累计跌幅 <span class="threshold th-danger">≥ 5pp</span></p>
+<div class="why">毛利率反映定价权。持续下滑说明产品溢价能力在削弱，是品牌老化或竞争加剧的先兆。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">规则 5</span>
+<p>2 年营收连续下滑 + ROE <span class="threshold th-danger">&lt; 15%</span></p>
+<div class="why">营收下滑+ROE 不达标 = 市场份额丢失。好公司哪怕不增长也能保持高 ROE（可口可乐成熟期），两者同时恶化就是危险。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">规则 6</span>
+<p>资产负债率上升 <span class="threshold th-danger">&gt; 10pp</span> 到 <span class="threshold th-danger">&gt; 70%</span> 且 ROE 跌破 15%</p>
+<div class="why">借钱撑场面。高杠杆短期可以粉饰业绩，但风险累积。超过 70% 负债的公司财务风险急剧上升。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">规则 7</span>
+<p>2 年现金流与净利润比率 <span class="threshold th-danger">&lt; 0.3</span></p>
+<div class="why">赚的是"账面利润"而非真金白银。现金流远低于净利润说明有应收账款堆积、存货膨胀等问题，利润质量差。<br><b>豁免对象</b>：高 ROE+高毛利的消费龙头（茅台等），单独列出"重点关注"警示。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">规则 8（温水煮青蛙检测）</span>
+<p>5 年 ROE 单调下降 + 累计跌幅 <span class="threshold th-danger">≥ 10pp</span> + 最新 <span class="threshold th-danger">&lt; 20%</span></p>
+<div class="why">长春高新教训：ROE 从 28% 连续滑到 12% 用了 3 年，每年只降 5pp 不触发规则 2/3，但 5 年累计下来就是护城河崩塌。规则 8 专门抓这种"温水煮青蛙"式衰退。</div>
+</div>
+
+<h3>5.1 ROE-PB 背离检查（补充）</h3>
+<div class="rule-box">
+<span class="label">补充规则</span>
+<p>ROE 下降 <span class="threshold th-danger">≥ 5pp</span> + PB <span class="threshold th-danger">&gt; 1.5</span></p>
+<div class="why">基本面恶化但股价没跌 = 估值假象，市场还没反映。这是最危险的时刻——表面"便宜"实际已经变贵了。万科 2025、格力 2019 都是这种模式的典型案例。</div>
+</div>
+
+</section>
+
+<!-- ============================ 六、十年王者 ============================ -->
+<section id="king">
+<h2>六、十年王者与好公司<span class="badge">优质公司识别</span></h2>
+
+<h3>6.1 十年王者判定</h3>
+<div class="rule-box">
+<span class="label">十年王者标准</span>
+<p>
+  ✅ 连续 10 年 ROE ≥ 15%<br>
+  ✅ 最低年份 ROE ≥ 12%（允许偶尔波动，但不能太低）<br>
+  ✅ 最近 2 年 ROE 不能双双 &lt; 10%<br>
+  ✅ 最新 ROE 不能为负
+</p>
+<div class="why">10 年覆盖一整个经济周期（含至少一次衰退）。期间 ROE 都能维持在 15%+ 说明护城河经过实战检验。这是巴菲特最看重的"质量证明"。</div>
+</div>
+
+<h3>6.2 好公司（十年王者不到但优秀）</h3>
+<div class="rule-box">
+<span class="label">好公司标准</span>
+<p>
+  ✅ 5 年 ROE 均值 ≥ 20%<br>
+  ✅ 毛利率 ≥ 30%（证明有定价权）<br>
+  ❌ 不满足连续 10 年 ≥ 15%（比十年王者差一级）
+</p>
+<div class="why">上市不满 10 年但表现优异的公司。均值 20% + 毛利 30% 的组合能筛出真正有护城河的新锐，而不是靠周期赚一波的昙花一现。</div>
+</div>
+
+<h3>6.3 两档公司的差异对待</h3>
+<table class="criteria-table">
+<thead>
+<tr><th>场景</th><th>十年王者</th><th>好公司</th><th>平庸公司</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>PE 偏低时</td>
+  <td class="th-excellent">推荐加仓 (buy_add)</td>
+  <td class="th-good">推荐加仓 (buy_add)</td>
+  <td class="th-normal">持有不加仓 (hold_keep)</td>
+</tr>
+<tr>
+  <td>PE 明显偏高</td>
+  <td class="th-warning">豁免清仓，建议减仓 30%</td>
+  <td class="th-warning">建议减仓 1/3</td>
+  <td class="th-danger">按正常规则清仓</td>
+</tr>
+<tr>
+  <td>护城河松动</td>
+  <td>优先观察，延迟反应</td>
+  <td>正常规则处理</td>
+  <td>直接清仓 + 打标签</td>
+</tr>
+</tbody>
+</table>
+
+</section>
+
+<!-- ============================ 七、财务健康 ============================ -->
+<section id="health">
+<h2>七、财务健康检查<span class="badge">买入前关卡</span></h2>
+
+<p>关注表买入前的"清单检查"。任何一项不通过，降级为观望。</p>
+
+<table class="criteria-table">
+<thead>
+<tr><th>指标</th><th>合格标准</th><th>警戒值</th><th>为什么</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>资产负债率</td>
+  <td class="th-good">&lt; 50%</td>
+  <td class="th-danger">&gt; 70%</td>
+  <td>负债过高财务风险大，遇到景气下行时利息负担会压垮公司</td>
+</tr>
+<tr>
+  <td>流动比率</td>
+  <td class="th-good">&gt; 1.5</td>
+  <td class="th-danger">&lt; 1.0</td>
+  <td>短期偿债能力，小于 1 说明流动资产不够还短期负债</td>
+</tr>
+<tr>
+  <td>销售净利率</td>
+  <td class="th-good">&gt; 10%</td>
+  <td class="th-warning">&lt; 5%</td>
+  <td>赚钱效率，太低说明没议价权（像卖白菜，跑量不赚钱）</td>
+</tr>
+<tr>
+  <td>经营现金流</td>
+  <td class="th-good">正数稳定</td>
+  <td class="th-danger">持续为负</td>
+  <td>真·赚钱能力。账面利润可以粉饰，现金流不能骗人</td>
+</tr>
+</tbody>
+</table>
+
+</section>
+
+<!-- ============================ 八、市场温度计 ============================ -->
+<section id="temperature">
+<h2>八、市场温度计<span class="badge">宏观判断</span></h2>
+
+<h3>8.1 五档判定</h3>
+<ul class="tier-list">
+<li style="background:#d5f5e3;">
+  <span class="emoji">❄️</span>
+  <div>
+    <b>熊市底部（分位 &lt; 15%）</b>
+    <p style="font-size:13px;color:#666;">低估区·全力加仓 —— 2008 年、2014 年、2019 年这种机会</p>
+  </div>
+</li>
+<li style="background:#d6eaf8;">
+  <span class="emoji">🧊</span>
+  <div>
+    <b>偏冷市（分位 15-30%）</b>
+    <p style="font-size:13px;color:#666;">偏冷·重点加仓</p>
+  </div>
+</li>
+<li style="background:#eef1f7;">
+  <span class="emoji">⚪</span>
+  <div>
+    <b>正常市（分位 30-70%）</b>
+    <p style="font-size:13px;color:#666;">正常·按节奏（定投/持仓不动）</p>
+  </div>
+</li>
+<li style="background:#fef5e7;">
+  <span class="emoji">🔥</span>
+  <div>
+    <b>偏热市（分位 70-85%）</b>
+    <p style="font-size:13px;color:#666;">偏热·暂停加仓·新钱转便宜标的</p>
+  </div>
+</li>
+<li style="background:#fadbd8;">
+  <span class="emoji">🔴</span>
+  <div>
+    <b>牛市顶部（分位 &gt; 85%）</b>
+    <p style="font-size:13px;color:#666;">泡沫区·贵到不舒服·卖盈利保留底仓</p>
+  </div>
+</li>
+</ul>
+
+<h3>8.2 五维度综合判定（准确率 20% → 53%）</h3>
+<div class="info-box">
+<p>单看沪深 300 PE 分位准确率只有 20%，加入其他 4 个维度综合判定后升到 53%。</p>
+</div>
+<ol style="padding-left:24px; line-height:2;">
+<li>沪深 300 PE 分位（中位数 PE）</li>
+<li>沪深 300 PB 分位</li>
+<li>巴菲特指标（总市值/GDP）</li>
+<li>股票池横截面（低估标的占比）</li>
+<li>绝对阈值（历史极端区间定义）</li>
+</ol>
+
+</section>
+
+<!-- ============================ 九、ETF 5档 ============================ -->
+<section id="etf">
+<h2>九、ETF 5 档行动信号<span class="badge">具体操作</span></h2>
+
+<p>基于 PE 分位 + 浮盈 + 仓位占比，给具体行动建议。</p>
+
+<table class="criteria-table">
+<thead>
+<tr><th>分位</th><th>持有时</th><th>未持有时</th><th>理由</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td><span class="threshold th-good">≤ 15%</span></td>
+  <td>🟢🟢 加仓</td>
+  <td>🟢🟢 建仓</td>
+  <td>历史最便宜区间，难得的机会</td>
+</tr>
+<tr>
+  <td><span class="threshold th-normal">15-35%</span></td>
+  <td>🟢 定投</td>
+  <td>🟢 定投</td>
+  <td>偏便宜但未到极端，稳步小额买入</td>
+</tr>
+<tr>
+  <td><span class="threshold th-normal">35-70%</span></td>
+  <td>⚪ 持仓</td>
+  <td>👀 观察</td>
+  <td>合理区间，不是机会也不是风险</td>
+</tr>
+<tr>
+  <td><span class="threshold th-warning">70-85%</span></td>
+  <td>🟡 减仓 1/3</td>
+  <td>⛔ 不买</td>
+  <td>偏热，不新建仓，持有的分批撤</td>
+</tr>
+<tr>
+  <td><span class="threshold th-danger">≥ 85%</span></td>
+  <td>🔴 割肉卖大部分</td>
+  <td>⛔ 不买</td>
+  <td>泡沫区，留底仓收股息即可</td>
+</tr>
+</tbody>
+</table>
+
+<h3>9.1 三条特殊规则</h3>
+<div class="rule-box">
+<span class="label">规则 A</span>
+<p>单只 ETF 仓位 &gt; 40% → <b>强制降级为减仓</b></p>
+<div class="why">即使估值合理，过度集中都是风险。单标的黑天鹅（如基金经理变更、跟踪误差放大）可能让你一夜回到解放前。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">规则 B</span>
+<p>浮亏 &lt; -10% + 分位 &lt; 35% → 降级为<b>定投不认错</b></p>
+<div class="why">价值没崩坏的资产在低估区浮亏，正是分批建仓的机会，不是割肉的时点。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">规则 C</span>
+<p>未持有 + 高估区 → 降级为<b>不买</b>而非卖出建议</p>
+<div class="why">模型不做卖空建议。未持有的资产只有两种选择：买或不买。</div>
+</div>
+
+</section>
+
+<!-- ============================ 十、松动标签 ============================ -->
+<section id="broken">
+<h2>十、松动标签机制<span class="badge">防"卖了又买回"</span></h2>
+
+<h3>10.1 松动分级</h3>
+<div class="rule-box">
+<span class="label">黄色观察</span>
+<p>首次触发 OR 只有 1 条规则</p>
+<div class="why">单次异常可能是波动，暂不动作，等 2 个月再确认</div>
+</div>
+
+<div class="rule-box">
+<span class="label">红色行动</span>
+<p>连续 ≥ 2 个月 OR ≥ 2 条规则同时触发</p>
+<div class="why">持续性问题，必须清仓 + 打松动标签</div>
+</div>
+
+<h3>10.2 10 年恢复铁律</h3>
+<div class="warn-box">
+<strong>松动后必须连续 10 年每年 ROE ≥ 15% 才能解除标签重新买入。</strong>
+<p style="margin-top:8px;">在 17 年回测期内基本等于永久封禁。这和巴菲特的实际操作一致——卖掉的股票极少回购。</p>
+</div>
+
+<div class="quote">
+<strong>为什么这么严？</strong>防止"sell then buy back"循环。之前的 3pp 条件太松，ROE 暂时反弹就让人放松警惕，导致刚卖掉又追回，来回交手续费。
+</div>
+
+</section>
+
+<!-- ============================ 十一、买入后监测 ============================ -->
+<section id="monitor">
+<h2>十一、买入后 ROE 三级监测<span class="badge">长春高新教训</span></h2>
+
+<p>持仓时定期对比当前 ROE 与买入时 ROE 基准。</p>
+
+<table class="criteria-table">
+<thead>
+<tr><th>ROE 下降幅度</th><th>预警等级</th><th>动作</th><th>示例</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td><span class="threshold th-warning">≥ 5pp</span></td>
+  <td>🟡 黄色</td>
+  <td>观察，记录日志</td>
+  <td>买入时 20%，现在 14.5%</td>
+</tr>
+<tr>
+  <td><span class="threshold th-warning">≥ 10pp</span></td>
+  <td>🟠 橙色</td>
+  <td>减半仓</td>
+  <td>买入时 25%，现在 14%</td>
+</tr>
+<tr>
+  <td><span class="threshold th-danger">≥ 15pp 或破 15% 底</span></td>
+  <td>🔴 红色</td>
+  <td>清仓</td>
+  <td>买入时 28%，现在 12%（长春高新实际情况）</td>
+</tr>
+</tbody>
+</table>
+
+<h3>11.1 加仓时基准更新</h3>
+<div class="rule-box">
+<span class="label">加权平均</span>
+<p>加仓后，新 <code>roe_baseline = (老股数 × 老基准 + 加仓股数 × 加仓时ROE) / 总股数</code></p>
+<div class="why">如果只看买入时 ROE 不更新，加仓后基准会失真。比如买入时 ROE 20%，加仓时 ROE 15%，加仓后基准应该是 17-18%，不是一直 20%。</div>
+</div>
+
+</section>
+
+<!-- ============================ 十二、三维卖出 ============================ -->
+<section id="sell">
+<h2>十二、三维卖出评估<span class="badge">防机械减仓</span></h2>
+
+<p>卖出不是机械按 PE 执行。必须通过三维判定。</p>
+
+<div class="rule-box">
+<span class="label">维度 1：卖出是否有意义</span>
+<p>浮盈接近零时（涨幅 &lt; 3%）估值高位卖出无意义</p>
+<div class="why">防止平本/浮亏时被机械减仓。刚买就涨到 PE 上限随即震荡回到成本价的场景很常见，这时减仓只是白忙活。</div>
+</div>
+
+<div class="rule-box">
+<span class="label">维度 2：是否必须割肉</span>
+<p>基本面恶化（true_decline 信号）→ 即使割肉也要卖</p>
+<div class="why">巴菲特 2020 年清空美国四大航空公司，亏 50% 也卖。原则："The only thing worse than losing money is losing more."（唯一比亏钱更糟的是亏更多）</div>
+</div>
+
+<div class="rule-box">
+<span class="label">维度 3：大盘到牛顶 + 浮盈丰厚</span>
+<p>大盘温度 = 2（牛顶）+ 浮盈 &gt; 20% → 主动减仓锁利</p>
+<div class="why">巴菲特现金占比在牛顶时通常 30%+（目前 3250 亿美金）。不是满仓死扛等大跌，而是提前预备好弹药。</div>
+</div>
+
+</section>
+
+<!-- ============================ 十三、信号分级 ============================ -->
+<section id="signal">
+<h2>十三、完整信号分级体系<span class="badge">输出规范</span></h2>
+
+<h4>买入方向（4 级）</h4>
+<ul class="tier-list">
+<li style="background:#d5f5e3;"><span class="emoji">🟢🟢🟢</span> buy_heavy - 可以重仓买入</li>
+<li style="background:#d5f5e3;"><span class="emoji">🟢🟢</span> buy_medium - 可以中仓买入</li>
+<li style="background:#eef1f7;"><span class="emoji">🟢</span> buy_light - 可以轻仓买入</li>
+<li style="background:#eef1f7;"><span class="emoji">👀</span> buy_watch - 重点关注买入</li>
+</ul>
+
+<h4>持仓方向（2 级）</h4>
+<ul class="tier-list">
+<li style="background:#d6eaf8;"><span class="emoji">🟢📈</span> buy_add - 持仓可加仓（仅十年王者/好公司）</li>
+<li style="background:#d6eaf8;"><span class="emoji">🔵</span> hold_keep - 建议持续持有</li>
+</ul>
+
+<h4>卖出方向（4 级 + 紧急）</h4>
+<ul class="tier-list">
+<li style="background:#fef5e7;"><span class="emoji">🟡</span> sell_watch - 关注卖出</li>
+<li style="background:#fef5e7;"><span class="emoji">🟠</span> sell_light - 适当卖出</li>
+<li style="background:#fadbd8;"><span class="emoji">🔴</span> sell_medium - 中仓卖出</li>
+<li style="background:#fadbd8;"><span class="emoji">🔴🔴</span> sell_heavy - 大量卖出</li>
+<li style="background:#fadbd8;"><span class="emoji">🚨🚨🚨</span> true_decline - 基本面恶化止损</li>
+</ul>
+
+</section>
+
+<!-- ============================ 十四、评分维度 ============================ -->
+<section id="score">
+<h2>十四、评分维度（0-50 分）<span class="badge">展示+排序</span></h2>
+
+<p>评分不改变买卖信号，只用于在同信号的多只股票中做排序。</p>
+
+<table class="criteria-table">
+<thead>
+<tr><th>维度</th><th>满分</th><th>评分依据</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>ROE 质量</td>
+  <td>10</td>
+  <td>10 年均值 + 最低年份 + 稳定性 + 杠杆水平</td>
+</tr>
+<tr>
+  <td>财务健康</td>
+  <td>10</td>
+  <td>负债率 + 流动比率 + 现金流</td>
+</tr>
+<tr>
+  <td>盈利能力</td>
+  <td>10</td>
+  <td>毛利率 + 数据年限</td>
+</tr>
+<tr>
+  <td>股息率</td>
+  <td>10</td>
+  <td>当前股息率 + 分红连续性</td>
+</tr>
+<tr>
+  <td>估值</td>
+  <td>10</td>
+  <td>PE 位于合理区间的哪个位置</td>
+</tr>
+</tbody>
+</table>
+
+<h3>14.1 回购加分（独立加分项）</h3>
+<table class="criteria-table">
+<thead>
+<tr><th>5 年回购金额</th><th>加分</th><th>徽章</th></tr>
+</thead>
+<tbody>
+<tr><td>≥ 1 亿元</td><td>+3</td><td>· 少量回购</td></tr>
+<tr><td>≥ 5 亿元</td><td>+8</td><td>⭐ 中回购</td></tr>
+<tr><td>≥ 10 亿元</td><td>+15</td><td>🏅 高回购</td></tr>
+</tbody>
+</table>
+<div class="quote">
+<strong>巴菲特：</strong>"持续的股票回购是伟大公司最明显的标志之一。它意味着管理层认为股价低估，且把资本回报给股东。"
+</div>
+
+</section>
+
+<!-- ============================ 结尾 ============================ -->
+<section>
+<h2>🎯 一张图总结决策流程</h2>
+<div class="code-block">
+选中一只股票，模型决策流程：
+
+1. 是周期股吗？
+   └─是 → 直接过滤，不给信号
+
+2. 基础财务检查（ROE/债务/毛利/现金流）是否全部通过？
+   └─否 → return "不推荐"
+
+3. 运行 8 条护城河规则
+   ├─任一触发 → 降级为 hold
+   └─全部通过 → 继续
+
+4. 判定 十年王者 / 好公司 / 平庸公司
+
+5. 按 PE 给出基础信号（买入 / 观望 / 卖出）
+
+6. 按公司等级调整：
+   ├─十年王者 + PE 偏低 → buy_add
+   ├─好公司 + PE 偏低 → buy_add
+   └─平庸公司 + PE 偏低 → hold_keep（不加仓）
+
+7. ROE-PB 背离检查
+   └─ROE 降+PB 不降 → 降级为 hold
+
+8. 浮盈三维评估（持仓股）
+   ├─必须割肉 → true_decline
+   ├─牛顶锁利 → 按比例减仓
+   └─卖出无意义 → 维持持仓
+
+9. 输出最终信号 + 文案 + 评分
+</div>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <p>📘 本文档由选股系统自动生成 · v1.0 · 2026-04-14</p>
+  <p>遵循巴菲特、芒格价值投资理念 · 宁可错过，不可犯错</p>
+</footer>
+
+</div>
+</body>
+</html>
