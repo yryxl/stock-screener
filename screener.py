@@ -571,9 +571,13 @@ def check_holdings_sell_signals(holdings, config, market_temp_level=0):
                 signal_text = f"好公司 + PE偏低→可加仓 | {signal_text}"
             else:
                 # 平庸企业（ROE 不达标）：降级为持有，不建议加仓
-                # 保留原 PE 估值信号文本供参考
+                # 注意：不保留原"可以轻仓买入"文案，避免自相矛盾
+                # 原文案是基于PE的，没考虑公司质量，不该拼接
                 signal = "hold_keep"
-                signal_text = f"非十年王者/好公司 → 建议持有不加仓 | {signal_text}"
+                signal_text = (
+                    f"非十年王者/好公司（ROE未达15%连续10年标准）→ "
+                    f"虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑"
+                )
 
         # 7. 持仓股：hold变成"建议持续持有"
         if signal == "hold":

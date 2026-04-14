@@ -1,0 +1,504 @@
+# 🧪 系统测试文档（TESTING）
+
+**作用**：为 `REQUIREMENTS.md` 里每条需求提供可执行的验证方法。
+**核心原则**：
+- **不只测"功能是否能跑"，还要测"逻辑是否一致"**
+- 例如：不能同时出现"建议持有不加仓" + "可以轻仓买入"这种矛盾文案
+- 换 AI 接手时，先跑一遍全部测试，**所有通过才算系统健康**
+
+**当前版本**：v1.0（2026-04-14 首次建立）
+
+---
+
+## 📑 测试分层
+
+```
+Layer 1: 语法/导入测试（防止崩）
+Layer 2: 单元功能测试（每个函数输入输出正确）
+Layer 3: 规则一致性测试（不同规则之间不能打架）
+Layer 4: 端到端场景测试（真实数据跑一遍）
+Layer 5: 前端/消息一致性（界面和推送对齐）
+```
+
+---
+
+## Layer 1：语法/导入测试
+
+### T-L1-001：所有 Python 文件编译通过
+```bash
+cd "G:\Claude Code\ask\stock_screener"
+for f in *.py; do
+    python -c "import py_compile; py_compile.compile('$f', doraise=True)" && echo "$f OK"
+done
+```
+**预期**：每个 .py 文件都输出 "OK"，无语法错误
+
+### T-L1-002：关键模块可导入
+```python
+from screener import (
+    check_holdings_sell_signals, screen_all_stocks,
+    screen_single_stock, INDUSTRY_PE, COMPLEXITY_ROE_ADJUST,
+    check_fundamental_health, get_pe_signal,
+)
+from main import check_watchlist, beijing_now, merge_daily_data
+from etf_monitor import (
+    compute_etf_temperature, decide_etf_action,
+    get_etf_action_signal, evaluate_sell_meaningfulness,
+)
+from backtest_engine import (
+    get_month_signals, check_moat, generate_anonymous_map,
+    get_annual_reports_before, evaluate_stock,
+)
+from live_rules import check_moat_live, check_10_year_king_live, is_good_quality_live
+from market_temperature import get_realtime_market_temperature, TEMP_LEVELS
+from snapshot import save_snapshot
+```
+**预期**：全部成功导入，无 ImportError
+
+### T-L1-003：时区函数返回北京时间
+```python
+from main import beijing_now
+from datetime import datetime, timezone
+now = beijing_now()
+assert now.tzinfo is not None, "beijing_now 必须带时区信息"
+assert now.utcoffset().total_seconds() == 8 * 3600, "必须是 UTC+8"
+```
+**对应需求**：REQ-140
+
+---
+
+## Layer 2：单元功能测试
+
+### T-L2-001：PE 信号分级正确（REQ-001, REQ-003）
+```python
+from screener import get_pe_signal
+# 白酒简单生意 PE 合理区间 20-30
+assert get_pe_signal(12, "白酒")[0] == "buy_heavy"    # 远低于下限
+assert get_pe_signal(18, "白酒")[0] == "buy_light"    # 低于下限少
+assert get_pe_signal(25, "白酒")[0] == "hold"         # 合理区间
+assert get_pe_signal(35, "白酒")[0] == "sell_light"   # 略高于上限
+assert get_pe_signal(50, "白酒")[0] == "sell_heavy"   # 远高于上限
+```
+
+### T-L2-002：十年王者判定（REQ-005）
+```python
+from live_rules import check_10_year_king_live
+import pandas as pd
+# 构造 10 年 ROE 全部 ≥ 15% 的数据
+df_king = pd.DataFrame({
+    "净资产收益率": [25, 22, 18, 20, 17, 16, 18, 19, 21, 23]
+})
+is_king, avg, _ = check_10_year_king_live(df_king)
+assert is_king == True, "10年ROE≥15%应该判为十年王者"
+
+# 有一年破 12% 的
+df_not_king = pd.DataFrame({
+    "净资产收益率": [25, 22, 11, 20, 17, 16, 18, 19, 21, 23]
+})
+is_king, _, _ = check_10_year_king_live(df_not_king)
+assert is_king == False, "最低年破 12% 不应该判为十年王者"
+```
+
+### T-L2-003：护城河 8 条规则（REQ-031, REQ-032）
+```python
+from live_rules import check_moat_live
+import pandas as pd
+# 规则 1：ROE 负
+df = pd.DataFrame({"净资产收益率": [-5, 10, 15], "销售毛利率": [30, 30, 30]})
+intact, probs = check_moat_live(df)
+assert not intact and any("ROE < 0" in p for p in probs)
+
+# 规则 3：3年ROE连续下滑+最新<15%
+df = pd.DataFrame({"净资产收益率": [10, 15, 20], "销售毛利率": [30, 30, 30]})
+intact, probs = check_moat_live(df)
+assert not intact
+```
+
+### T-L2-004：ETF 5 档行动信号（REQ-052）
+```python
+from etf_monitor import decide_etf_action
+
+# 加仓：分位 ≤ 15%
+temp = {"percentile": 10, "data_points": 1000}
+action = decide_etf_action(temp, is_held=False)
+assert action["action"] == "加仓"
+
+# 定投：15-35%
+temp["percentile"] = 25
+action = decide_etf_action(temp, is_held=False)
+assert action["action"] == "定投"
+
+# 持仓：35-70%
+temp["percentile"] = 50
+action = decide_etf_action(temp, is_held=True)
+assert action["action"] == "持仓"
+
+# 减仓：70-85%
+temp["percentile"] = 80
+action = decide_etf_action(temp, is_held=True)
+assert action["action"] == "减仓"
+
+# 割肉：≥85%
+temp["percentile"] = 90
+action = decide_etf_action(temp, is_held=True)
+assert action["action"] == "割肉"
+
+# 数据不足：输出"观察"不给行动
+temp = {"percentile": None, "data_points": 20}
+action = decide_etf_action(temp, is_held=True)
+assert action["action"] == "观察"
+```
+
+### T-L2-005：ETF 持仓超 40% 强制减仓（REQ-052）
+```python
+from etf_monitor import decide_etf_action
+temp = {"percentile": 50, "data_points": 1000}  # 本来应该"持仓"
+action = decide_etf_action(
+    temp, is_held=True, cost=1.0, current_price=1.0, portfolio_ratio=51
+)
+assert action["action"] == "减仓", f"超40%仓位应强制减仓，实际：{action['action']}"
+assert any("超标" in r for r in action["reasons"])
+```
+
+### T-L2-006：ETF 浮亏+低估不认错（REQ-052）
+```python
+from etf_monitor import decide_etf_action
+temp = {"percentile": 25, "data_points": 1000}  # 低估区
+action = decide_etf_action(
+    temp, is_held=True, cost=10.0, current_price=8.5, portfolio_ratio=10
+)
+# 浮亏 -15% + 分位 25% → 应该定投不认错
+assert action["action"] == "定投"
+```
+
+### T-L2-007：未持有的卖出降级为不买（REQ-052）
+```python
+from etf_monitor import decide_etf_action
+temp = {"percentile": 90, "data_points": 1000}
+action = decide_etf_action(temp, is_held=False)
+assert action["action"] == "不买", "未持有高估应该不买"
+```
+
+### T-L2-008：松动标签 10 年恢复条件（REQ-082）
+```python
+# 在 backtest_autorun.py 中 check 松动标签
+# 需要构造：
+#   1. 股票 S 在 2015 年被打松动标签
+#   2. 2016-2024 ROE 每年都 ≥ 15%（9 年）
+#   3. 2025 年：还不能重新买（需要 10 年）
+#   4. 2026 年：满 10 年且每年 ≥ 15%，才能重新买
+# 实际测试用历史回测数据跑，看日志是否有 "✅恢复" 提示
+# （此测试在 Layer 4 端到端场景中执行）
+```
+
+---
+
+## Layer 3：规则一致性测试（最重要）⭐
+
+### T-L3-001：信号文案不自相矛盾（REQ-013）
+**问题场景**：`非十年王者/好公司 → 建议持有不加仓 | PE=18.9低于行业合理区间20-30→可以轻仓买入`
+
+**自动检测规则**：
+```python
+CONTRADICTORY_PAIRS = [
+    ("不加仓", "买入"),
+    ("不加仓", "加仓"),
+    ("割肉", "加仓"),
+    ("割肉", "定投"),
+    ("持仓不动", "减仓"),
+    ("持仓不动", "卖出"),
+    ("建议持有", "建议卖出"),
+    ("建议买入", "建议卖出"),
+]
+
+def check_signal_text_consistency(signal_text):
+    """检测一条信号文案内是否包含矛盾动作词"""
+    for a, b in CONTRADICTORY_PAIRS:
+        if a in signal_text and b in signal_text:
+            return False, f"矛盾：同时出现 '{a}' 和 '{b}'"
+    return True, None
+
+# 测试用例
+def test_no_contradiction_in_signals():
+    from screener import check_holdings_sell_signals
+    import json
+    # 拉真实持仓数据测试
+    holdings = json.load(open("holdings.json", encoding="utf-8"))
+    config = {"screener": {"max_price_per_share": 500}}
+    signals = check_holdings_sell_signals(holdings, config)
+    for s in signals:
+        ok, err = check_signal_text_consistency(s["signal_text"])
+        assert ok, f"{s['name']} 信号矛盾：{err}\n原文：{s['signal_text']}"
+```
+
+### T-L3-002：持仓页信号和关注表信号不应冲突（REQ-108）
+**问题场景**：同一只股票：
+- 关注表说"重点关注买入"
+- 持仓说"建议持有不加仓"
+- 微信发两条消息让人困惑
+
+**自动检测**：
+```python
+def test_holding_and_watchlist_consistent():
+    import json
+    daily = json.load(open("daily_results.json", encoding="utf-8"))
+    hold = {s["code"]: s for s in daily.get("holding_signals", [])}
+    wl = {s["code"]: s for s in daily.get("watchlist_signals", [])}
+    # 交集：同时在持仓和关注表的股票
+    common = set(hold) & set(wl)
+    for code in common:
+        h_sig = hold[code].get("signal", "")
+        w_sig = wl[code].get("signal", "")
+        # 不能一个说买，另一个说卖
+        if "buy" in h_sig and "sell" in w_sig:
+            raise AssertionError(f"{code}: 持仓{h_sig}, 关注表{w_sig} 冲突")
+        if "sell" in h_sig and "buy" in w_sig:
+            raise AssertionError(f"{code}: 持仓{h_sig}, 关注表{w_sig} 冲突")
+```
+
+### T-L3-003：松动标签 + 加仓推荐互斥（REQ-083）
+**问题场景**：一只股票有松动标签，但模型还推荐"加仓"
+
+**自动检测**：
+```python
+def test_moat_broken_no_buy_recommendation():
+    """有松动标签的股票在推荐列表里不应该有 buy 信号"""
+    # 在回测页：bt_moat_broken 中的 sid 不应该出现在推荐页的 buy_* 分组
+    # 在正式版：无对应注册表，跳过此检查
+    pass  # 手动回测模式需要手动验证
+```
+
+### T-L3-004：十年王者 ROE 必须 ≥ 15%（REQ-005）
+**自动检测**：
+```python
+def test_king_roe_consistency():
+    """模型判定为十年王者的股票，其历史 ROE 必须都 ≥ 15%"""
+    import json
+    daily = json.load(open("daily_results.json", encoding="utf-8"))
+    # 模型输出 is_10y_king=True 的股票
+    for s in daily.get("ai_recommendations", []):
+        if s.get("is_10y_king"):
+            roe = s.get("roe")
+            assert roe and roe >= 15, f"{s['name']} 被判王者但 ROE={roe} < 15%"
+```
+
+### T-L3-005：ETF 超 40% 仓位必须有警告（REQ-062）
+**自动检测**：
+```python
+def test_etf_concentration_warning():
+    """单只ETF持仓占比>40%必须在position_warnings里"""
+    import json
+    daily = json.load(open("daily_results.json", encoding="utf-8"))
+    holdings = json.load(open("holdings.json", encoding="utf-8"))
+    # 计算每只 ETF 占比
+    etfs = [h for h in holdings if str(h["code"]).zfill(6)[0] in ("1", "5")]
+    total = sum(h["shares"] * h["cost"] for h in etfs)
+    warnings = daily.get("position_warnings", [])
+    warn_codes = {w["code"] for w in warnings}
+    for h in etfs:
+        ratio = h["shares"] * h["cost"] / total * 100
+        if ratio > 40:
+            assert h["code"] in warn_codes, \
+                f"{h['name']} 占比{ratio:.1f}% > 40% 但无仓位警告"
+```
+
+### T-L3-006：基本面恶化股票不应出现在买入推荐（REQ-030）
+**自动检测**：
+```python
+def test_true_decline_not_in_buy():
+    """true_decline 信号的股票不应该被推荐买入"""
+    import json
+    daily = json.load(open("daily_results.json", encoding="utf-8"))
+    # 把所有信号汇总
+    all_signals = {}
+    for src in ["ai_recommendations", "watchlist_signals", "holding_signals"]:
+        for s in daily.get(src, []):
+            code = s["code"]
+            if code not in all_signals:
+                all_signals[code] = []
+            all_signals[code].append((src, s["signal"]))
+    # 如果一只股票在一个来源是 true_decline，其他来源不能是 buy_*
+    for code, sigs in all_signals.items():
+        has_decline = any("true_decline" in sig for _, sig in sigs)
+        has_buy = any("buy" in (sig or "") for _, sig in sigs)
+        assert not (has_decline and has_buy), \
+            f"{code} 一处标记基本面恶化，另一处推荐买入：{sigs}"
+```
+
+### T-L3-007：五维温度和 ETF 温度分档逻辑一致（REQ-040, REQ-050）
+**自动检测**：
+```python
+def test_temperature_thresholds_consistent():
+    """市场温度和 ETF 温度的分位阈值必须一致（15/30/70/85）"""
+    # 市场温度阈值
+    # ETF 温度阈值（compute_etf_temperature 的 level 判断）
+    # 两者必须用相同的阈值，否则用户看到会混乱
+    from market_temperature import TEMP_LEVELS
+    # 手动确认代码里的阈值数字一致
+    # 阈值定义位置：
+    #   market_temperature.py
+    #   etf_monitor.py compute_etf_temperature
+    # 要求两处阈值完全一致
+    pass  # 需要人工审查代码
+```
+
+---
+
+## Layer 4：端到端场景测试
+
+### T-L4-001：all 模式运行时间 < 1.5 小时（REQ-124）
+```bash
+# 手动触发一次 GitHub Actions 的 all 模式
+# 记录"运行选股分析"步骤的时长
+# 预期：总时长 < 90 分钟（含所有步骤）
+```
+
+### T-L4-002：数据推送到 GitHub（REQ-133）
+```bash
+# Actions 跑完后，检查：
+git log origin/main --since="10 minutes ago" --oneline
+# 预期：有 "更新数据 YYYY-MM-DD HH:MM" 的 commit（北京时间）
+```
+
+### T-L4-003：Streamlit 数据自动刷新（REQ-109）
+```
+手动步骤：
+1. 打开 https://yryxlstock.streamlit.app
+2. 记录"数据更新"时间戳
+3. 触发 Actions 生成新数据（等待完成）
+4. 过 10 分钟后刷新 Streamlit，数据应自动更新
+5. 或点"🔄 刷新数据"按钮立即更新
+```
+
+### T-L4-004：前端和微信消息完全一致（REQ-108）
+```
+手动步骤：
+1. 某次 Actions 跑完后：
+2. 看微信收到的消息列表（分信号组）
+3. 看 Streamlit 模型推荐页的信号分组
+4. 对比：
+   - 同一只股票在微信和前端必须出现在相同的信号分组
+   - 同一只股票不能在微信出现两次（去重）
+   - 仓位警告必须同时出现在微信和前端
+```
+
+### T-L4-005：ETF 5 档行动信号对真实持仓的判断（REQ-052）
+```python
+# 跑以下脚本，看输出是否符合预期
+import sys; sys.stdout.reconfigure(encoding='utf-8')
+from etf_monitor import compute_etf_temperature, decide_etf_action
+import json
+
+holdings = json.load(open('holdings.json', encoding='utf-8'))
+total_value = sum(h.get('shares',0) * h.get('cost',0) for h in holdings)
+etf_map = json.load(open('etf_index_map.json', encoding='utf-8')).get('map', {})
+
+for h in holdings:
+    code = str(h.get('code','')).zfill(6)
+    if not code.startswith(('1','5')): continue
+    m = etf_map.get(code)
+    if not m: continue
+    store = json.load(open(f'backtest_data/etf_valuation/{m["index"]}.json', encoding='utf-8'))
+    temp = compute_etf_temperature(store)
+    ratio = h['shares'] * h['cost'] / total_value * 100
+    action = decide_etf_action(temp, is_held=True, cost=h['cost'],
+                                current_price=h['cost'], portfolio_ratio=ratio)
+    print(f"{h['name']} ({code}) 分位={temp.get('percentile')}% 占{ratio:.1f}% → {action['action']}")
+
+# 手动验证每只的行动是否合理
+```
+
+---
+
+## Layer 5：前端/消息一致性
+
+### T-L5-001：信号分组顺序一致（REQ-107）
+**要求**：前端和微信的信号分组顺序都是：
+```
+买入（重→轻）：buy_heavy → buy_medium → buy_light → buy_watch
+持仓专用：buy_add → hold_keep
+卖出（轻→重）：sell_watch → sell_light → sell_medium → sell_heavy
+紧急：true_decline
+```
+**检测**：人工比对前端代码 `ALL_SIGNAL_ORDER` 和 notifier.py 的 `SIGNAL_GROUPS` 顺序
+
+### T-L5-002：财务指标显示字段一致（REQ-110）
+**要求**：三个页面都显示：市盈率 + 净收益率 + 毛利 + 负债 + 股息
+**检测**：查看 Streamlit 实际渲染
+- 模型推荐页：每行有完整 5 指标 ✅
+- 持仓管理页：每行有完整摘要 ✅
+- 重点关注表：每行有完整摘要 ✅
+
+---
+
+## 🔴 必须执行的"回归测试"清单（每次改动后跑）
+
+每次代码修改后，至少跑这些：
+
+```bash
+# 1. 语法测试
+python -c "import py_compile; py_compile.compile('app.py', doraise=True)"
+python -c "import py_compile; py_compile.compile('screener.py', doraise=True)"
+python -c "import py_compile; py_compile.compile('main.py', doraise=True)"
+python -c "import py_compile; py_compile.compile('etf_monitor.py', doraise=True)"
+python -c "import py_compile; py_compile.compile('backtest_autorun.py', doraise=True)"
+python -c "import py_compile; py_compile.compile('backtest_page.py', doraise=True)"
+python -c "import py_compile; py_compile.compile('notifier.py', doraise=True)"
+python -c "import py_compile; py_compile.compile('snapshot.py', doraise=True)"
+
+# 2. 导入测试
+python -c "from screener import *; from main import *; from etf_monitor import *; print('OK')"
+
+# 3. 信号矛盾检测（跑一次真实数据）
+python tests/test_signal_consistency.py  # 待建
+```
+
+---
+
+## 自动测试脚本（建议建）
+
+### `tests/test_signal_consistency.py`
+检测 `daily_results.json` 中所有信号文案是否自相矛盾
+
+### `tests/test_rule_coherence.py`
+检测不同规则之间的逻辑互斥（T-L3 系列自动化）
+
+### `tests/test_etf_action.py`
+ETF 5 档行动信号各种边界场景（T-L2-004 到 T-L2-007）
+
+### `tests/run_all_tests.py`
+一键跑全部测试，生成报告
+
+---
+
+## 测试记录
+
+### 最近一次跑测时间：
+- （每次跑完在这里填写：日期 + 哪些 case 通过/失败 + 修复了什么）
+
+### 2026-04-14 首次建立文档
+- 状态：文档建立完成，**尚未跑过自动化测试**
+- 下一步：
+  1. 推送 screener.py 矛盾修复
+  2. 触发 Actions 生成新 daily_results.json
+  3. 跑 T-L3 系列自动检测
+  4. 记录结果
+
+---
+
+## 发现的 Bug 追踪
+
+每次测试发现的问题要在这里登记，直到修复：
+
+| 发现日期 | Bug ID | 描述 | 对应需求 | 修复 commit | 状态 |
+|----------|--------|------|----------|-------------|------|
+| 2026-04-14 | BUG-001 | screener.py 持有不加仓 + 可轻仓买入 矛盾文案 | REQ-013 | （待推送） | 代码已改 |
+
+---
+
+## 给未来接手者的提醒
+
+1. **不要跳过 Layer 3 一致性测试** —— 这是最容易被忽略但最能防 bug 的层
+2. **每次新增功能都要加对应测试** —— 没测试的需求等于没验收
+3. **测试失败不要绕过** —— 失败就是真有问题，不是"测试本身的 bug"
+4. **发现新的矛盾场景要补充到 CONTRADICTORY_PAIRS** —— 这个列表会越来越全
