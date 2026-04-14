@@ -1,0 +1,77 @@
+{
+  "_comment": "黑天鹅事件时间线。模型遇到这些事件期间应自动降仓50%提醒。",
+  "_usage": "通过日期范围匹配，判断当前是否处于黑天鹅期",
+  "_version": "1.0",
+
+  "events": [
+    {
+      "name": "2020新冠疫情爆发",
+      "start": "2020-01-20",
+      "end": "2020-04-30",
+      "type": "pandemic",
+      "impact": "severe",
+      "desc": "武汉封城，全球停工。巴菲特清空航空股，承认没预料到严重性",
+      "market_action_suggested": "降仓50%，持有现金等明朗"
+    },
+    {
+      "name": "2021教培双减",
+      "start": "2021-07-24",
+      "end": "2021-08-31",
+      "type": "policy",
+      "impact": "severe",
+      "desc": "《双减意见》出台，整个教培行业被限制",
+      "market_action_suggested": "退出教培行业持仓，避免反弹陷阱"
+    },
+    {
+      "name": "2021互联网反垄断",
+      "start": "2020-11-03",
+      "end": "2021-12-31",
+      "type": "policy",
+      "impact": "major",
+      "desc": "蚂蚁IPO暂停 → 反垄断调查 → 互联网平台估值重估",
+      "market_action_suggested": "互联网平台减仓观望"
+    },
+    {
+      "name": "2021-2023房地产爆雷",
+      "start": "2021-09-01",
+      "end": "2024-06-30",
+      "type": "policy",
+      "impact": "severe",
+      "desc": "恒大/碧桂园/融创相继违约，地产行业陷入深度调整",
+      "market_action_suggested": "退出地产产业链，包括相关银行/建材"
+    },
+    {
+      "name": "2022俄乌战争",
+      "start": "2022-02-24",
+      "end": "2022-06-30",
+      "type": "geopolitics",
+      "impact": "major",
+      "desc": "能源价格飙升，全球股市大跌，A股受情绪影响",
+      "market_action_suggested": "增持黄金/能源，减持科技"
+    },
+    {
+      "name": "2023硅谷银行+瑞信危机",
+      "start": "2023-03-10",
+      "end": "2023-04-30",
+      "type": "financial",
+      "impact": "moderate",
+      "desc": "海外银行业风险暴露，全球金融股受波及",
+      "market_action_suggested": "关注银行股质量，避开有海外敞口的"
+    }
+  ],
+
+  "trigger_rules": {
+    "_note": "如何检测当前是否处于黑天鹅期",
+    "automatic_detection": [
+      "如果某大盘指数 1 周跌幅 > 10%",
+      "如果某行业指数 1 月跌幅 > 30%",
+      "如果特定黑天鹅关键词出现在新闻中（未实现）"
+    ],
+    "manual_override": "用户可手动在 current_black_swan.json 标记当前处于黑天鹅期",
+    "action_when_triggered": {
+      "level_1_major": "提示降仓 30%，转现金/黄金",
+      "level_2_severe": "提示降仓 50%，全面防御",
+      "level_3_catastrophic": "提示降仓 70%+，极度防御"
+    }
+  }
+}
