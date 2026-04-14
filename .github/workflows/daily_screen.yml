@@ -92,7 +92,7 @@ jobs:
           mkdir -p snapshots && cp -r /tmp/_snapshots/* snapshots/ 2>/dev/null || true
           mkdir -p backtest_games && cp -r /tmp/_games/* backtest_games/ 2>/dev/null || true
           # 提交并推送（基于最新代码，绝不会冲突）
-          git add daily_results.json market_scan_cache.json watchlist.json snapshots/ backtest_games/ 2>/dev/null || true
+          git add daily_results.json market_scan_cache.json watchlist.json snapshots/ backtest_games/ stock_notes.json user_cash.json 2>/dev/null || true
           git diff --cached --quiet || git commit -m "更新数据 $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')"
           git push
 

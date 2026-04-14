@@ -195,6 +195,20 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
         send_msg(access_token, openid, template_id, "\n".join(lines))
         sent_any = True
 
+    # 持仓备注定时提醒（到期提醒）
+    try:
+        from stock_notes_manager import get_pending_alerts, mark_fired, format_alerts_for_wechat
+        alerts_msg = format_alerts_for_wechat()
+        if alerts_msg:
+            send_msg(access_token, openid, template_id, alerts_msg)
+            # 标记已推送（fired_count +1）
+            for a in get_pending_alerts():
+                mark_fired(a["code"], a["reminder_id"])
+            sent_any = True
+            print(f"  已推送 {len(get_pending_alerts())} 条到期提醒")
+    except Exception as _e:
+        print(f"  提醒推送失败: {_e}")
+
     if not sent_any:
         send_msg(access_token, openid, template_id,
                  f"芒格选股 {today}\n\n今日无推荐\n关注表均在合理区间\n持仓无异常\n继续观察")

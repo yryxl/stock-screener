@@ -6,9 +6,11 @@ Tab3: 重点关注表（含信号状态）
 """
 
 import json
+import os
 import streamlit as st
 import requests
 import base64
+from datetime import datetime
 
 st.set_page_config(page_title="芒格选股系统", page_icon="📊", layout="wide")
 
@@ -538,7 +540,65 @@ with tab2:
 
         # 总计
         total_cost_all = sum(h.get("shares", 0) * h.get("cost", 0) for h in holdings)
-        st.markdown(f"**持仓总成本：¥{total_cost_all:,.0f}** | 共{len(holdings)}只")
+        # 计算持仓市值（用于含现金占比计算）
+        total_market_value = 0
+        for h in holdings:
+            code_h = str(h["code"]).zfill(6)
+            sig = holding_data.get(code_h, {}) if not (code_h in etf_data) else etf_data.get(code_h, {})
+            _p = sig.get("price", 0) or h.get("cost", 0)
+            total_market_value += _p * h.get("shares", 0)
+
+        # 加载可投资现金
+        try:
+            cash_path = os.path.join(os.path.dirname(__file__), "user_cash.json")
+            with open(cash_path, encoding="utf-8") as _f:
+                cash_data = json.load(_f)
+        except Exception:
+            cash_data = {"amount": 0, "updated_at": "", "note": ""}
+        investable_cash = float(cash_data.get("amount", 0))
+        total_assets = total_market_value + investable_cash
+
+        # 顶部展示：持仓市值 + 可投资现金 + 总资产
+        _ta_col1, _ta_col2, _ta_col3, _ta_col4 = st.columns(4)
+        with _ta_col1:
+            st.metric("持仓市值", f"¥{total_market_value:,.0f}",
+                      f"共{len(holdings)}只")
+        with _ta_col2:
+            st.metric("可投资现金", f"¥{investable_cash:,.0f}",
+                      f"占{investable_cash/total_assets*100:.1f}%" if total_assets > 0 else None)
+        with _ta_col3:
+            st.metric("总资产", f"¥{total_assets:,.0f}")
+        with _ta_col4:
+            st.metric("股债比", f"{total_market_value/total_assets*100:.1f}%" if total_assets > 0 else "—",
+                      "股票占比")
+
+        # 可编辑现金金额
+        with st.expander("✏️ 修改可投资现金"):
+            _new_cash = st.number_input(
+                "可投资现金（货币基金/国债ETF等随时可动用资金）",
+                min_value=0.0, value=investable_cash, step=100.0, format="%.2f",
+                help="用于机动加仓的弹药。建议保持总资产的 30-60% 在机会到来时能投入"
+            )
+            _new_note = st.text_input("备注（可选）", value=cash_data.get("note", ""))
+            if st.button("💾 保存现金金额"):
+                cash_data = {
+                    "amount": _new_cash,
+                    "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "note": _new_note,
+                }
+                try:
+                    with open(cash_path, "w", encoding="utf-8") as _f:
+                        json.dump(cash_data, _f, ensure_ascii=False, indent=2)
+                    # 同步到 GitHub
+                    save_to_github("user_cash.json", cash_data, None)
+                    st.success(f"已保存：¥{_new_cash:,.0f}")
+                    st.rerun()
+                except Exception as _e:
+                    st.error(f"保存失败：{_e}")
+            if cash_data.get("updated_at"):
+                st.caption(f"上次更新：{cash_data.get('updated_at')}")
+
+        st.caption(f"持仓成本总计：¥{total_cost_all:,.0f}")
 
         # 组合分类简报（宽基 / 策略 / 行业 / 个股）
         # 重要提醒：宽基 ETF 仍计入股票总仓位，不是类固收
@@ -639,9 +699,20 @@ with tab2:
                     pnl_advice = sig_data.get("pnl_advice", "")
                     must_sell = sig_data.get("must_sell", False)
 
-                col1, col2, col3, col4, col5, col6 = st.columns([2, 1.2, 1.2, 1.2, 3, 0.8])
+                # 检查是否有激活的提醒
+                try:
+                    from stock_notes_manager import has_active_alerts
+                    _has_alert, _alert_count = has_active_alerts(code)
+                except Exception:
+                    _has_alert, _alert_count = False, 0
+
+                col1, col2, col3, col4, col5, col6, col7 = st.columns([2, 1.2, 1.2, 1.2, 2.5, 0.6, 0.6])
                 with col1:
-                    st.markdown(f"**{h.get('name', '未知')}**")
+                    # 股票名 + 可能的提醒铃铛
+                    _name_display = h.get('name', '未知')
+                    if _has_alert:
+                        _name_display = f"🔔 {_name_display}"
+                    st.markdown(f"**{_name_display}**")
                     caption = f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.0f}"
                     if is_etf and index_name:
                         caption += f" | 跟踪 {index_name}"
@@ -661,6 +732,8 @@ with tab2:
                         _fm.append(f"股息 {_dy:.1f}%")
                     if _fm:
                         caption += f"\n{' | '.join(_fm)}"
+                    if _has_alert:
+                        caption += f"\n⚠ {_alert_count} 条到期提醒待处理"
                     st.caption(caption)
                 with col2:
                     # 现价 + 浮盈百分比（Streamlit 会自动上涨绿色、下跌红色）
@@ -683,12 +756,127 @@ with tab2:
                     st.markdown(f"{signal_label}")
                     st.caption(signal_text[:120])
                 with col6:
-                    if st.button("🗑️", key=f"del_h_{i}"):
+                    _notes_btn = "📝" + ("🔔" if _has_alert else "")
+                    if st.button(_notes_btn, key=f"notes_h_{i}", help="查看/编辑备注和提醒"):
+                        st.session_state[f"show_notes_{code}"] = not st.session_state.get(f"show_notes_{code}", False)
+                        st.rerun()
+                with col7:
+                    if st.button("🗑️", key=f"del_h_{i}", help="删除持仓"):
                         holdings.pop(i)
                         new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
                         if new_sha:
                             st.session_state["holdings_sha"] = new_sha
                             st.rerun()
+
+                # ============ 备注面板（点击📝按钮展开）============
+                if st.session_state.get(f"show_notes_{code}", False):
+                    try:
+                        from stock_notes_manager import (
+                            get_note, update_note_text, add_reminder,
+                            delete_reminder, dismiss_reminder
+                        )
+                    except Exception as _e:
+                        st.error(f"备注模块加载失败：{_e}")
+                    else:
+                        _note = get_note(code)
+                        with st.container():
+                            st.markdown("---")
+                            st.markdown(f"### 📝 {h.get('name', '')} 持有契约 & 提醒")
+
+                            # Tab 1: 备注  Tab 2: 提醒
+                            _tab_n1, _tab_n2 = st.tabs(["📜 持有契约", "🔔 定时提醒"])
+
+                            with _tab_n1:
+                                _text = st.text_area(
+                                    "记录你对这只股票的认知、买入条件、卖出条件等",
+                                    value=_note.get("notes", ""),
+                                    height=280,
+                                    key=f"note_text_{code}",
+                                    help="支持 Markdown 格式。参考模板：持有条件 / 加仓条件 / 清仓条件 / 绝对不做的事"
+                                )
+                                if _note.get("updated_at"):
+                                    st.caption(f"上次更新：{_note.get('updated_at')}")
+                                _cnb1, _cnb2 = st.columns([1, 3])
+                                with _cnb1:
+                                    if st.button("💾 保存", key=f"save_note_{code}"):
+                                        update_note_text(code, h.get('name', ''), _text)
+                                        # 同步到 GitHub
+                                        try:
+                                            import json as _j
+                                            with open(os.path.join(os.path.dirname(__file__), "stock_notes.json"), encoding="utf-8") as _f:
+                                                _notes_all = _j.load(_f)
+                                            save_to_github("stock_notes.json", _notes_all, None)
+                                        except Exception:
+                                            pass
+                                        st.success("已保存")
+                                        st.rerun()
+
+                            with _tab_n2:
+                                # 展示现有提醒
+                                _reminders = _note.get("reminders", [])
+                                if _reminders:
+                                    st.markdown("**现有提醒：**")
+                                    for _r in _reminders:
+                                        _is_due = _r.get("active") and _r.get("fire_date", "9999") <= datetime.now().strftime("%Y-%m-%d")
+                                        _status_text = "🔔 到期" if _is_due else ("⏳ 未到期" if _r.get("active") else "✅ 已关闭")
+                                        _row = st.columns([3, 2, 1.5, 1.5])
+                                        with _row[0]:
+                                            st.markdown(f"**{_r.get('message','')[:40]}**")
+                                            st.caption(f"到期日 {_r.get('fire_date')} · {_status_text}")
+                                            if _r.get("fired_count", 0):
+                                                st.caption(f"已推送 {_r.get('fired_count')} 次")
+                                        with _row[1]:
+                                            st.caption(f"创建 {_r.get('created_at','')[:10]}")
+                                        with _row[2]:
+                                            if _r.get("active"):
+                                                if st.button("关闭", key=f"dismiss_{code}_{_r.get('id')}"):
+                                                    dismiss_reminder(code, _r.get("id"))
+                                                    st.success("已关闭提醒")
+                                                    st.rerun()
+                                        with _row[3]:
+                                            if st.button("删除", key=f"del_r_{code}_{_r.get('id')}"):
+                                                delete_reminder(code, _r.get("id"))
+                                                st.rerun()
+                                else:
+                                    st.info("暂无提醒")
+
+                                # 新增提醒
+                                st.markdown("---")
+                                st.markdown("**➕ 新增提醒**")
+                                _nr1, _nr2 = st.columns([1, 2])
+                                with _nr1:
+                                    from datetime import timedelta as _td
+                                    _default_date = datetime.now() + _td(days=30)
+                                    _fd = st.date_input(
+                                        "到期日", value=_default_date,
+                                        key=f"new_r_date_{code}"
+                                    )
+                                with _nr2:
+                                    _msg = st.text_input(
+                                        "提醒内容", placeholder="如：查看2026Q1财报，核对ROE趋势",
+                                        key=f"new_r_msg_{code}"
+                                    )
+                                if st.button("✅ 添加提醒", key=f"add_r_{code}"):
+                                    if _msg.strip():
+                                        add_reminder(code, h.get('name',''), _fd.strftime("%Y-%m-%d"), _msg.strip())
+                                        # 同步 GitHub
+                                        try:
+                                            import json as _j
+                                            with open(os.path.join(os.path.dirname(__file__), "stock_notes.json"), encoding="utf-8") as _f:
+                                                _notes_all = _j.load(_f)
+                                            save_to_github("stock_notes.json", _notes_all, None)
+                                        except Exception:
+                                            pass
+                                        st.success(f"已添加提醒，{_fd} 开始推送")
+                                        st.rerun()
+                                    else:
+                                        st.warning("请填写提醒内容")
+
+                            # 关闭面板
+                            if st.button("收起 📝", key=f"close_notes_{code}"):
+                                st.session_state[f"show_notes_{code}"] = False
+                                st.rerun()
+                            st.markdown("---")
 
                 # 🚨 "必须卖"警告（基本面恶化触发，即使割肉也要卖）
                 if must_sell:
