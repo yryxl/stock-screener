@@ -2,11 +2,21 @@ name: 每日选股分析
 
 on:
   schedule:
-    - cron: '30 18 * * *'
-    - cron: '0 1 * * *'
-    - cron: '0 4 * * *'
-    - cron: '0 9 * * *'
-    - cron: '0 10 * * *'
+    # 北京时间（UTC+8）触发计划：
+    # 凌晨 02:30 → full（全市场扫描，夜间低压时跑）
+    # 上午 08:55 → send_ai（盘前发昨日分析结果）
+    # 上午 09:05 → send_ai 备份（GitHub cron 常跳过 9:00，加个 9:05）
+    # 中午 12:30 → holdings（盘中持仓检查）
+    # 下午 15:10 → holdings 备份（收盘后检查）
+    # 下午 18:00 → watchlist（晚间关注表分析）
+    # 晚上 22:00 → watchlist 备份
+    - cron: '30 18 * * *'    # 02:30 北京
+    - cron: '55 0 * * *'     # 08:55 北京
+    - cron: '5 1 * * *'      # 09:05 北京（9点备份，防GitHub跳过）
+    - cron: '30 4 * * *'     # 12:30 北京
+    - cron: '10 7 * * *'     # 15:10 北京
+    - cron: '0 10 * * *'     # 18:00 北京
+    - cron: '0 14 * * *'     # 22:00 北京
 
   workflow_dispatch:
     inputs:
@@ -27,6 +37,14 @@ on:
 jobs:
   screen:
     runs-on: ubuntu-latest
+    # 防止某次运行卡住 6 小时（Actions 默认 timeout 太长）
+    # all 模式通常 30-60 分钟够用，其他模式几分钟
+    timeout-minutes: 60
+    # 同一 workflow 并发控制：新运行会取消老的正在运行的
+    # 防止 cron 连续触发多个 job 互相冲突
+    concurrency:
+      group: daily-screen
+      cancel-in-progress: false
 
     steps:
       - name: 拉取代码
@@ -68,6 +86,9 @@ jobs:
 
 
       - name: 运行选股分析
+        # 单步超时 45 分钟，防止 akshare 接口卡死导致整个 job 挂 6 小时
+        # all 模式历史最长约 50 分钟，加 45 分钟保留余量
+        timeout-minutes: 45
         run: python main.py --mode ${{ steps.mode.outputs.mode }} --force
         env:
           PYTHONUNBUFFERED: "1"

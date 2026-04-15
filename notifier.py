@@ -167,33 +167,59 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
         group = [s for s in all_signals if s.get("signal") == signal_key]
         if not group:
             continue
-        sent_any = True
         lines = [f"{signal_title} {today}", ""]
         for s in group:
-            lines.append(format_stock_line(s))
-            lines.append("")  # 每只股票之间空一行
-        send_msg(access_token, openid, template_id, "\n".join(lines))
+            _line = format_stock_line(s)
+            if _line and _line.strip():
+                lines.append(_line)
+                lines.append("")  # 每只股票之间空一行
+        # 防空消息保护：标题+内容至少要有 3 行（标题+空+至少一条股票）
+        _msg = "\n".join(lines).strip()
+        # 只发送有实质内容的消息（至少 20 字符）
+        if len(_msg) >= 20:
+            send_msg(access_token, openid, template_id, _msg)
+            sent_any = True
+            print(f"  已推送 {signal_title}：{len(group)} 只")
+        else:
+            print(f"  ⚠ 跳过 {signal_title}：消息内容过短（{len(_msg)}字）")
 
     # 仓位警告
     if position_warnings:
         lines = [f"⚠️⚠️【仓位警告】 {today}", ""]
         for w in position_warnings:
             emoji = "🚨" if w.get("level") == "danger" else "⚠️"
-            lines.append(f"{emoji} {w.get('name','')}({w.get('code','')})")
-            lines.append(f"  {w.get('text','')}")
-            lines.append("")
-        send_msg(access_token, openid, template_id, "\n".join(lines))
-        sent_any = True
+            _name = w.get('name', '').strip()
+            _code = w.get('code', '').strip()
+            _text = w.get('text', '').strip()
+            if _name or _code or _text:
+                lines.append(f"{emoji} {_name}({_code})")
+                lines.append(f"  {_text}")
+                lines.append("")
+        _msg = "\n".join(lines).strip()
+        if len(_msg) >= 20:
+            send_msg(access_token, openid, template_id, _msg)
+            sent_any = True
+            print(f"  已推送仓位警告：{len(position_warnings)} 条")
+        else:
+            print(f"  ⚠ 跳过仓位警告：内容过短")
 
     # 换仓建议
     if swap_suggestions:
         lines = [f"💡💡【换仓建议】 {today}", ""]
         for s in swap_suggestions:
-            lines.append(f"📤 卖出 {s.get('sell_name','')} {s.get('sell_ratio','')}")
-            lines.append(f"📥 买入 {s.get('buy_name','')}")
-            lines.append("")
-        send_msg(access_token, openid, template_id, "\n".join(lines))
-        sent_any = True
+            _sn = s.get('sell_name', '').strip()
+            _bn = s.get('buy_name', '').strip()
+            if _sn and _bn:
+                lines.append(f"📤 卖出 {_sn} {s.get('sell_ratio','')}")
+                lines.append(f"📥 买入 {_bn}")
+                lines.append("")
+        _msg = "\n".join(lines).strip()
+        if len(_msg) >= 20:
+            send_msg(access_token, openid, template_id, _msg)
+            sent_any = True
+            print(f"  已推送换仓建议：{len(swap_suggestions)} 条")
+        else:
+            print(f"  ⚠ 跳过换仓建议：内容过短")
 
     # 持仓备注定时提醒（到期提醒）
     try:
