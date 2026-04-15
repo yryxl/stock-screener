@@ -600,11 +600,60 @@ with tab2:
 
         st.caption(f"持仓成本总计：¥{total_cost_all:,.0f}")
 
-        # 组合分类简报（宽基 / 策略 / 行业 / 个股）
-        # 重要提醒：宽基 ETF 仍计入股票总仓位，不是类固收
-        cls = daily.get("portfolio_classification") if isinstance(daily, dict) else None
-        if cls and cls.get("total_value", 0) > 0:
-            buckets = cls.get("buckets", {})
+        # 组合分类简报 & 仓位警告 —— 实时基于当前 holdings 计算
+        # 关键修复：不再依赖 daily_results 的 portfolio_classification（可能和 holdings 不同步）
+        # ETF 分类规则：
+        #   宽基：跟踪沪深300/上证50/中证500/中证1000/科创50/创业板
+        #   策略：跟踪红利/价值/成长/质量等策略指数
+        #   行业：其他行业/主题 ETF
+        #   个股：非 ETF 代码
+        try:
+            with open(os.path.join(os.path.dirname(__file__), "etf_index_map.json"), encoding="utf-8") as _f:
+                _etf_map = json.load(_f).get("map", {})
+        except Exception:
+            _etf_map = {}
+
+        BROAD_INDICES = {"000300", "000016", "000905", "000852", "000010",
+                         "000688", "399673", "000903", "399006"}  # 宽基指数代码
+        STRATEGY_KINDS = {"strategy", "strategy_dividend"}
+
+        _buckets_live = {
+            "broad_etf": {"value": 0, "items": []},
+            "strategy_etf": {"value": 0, "items": []},
+            "sector_etf": {"value": 0, "items": []},
+            "single_stock": {"value": 0, "items": []},
+        }
+        for h in holdings:
+            _code = str(h.get("code", "")).zfill(6)
+            _sig = holding_data.get(_code, {}) if _code not in etf_data else etf_data.get(_code, {})
+            _price = _sig.get("price", 0) or h.get("cost", 0)
+            _value = _price * h.get("shares", 0)
+            _item = {"code": _code, "name": h.get("name", ""), "value": _value}
+
+            # 分类
+            if _code in _etf_map:
+                _info = _etf_map[_code]
+                _idx = _info.get("index", "")
+                _kind = _info.get("kind", "")
+                if _idx in BROAD_INDICES or _kind == "broad":
+                    _buckets_live["broad_etf"]["items"].append(_item)
+                    _buckets_live["broad_etf"]["value"] += _value
+                elif _kind in STRATEGY_KINDS:
+                    _buckets_live["strategy_etf"]["items"].append(_item)
+                    _buckets_live["strategy_etf"]["value"] += _value
+                else:
+                    _buckets_live["sector_etf"]["items"].append(_item)
+                    _buckets_live["sector_etf"]["value"] += _value
+            elif _code[0] in ("1", "5"):
+                # 未映射但看起来是 ETF，归为行业 ETF
+                _buckets_live["sector_etf"]["items"].append(_item)
+                _buckets_live["sector_etf"]["value"] += _value
+            else:
+                _buckets_live["single_stock"]["items"].append(_item)
+                _buckets_live["single_stock"]["value"] += _value
+
+        _total_live = sum(b["value"] for b in _buckets_live.values())
+        if _total_live > 0:
             bucket_labels = [
                 ("broad_etf", "🛡 宽基ETF", "#e8f5e9"),
                 ("strategy_etf", "💎 策略ETF", "#e3f2fd"),
@@ -613,30 +662,44 @@ with tab2:
             ]
             cols = st.columns(4)
             for (bkey, blabel, bcolor), col in zip(bucket_labels, cols):
-                b = buckets.get(bkey, {"value": 0, "pct": 0, "items": []})
+                b = _buckets_live.get(bkey, {"value": 0, "items": []})
                 items_count = len(b.get("items", []))
+                _pct = b["value"] / _total_live * 100 if _total_live > 0 else 0
                 with col:
-                    # HTML 必须拼成单行，避免 Markdown 把缩进当成代码块
                     bucket_html = (
                         f'<div style="background:{bcolor};padding:10px;border-radius:6px;text-align:center;">'
                         f'<div style="font-size:13px;color:#666;">{blabel}</div>'
-                        f'<div style="font-size:20px;font-weight:bold;">{b.get("pct",0):.1f}%</div>'
-                        f'<div style="font-size:11px;color:#888;">{items_count}只 · ¥{b.get("value",0):,.0f}</div>'
+                        f'<div style="font-size:20px;font-weight:bold;">{_pct:.1f}%</div>'
+                        f'<div style="font-size:11px;color:#888;">{items_count}只 · ¥{b["value"]:,.0f}</div>'
                         f'</div>'
                     )
                     st.markdown(bucket_html, unsafe_allow_html=True)
+
+            # 防御型（宽基+高股息）vs 进攻型（策略+行业+个股）
+            _defensive_value = _buckets_live["broad_etf"]["value"]
+            _defensive_pct = _defensive_value / _total_live * 100
             st.caption(
                 f"⚠ 提醒：宽基 ETF 是低波动权益资产，不是类固收。历史上沪深300也出现过单年跌 40% 的情况。"
-                f"防御型占比 {cls.get('defensive_pct',0):.1f}% | 进攻型占比 {cls.get('offensive_pct',0):.1f}%"
+                f"防御型占比 {_defensive_pct:.1f}% | 进攻型占比 {100-_defensive_pct:.1f}%"
             )
 
-        # 仓位警告
-        pos_warnings = daily.get("position_warnings", []) if isinstance(daily, dict) else []
-        for w in pos_warnings:
-            if w.get("level") == "danger":
-                st.error(f"⚠️ {w.get('name','')}（{w.get('code','')}）{w.get('text','')}")
-            else:
-                st.warning(f"⚠️ {w.get('name','')}（{w.get('code','')}）{w.get('text','')}")
+        # 仓位警告 —— 实时基于当前 holdings 重新校验（不用 daily_results 里的老数据）
+        for _code_key, b_list in [("broad_etf", _buckets_live["broad_etf"]["items"]),
+                                    ("strategy_etf", _buckets_live["strategy_etf"]["items"]),
+                                    ("sector_etf", _buckets_live["sector_etf"]["items"]),
+                                    ("single_stock", _buckets_live["single_stock"]["items"])]:
+            for _it in b_list:
+                _p = _it["value"] / _total_live * 100 if _total_live > 0 else 0
+                if _p >= 40:
+                    st.error(
+                        f"⚠️ **{_it['name']}（{_it['code']}）** "
+                        f"仓位 {_p:.1f}% ≥ 40%，严重偏重！建议分散"
+                    )
+                elif _p >= 30:
+                    st.warning(
+                        f"⚠️ **{_it['name']}（{_it['code']}）** "
+                        f"仓位 {_p:.1f}% ≥ 30%，偏重警戒"
+                    )
 
         # 换仓建议
         swap_sug = daily.get("swap_suggestions", []) if isinstance(daily, dict) else []
@@ -652,13 +715,20 @@ with tab2:
                 )
 
         for cat, items in category_holdings.items():
-            # 分类小计
+            # 分类小计（用市值算，保持和顶部卡片的分母一致）
+            cat_value = 0
+            for _, h in items:
+                code_h = str(h["code"]).zfill(6)
+                _sig = holding_data.get(code_h, {}) if code_h not in etf_data else etf_data.get(code_h, {})
+                _price = _sig.get("price", 0) or h.get("cost", 0)
+                cat_value += _price * h.get("shares", 0)
             cat_cost = sum(h.get("shares", 0) * h.get("cost", 0) for _, h in items)
-            cat_pct = (cat_cost / total_cost_all * 100) if total_cost_all > 0 else 0
+            # 占比用市值/持仓市值总和（和顶部分类卡片一致）
+            cat_pct = (cat_value / total_market_value * 100) if total_market_value > 0 else 0
             pe_range_cat = get_pe_range(cat)
             range_text = f" | PE区间:{pe_range_cat}" if pe_range_cat else ""
 
-            st.subheader(f"🏷️ {cat}（成本¥{cat_cost:,.0f}，占{cat_pct:.1f}%{range_text}）")
+            st.subheader(f"🏷️ {cat}（市值¥{cat_value:,.0f}，占{cat_pct:.1f}%{range_text}）")
 
             for i, h in items:
                 code = str(h["code"]).zfill(6)
@@ -747,7 +817,13 @@ with tab2:
                 with col4:
                     if pe and pe > 0:
                         if is_etf and percentile is not None:
-                            st.metric(pe_label, f"{pe:.1f}", f"分位{percentile:.0f}%")
+                            # 分位 delta 反转颜色：高分位（贵）显示红色，低分位（便宜）显示绿色
+                            # delta_color="inverse" 让正值显示红色（向下），负值绿色（向上）
+                            # 把分位转换成"距离50%"的差值：>50 显示为正（红色=贵），<50 显示负（绿色=便宜）
+                            _delta_val = percentile - 50
+                            _delta_str = f"分位{percentile:.0f}%（{'偏贵' if percentile >= 70 else '偏便宜' if percentile <= 30 else '合理'}）"
+                            st.metric(pe_label, f"{pe:.1f}", _delta_str,
+                                     delta_color="inverse" if percentile >= 50 else "normal")
                         else:
                             st.metric(pe_label, f"{pe:.1f}")
                     else:
