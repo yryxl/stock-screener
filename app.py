@@ -817,13 +817,28 @@ with tab2:
                 with col4:
                     if pe and pe > 0:
                         if is_etf and percentile is not None:
-                            # 分位 delta 反转颜色：高分位（贵）显示红色，低分位（便宜）显示绿色
-                            # delta_color="inverse" 让正值显示红色（向下），负值绿色（向上）
-                            # 把分位转换成"距离50%"的差值：>50 显示为正（红色=贵），<50 显示负（绿色=便宜）
-                            _delta_val = percentile - 50
-                            _delta_str = f"分位{percentile:.0f}%（{'偏贵' if percentile >= 70 else '偏便宜' if percentile <= 30 else '合理'}）"
-                            st.metric(pe_label, f"{pe:.1f}", _delta_str,
-                                     delta_color="inverse" if percentile >= 50 else "normal")
+                            # 分位不用 st.metric 的 delta（字符串时颜色反转失效）
+                            # 改用纯文字+emoji，对齐"贵红便宜绿"的直觉
+                            st.metric(pe_label, f"{pe:.1f}")
+                            if percentile >= 85:
+                                _badge = f"🔴 分位{percentile:.0f}% 泡沫"
+                                _color = "#e74c3c"
+                            elif percentile >= 70:
+                                _badge = f"🟠 分位{percentile:.0f}% 偏贵"
+                                _color = "#f39c12"
+                            elif percentile >= 30:
+                                _badge = f"⚪ 分位{percentile:.0f}% 合理"
+                                _color = "#95a5a6"
+                            elif percentile >= 15:
+                                _badge = f"🟢 分位{percentile:.0f}% 偏便宜"
+                                _color = "#27ae60"
+                            else:
+                                _badge = f"🟢🟢 分位{percentile:.0f}% 低估"
+                                _color = "#1e8449"
+                            st.markdown(
+                                f'<div style="color:{_color};font-size:12px;margin-top:-10px;">{_badge}</div>',
+                                unsafe_allow_html=True
+                            )
                         else:
                             st.metric(pe_label, f"{pe:.1f}")
                     else:
