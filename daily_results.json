@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-15 03:50",
-  "mode": "full",
+  "date": "2026-04-15 12:08",
+  "mode": "holdings",
   "is_trading_day": true,
-  "data_source": "全市场扫描",
+  "data_source": "持仓检查",
   "ai_recommendations": [
     {
       "code": "000538",
@@ -519,13 +519,13 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 55.05,
+      "price": 55.46,
       "pe": 19.06,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -2.393617021276595,
-      "pnl_pct": -2.39,
+      "holding_pnl": -1.6666666666666607,
+      "pnl_pct": -1.67,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
@@ -539,40 +539,12 @@
   ],
   "etf_signals": [
     {
-      "code": "159326",
-      "name": "电网设备etf华夏",
-      "shares": 500,
-      "cost": 2.097,
-      "current_price": 1.868,
-      "pnl_pct": -10.92,
-      "pnl_label": "浮亏中",
-      "pnl_advice": "",
-      "pnl_override": false,
-      "must_sell": false,
-      "bull_top_alert": false,
-      "index_code": "931494",
-      "index_name": "中证全指电网设备",
-      "kind": "sector",
-      "temperature": {
-        "level": 0,
-        "percentile": null,
-        "current_pe": 55.92,
-        "current_dividend_yield": 0.57,
-        "as_of": "2026-04-14",
-        "data_points": 22,
-        "note": "数据积累不足（22条，需≥60条才能判定历史分位）"
-      },
-      "signal": "hold",
-      "signal_text": "数据积累中（22条，需≥60条才能判分位）",
-      "new_records": 2
-    },
-    {
       "code": "510330",
       "name": "沪深300etf",
       "shares": 700,
       "cost": 4.915,
-      "current_price": 4.906,
-      "pnl_pct": -0.18,
+      "current_price": 4.907,
+      "pnl_pct": -0.16,
       "pnl_label": "几乎平本",
       "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -0.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
@@ -599,12 +571,12 @@
     {
       "code": "512890",
       "name": "红利低波etf华泰",
-      "shares": 10800,
+      "shares": 3300,
       "cost": 1.191,
-      "current_price": 1.181,
-      "pnl_pct": -0.84,
+      "current_price": 1.186,
+      "pnl_pct": -0.42,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -0.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -0.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -623,37 +595,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位86.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 2
-    },
-    {
-      "code": "510880",
-      "name": "红利etf华泰",
-      "shares": 400,
-      "cost": 3.353,
-      "current_price": 3.223,
-      "pnl_pct": -3.88,
-      "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -3.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "pnl_override": true,
-      "must_sell": false,
-      "bull_top_alert": false,
-      "index_code": "000015",
-      "index_name": "上证红利",
-      "kind": "strategy_dividend",
-      "temperature": {
-        "level": 2,
-        "label": "🔴 泡沫区·贵到不舒服",
-        "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 94.7,
-        "current_pe": 9.16,
-        "current_dividend_yield": 5.28,
-        "as_of": "2026-04-14",
-        "data_points": 1214,
-        "lookback_years": 10
-      },
-      "signal": "sell_heavy",
-      "signal_text": "PE分位94.7%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -3.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位86.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 2
     },
     {
@@ -661,10 +603,10 @@
       "name": "中证500etf南方",
       "shares": 100,
       "cost": 8.502,
-      "current_price": 8.159,
-      "pnl_pct": -4.03,
+      "current_price": 8.168,
+      "pnl_pct": -3.93,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -4.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -3.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -683,16 +625,16 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位86.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -4.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位86.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -3.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 2
     }
   ],
   "portfolio_classification": {
-    "total_value": 25183.2,
+    "total_value": 13861.0,
     "defensive_value": 4290.7,
-    "offensive_value": 20892.5,
-    "defensive_pct": 17.03794593220877,
-    "offensive_pct": 82.96205406779123,
+    "offensive_value": 9570.3,
+    "defensive_pct": 30.95519803765962,
+    "offensive_pct": 69.04480196234037,
     "buckets": {
       "broad_etf": {
         "value": 4290.7,
@@ -708,34 +650,23 @@
             "value": 850.2
           }
         ],
-        "pct": 17.03794593220877
+        "pct": 30.95519803765962
       },
       "strategy_etf": {
-        "value": 14204.000000000002,
+        "value": 3930.3,
         "items": [
           {
             "code": "512890",
             "name": "红利低波etf华泰",
-            "value": 12862.800000000001
-          },
-          {
-            "code": "510880",
-            "name": "红利etf华泰",
-            "value": 1341.2
+            "value": 3930.3
           }
         ],
-        "pct": 56.402681152514376
+        "pct": 28.355097034845972
       },
       "sector_etf": {
-        "value": 1048.5,
-        "items": [
-          {
-            "code": "159326",
-            "name": "电网设备etf华夏",
-            "value": 1048.5
-          }
-        ],
-        "pct": 4.16348994567807
+        "value": 0,
+        "items": [],
+        "pct": 0.0
       },
       "single_stock": {
         "value": 5640.0,
@@ -746,7 +677,7 @@
             "value": 5640.0
           }
         ],
-        "pct": 22.39588296959878
+        "pct": 40.68970492749441
       }
     }
   },
@@ -763,11 +694,11 @@
   },
   "position_warnings": [
     {
-      "code": "512890",
-      "name": "红利低波etf华泰",
-      "pct": 51.07690841513389,
+      "code": "000538",
+      "name": "云南白药",
+      "pct": 40.68970492749441,
       "level": "danger",
-      "text": "仓位51.1%≥40%，严重偏重！建议分散"
+      "text": "仓位40.7%≥40%，严重偏重！建议分散"
     }
   ]
 }
