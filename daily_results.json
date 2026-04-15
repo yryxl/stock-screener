@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-15 16:51",
+  "date": "2026-04-15 18:56",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -519,13 +519,13 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 55.59,
-      "pe": 19.06,
+      "price": 55.72,
+      "pe": 19.29,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -1.4361702127659526,
-      "pnl_pct": -1.44,
+      "holding_pnl": -1.2056737588652444,
+      "pnl_pct": -1.21,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
@@ -558,15 +558,15 @@
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
         "percentile": 100.0,
-        "current_pe": 17.76,
-        "current_dividend_yield": 2.35,
-        "as_of": "2026-04-14",
-        "data_points": 2427,
+        "current_pe": 17.7,
+        "current_dividend_yield": 2.36,
+        "as_of": "2026-04-15",
+        "data_points": 2428,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
       "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 2
+      "new_records": 3
     },
     {
       "code": "512890",
@@ -587,16 +587,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 86.8,
-        "current_pe": 8.15,
-        "current_dividend_yield": 4.96,
-        "as_of": "2026-04-14",
-        "data_points": 1214,
+        "percentile": 88.8,
+        "current_pe": 8.19,
+        "current_dividend_yield": 4.92,
+        "as_of": "2026-04-15",
+        "data_points": 1215,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位86.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 2
+      "signal_text": "PE分位88.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 3
     },
     {
       "code": "510500",
@@ -617,16 +617,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 86.4,
-        "current_pe": 31.7,
-        "current_dividend_yield": 1.23,
-        "as_of": "2026-04-14",
-        "data_points": 2427,
+        "percentile": 85.9,
+        "current_pe": 31.52,
+        "current_dividend_yield": 1.24,
+        "as_of": "2026-04-15",
+        "data_points": 2428,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位86.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -4.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 2
+      "signal_text": "PE分位85.9%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -4.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 3
     }
   ],
   "portfolio_classification": {
