@@ -474,13 +474,45 @@ with tab1:
                         st.caption(s.get("signal_text", ""))
                 st.divider()
 
-            # 仓位警告（和消息推送一致）
-            pos_warnings = daily.get("position_warnings", [])
-            if pos_warnings:
+            # 仓位警告 —— 实时基于当前 holdings + holding_signals 重算
+            # 不用 daily.position_warnings（可能和 holdings 不同步）
+            _holdings_live = st.session_state.get("holdings", [])
+            _sig_map = {s.get("code"): s for s in daily.get("holding_signals", [])}
+            _total_mv = 0
+            _items_mv = []
+            for _h in _holdings_live:
+                _c = str(_h.get("code", "")).zfill(6)
+                _s = _sig_map.get(_c) or _sig_map.get(_h.get("code"))
+                _p = (_s or {}).get("price", 0) or _h.get("cost", 0)
+                _v = _p * _h.get("shares", 0)
+                _total_mv += _v
+                _items_mv.append({"code": _c, "name": _h.get("name", ""), "value": _v})
+            _warnings_live = []
+            for _it in _items_mv:
+                _pct = _it["value"] / _total_mv * 100 if _total_mv > 0 else 0
+                if _pct >= 40:
+                    _warnings_live.append({
+                        "code": _it["code"], "name": _it["name"],
+                        "pct": _pct, "level": "danger"
+                    })
+                elif _pct >= 30:
+                    _warnings_live.append({
+                        "code": _it["code"], "name": _it["name"],
+                        "pct": _pct, "level": "warning"
+                    })
+            if _warnings_live:
                 st.subheader("⚠️ 仓位警告")
-                for w in pos_warnings:
-                    emoji = "🚨" if w.get("level") == "danger" else "⚠️"
-                    st.warning(f"{emoji} **{w.get('name', '')}**（{w.get('code', '')}）\n\n{w.get('text', '')}")
+                for w in _warnings_live:
+                    if w["level"] == "danger":
+                        st.error(
+                            f"🚨 **{w['name']}**（{w['code']}）"
+                            f"仓位 {w['pct']:.1f}% ≥ 40%，严重偏重！建议分散"
+                        )
+                    else:
+                        st.warning(
+                            f"⚠️ **{w['name']}**（{w['code']}）"
+                            f"仓位 {w['pct']:.1f}% ≥ 30%，偏重警戒"
+                        )
                 st.divider()
 
 # ============================================
