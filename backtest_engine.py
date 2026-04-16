@@ -31,6 +31,11 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # 保留开关以便未来重新启用（evaluate_cycle_stock 代码仍然可用）
 CYCLE_STOCKS_ENABLED = False
 
+# 中国国情版 v3 规则开关（REQ-160~169）
+# 详见 docs/REQUIREMENTS.md 第十六节
+# 默认开启；关闭时用于 A/B 对比验证（check_china_v3_rules 返回空结果）
+CHINA_V3_ENABLED = True
+
 # 股票池行业映射（手工标注，经 match_industry_pe 模糊匹配到 INDUSTRY_PE）
 # 70 只股票按上市时间 + 类型分布：
 #   S01-S30：初始 30 只（6 个类别）
@@ -1006,6 +1011,122 @@ def check_10_year_king(sid, year, month):
     return True, avg_10y, years_above
 
 
+def check_china_v3_rules(sid, year, month, industry):
+    """
+    中国国情版 v3 规则（回测用，只走纯年报序列规则）
+    详见 docs/REQUIREMENTS.md REQ-160~169
+
+    概念对齐（和原模型的 complexity/type 标签对应）：
+      - "跑步机型" ≡ 原 complexity=complex（复杂生意：重资产、持续烧钱）
+      - "冲浪者型" ≡ 原 type=cycle（周期型生意：业绩随商品/技术周期大幅波动）
+      - "过路费生意" ≡ 原 type=utility（公用事业：稳定低收益、特许经营）
+
+    v3 的增量价值：在标签体系之上，基于 5 年 ROE 实证表现做"硬否决/降级/放宽"：
+      A. 经营现金流连续 3 年为负（造假信号，所有行业硬否决）
+      B. 跑步机实证恶化：complexity=complex + 5 年 ROE 均值 <10% → 硬否决
+      C. 冲浪者实证恶化：type=cycle 或 complexity=complex + ROE 波动大/亏损 → 降级
+      D. 过路费稳定收益：type=utility + 5 年 ROE 均值 ≥ 8% 且方差 <10pp → 放宽门槛
+
+    注意：
+      - type=cycle 已由 CYCLE_STOCKS_ENABLED=False 默认全部过滤，C 主要覆盖
+        complexity=complex 但非 cycle 的行业（如半导体/军工/光伏）
+      - 不接入回测（需要实时数据）：存贷双高/异常货币资金/商誉/北向资金/ST名称
+
+    返回：
+      {
+        "hard_reject": bool,      # 硬否决（A/B 触发）
+        "downgrade": bool,        # 降级（C 触发）
+        "is_toll_bridge": bool,   # 过路费（D 触发，放宽 ROE 门槛）
+        "reasons": [str],          # 触发原因列表
+      }
+    """
+    result = {"hard_reject": False, "downgrade": False,
+              "is_toll_bridge": False, "reasons": []}
+
+    # A/B 对比开关：关闭时直接返回空结果
+    if not CHINA_V3_ENABLED:
+        return result
+
+    reports = get_annual_reports_before(sid, year, month, lookback_years=6)
+    if len(reports) < 3:
+        return result
+
+    roes = [r.get("roe") for r in reports if r.get("roe") is not None]
+    ocfs = [r.get("ocf_per_share") for r in reports if r.get("ocf_per_share") is not None]
+
+    # 获取行业标签（复用现有 complexity/type 体系，避免概念重复）
+    pe_range = match_industry_pe(industry or "")
+    complexity = pe_range.get("complexity", "medium")
+    industry_type = pe_range.get("type", "")
+
+    # -------- A. 经营现金流连续为负（造假信号，适用所有行业）--------
+    # 康美药业等典型案例。连续 3 年 OCF 为负 → 造假或业务恶化
+    if len(ocfs) >= 3 and all(o < 0 for o in ocfs[:3]):
+        result["hard_reject"] = True
+        result["reasons"].append(
+            f"经营现金流连续3年为负（{ocfs[2]:.2f}/{ocfs[1]:.2f}/{ocfs[0]:.2f}元）→ 造假或恶化"
+        )
+        return result  # 提前返回
+
+    # -------- B. 跑步机实证恶化（原"复杂生意"+ROE 长期偏低）--------
+    # 原模型已用 complexity=complex 把 ROE 门槛提到 25/20/15
+    # v3 增量：即使 PE 低、护城河过关，只要 5 年 ROE 均值 <10% → 硬否决
+    # 典型：京东方A（5年均值 7.7%），中铝/宝钢（均被周期股过滤）
+    if complexity == "complex" and len(roes) >= 5:
+        avg_roe_5y = sum(roes[:5]) / 5
+        if avg_roe_5y < 10:
+            result["hard_reject"] = True
+            result["reasons"].append(
+                f"跑步机型（复杂生意）：{industry}行业 5年ROE均值仅{avg_roe_5y:.1f}%"
+                f"（资本黑洞，芒格不碰）"
+            )
+            return result
+
+    # -------- C. 冲浪者实证恶化（原"周期/复杂生意"+波动大）--------
+    # type=cycle 已被 CYCLE_STOCKS_ENABLED 默认过滤（看不到这里）
+    # 所以 C 实际主要作用于 complexity=complex 但非 cycle（半导体/军工/光伏/面板等）
+    # 三条件任一触发：
+    #   1. 5年 ROE 峰谷差 ≥ 15pp（真正的周期波动）
+    #   2. 5 年有亏损年（技术/产能失控）
+    #   3. 5年 ROE 均值 <10%（技术路线追赶乏力）
+    is_surfer_candidate = (industry_type == "cycle") or (complexity == "complex")
+    if is_surfer_candidate and len(roes) >= 5:
+        max_roe = max(roes[:5])
+        min_roe = min(roes[:5])
+        avg_roe_5y = sum(roes[:5]) / 5
+        has_loss = any(r < 0 for r in roes[:5])
+        volatility = max_roe - min_roe
+        if volatility >= 15 or has_loss or avg_roe_5y < 10:
+            result["downgrade"] = True
+            if avg_roe_5y < 10 and volatility < 15 and not has_loss:
+                result["reasons"].append(
+                    f"冲浪者型（周期/复杂生意）：{industry}行业 5年ROE均值仅{avg_roe_5y:.1f}%"
+                    f"（技术追赶乏力）"
+                )
+            else:
+                result["reasons"].append(
+                    f"冲浪者型（周期/复杂生意）：{industry}行业 5年ROE波动{volatility:.0f}pp"
+                    f"（峰{max_roe:.0f}%/谷{min_roe:.0f}%）"
+                )
+
+    # -------- D. 过路费生意（原"公用事业"+稳定 ROE）--------
+    # 复用 type=utility 标签（电力/公用事业/交通运输/铁路/铁路公路/高速）
+    # 条件：5 年 ROE 均值 ≥ 8% 且 max-min < 10pp（稳定）
+    # 触发后放宽 ROE 门槛到 8%（巴菲特思路：稳定收益＋股息>高 ROE）
+    if industry_type == "utility" and len(roes) >= 5:
+        avg_roe = sum(roes[:5]) / 5
+        max_roe = max(roes[:5])
+        min_roe = min(roes[:5])
+        if avg_roe >= 8 and (max_roe - min_roe) < 10:
+            result["is_toll_bridge"] = True
+            result["reasons"].append(
+                f"过路费生意（公用事业）：{industry}行业 5年ROE均值{avg_roe:.1f}%"
+                f"稳定（{min_roe:.1f}%~{max_roe:.1f}%）"
+            )
+
+    return result
+
+
 def is_good_quality_company(sid, year, month,
                              roe_threshold=20.0, gm_threshold=30.0):
     """
@@ -1169,6 +1290,12 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         buyback_score, buyback_yi = get_buyback_score(sid, year, month)
         is_king_flag, king_avg_roe, _ = check_10_year_king(sid, year, month)
 
+    # 中国国情版 v3 规则检查（纯年报序列部分）
+    china_v3 = {"hard_reject": False, "downgrade": False,
+                "is_toll_bridge": False, "reasons": []}
+    if sid and year and month:
+        china_v3 = check_china_v3_rules(sid, year, month, industry_hint)
+
     result = {
         "signal": "hold",
         "signal_text": "数据不足",
@@ -1179,12 +1306,22 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         "buyback_yi": buyback_yi,
         "is_10y_king": is_king_flag,
         "king_avg_roe": king_avg_roe,
+        "china_v3_reasons": china_v3["reasons"],
+        "is_toll_bridge": china_v3["is_toll_bridge"],
     }
 
     # ---- 退市检查 ----
     if not price or price <= 0:
         result["signal"] = "delisted"
         result["signal_text"] = "该证券已停止交易"
+        return result
+
+    # ---- 中国国情版 v3 硬否决（经营现金流连续为负 / 跑步机型）----
+    # 比护城河检查更早拦截，避免造假股/资本黑洞进入后续流程
+    if china_v3["hard_reject"]:
+        result["signal"] = "hold"
+        result["signal_text"] = f"中国国情排除：{china_v3['reasons'][0]}"
+        result["score"] = 0
         return result
 
     # ---- 周期股分支 ----
@@ -1247,9 +1384,10 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         effective_gm = gross_margin if gross_margin is not None else _get_recent_gm(sid, year, month)
         effective_debt = debt_ratio
 
-        # ---- ROE 门槛检查（十年王者豁免）----
+        # ---- ROE 门槛检查（十年王者 / 过路费豁免）----
         # 非王者按行业复杂度 + 杠杆调整后的阈值降级
         # 王者完全豁免（护城河检查在后面兜底）
+        # 过路费生意（铁路/港口/电力/高速/燃气等）：ROE 8% 算合格（巴菲特思路：稳定比高更重要）
         if "buy" in signal and effective_roe is not None and not is_king_flag:
             roe = effective_roe
             base_thresh = COMPLEXITY_ROE_ADJUST.get(complexity, COMPLEXITY_ROE_ADJUST["medium"])
@@ -1263,7 +1401,10 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
             roe_light = base_thresh["light"] + leverage_adj
             roe_watch = base_thresh["watch"] + leverage_adj
 
-            if roe < roe_watch:
+            # 过路费豁免：ROE 稳定 ≥ 8% 直接当合格，跳过下面的不达标降级
+            if china_v3["is_toll_bridge"] and roe >= 8:
+                pass  # 过路费生意放行，不对 ROE 降级
+            elif roe < roe_watch:
                 result["signal"] = "hold"
                 result["signal_text"] += f" 但ROE={roe:.1f}%不达标"
             elif roe < roe_light:
@@ -1284,6 +1425,18 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
             if effective_gm and effective_gm < 15:
                 result["signal"] = "hold"
                 result["signal_text"] += f" 毛利率{effective_gm:.0f}%过低"
+
+        # ---- 冲浪者降级（周期/复杂生意实证波动大）----
+        # 对应原模型 type=cycle 或 complexity=complex 且 ROE 实证波动大
+        # 巴菲特/芒格理念：不买自己看不懂的技术迭代、依赖商品周期的行业
+        # 宁可错过，不犯错：买信号直接降为 buy_watch 或 hold
+        if china_v3["downgrade"] and "buy" in result["signal"]:
+            if result["signal"] in ("buy_heavy", "buy_medium"):
+                result["signal"] = "buy_watch"
+                result["signal_text"] += " 但冲浪者（周期/复杂生意）降级观望"
+            elif result["signal"] == "buy_light":
+                result["signal"] = "hold"
+                result["signal_text"] = china_v3["reasons"][-1]
 
         # ---- 合理价格买好公司（巴菲特 1989 年致股东信）----
         # 好公司在合理区间内也可以买入，不必等极端低估
@@ -1447,6 +1600,8 @@ def get_month_signals(year, month, anon_map=None, industry_map=None, subset_ids=
             "buyback_yi": eval_result.get("buyback_yi", 0),
             "is_10y_king": eval_result.get("is_10y_king", False),
             "king_avg_roe": eval_result.get("king_avg_roe"),
+            "china_v3_reasons": eval_result.get("china_v3_reasons", []),
+            "is_toll_bridge": eval_result.get("is_toll_bridge", False),
             "events": stock_events,
             # 行业 PE 区间（供回测 backtest_autorun 的个股 PE 硬否决规则使用）
             "industry": industry,

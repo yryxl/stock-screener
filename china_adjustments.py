@@ -808,6 +808,7 @@ def check_capital_intensive_treadmill(df_annual, industry):
     """
     识别"跑步机型"生意——必须持续投入资本才能维持现有地位
 
+    概念对齐：对应原模型 screener.py 里的 complexity=complex（复杂生意）
     典型：航空（无差异化）、纺织、钢铁、面板、造船
 
     返回：(is_treadmill, reasons)
@@ -851,6 +852,9 @@ def check_capital_intensive_treadmill(df_annual, industry):
 def check_tech_surfer(df_annual, industry, name):
     """
     识别"冲浪者型"——必须持续技术创新才能维持地位
+
+    概念对齐：对应原模型 screener.py 里的 type=cycle（周期型生意）
+    典型：半导体、光伏、锂电、消费电子（技术迭代周期明显）
 
     典型：半导体、光伏、锂电池设备、消费电子（除苹果/小米生态外）
 
