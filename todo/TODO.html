@@ -73,15 +73,23 @@ details div { padding: 8px 0 0 0; }
 <h1>📋 待做需求表</h1>
 <p class="meta-info">
 最后更新：2026-04-16 | 项目：股票筛选模型 · 中国国情版 v3
+<br>🔄 每完成一项更新立即同步此表（用户规约 2026-04-16）
 </p>
 
 <table class="stats-table">
 <tr><th>类别</th><th>数量</th><th>典型事项</th></tr>
-<tr><td><span class="tag tag-inprogress">进行中未完成</span></td><td class="num">2</td><td>熔断展示、语录完整版核对</td></tr>
-<tr><td><span class="tag tag-pending">用户提出未启动</span></td><td class="num">2</td><td>模型自升级、AI 舆情 Skill</td></tr>
+<tr><td><span class="tag tag-inprogress">进行中未完成</span></td><td class="num">1</td><td>TODO-001 熔断前端展示</td></tr>
+<tr><td><span class="tag tag-pending">用户提出未启动</span></td><td class="num">2</td><td>TODO-003 模型自升级、TODO-004 AI 舆情 Skill</td></tr>
+<tr><td style="background:#fff3e0"><span class="tag tag-inprogress" style="background:#ffe0b2;color:#e65100">语录核对新增</span></td><td class="num">21</td><td>🟠8 高 🟡8 中 🟢5 低（详见下方第四节）</td></tr>
 <tr><td><span class="tag tag-legacy">历史遗留</span></td><td class="num">5</td><td>跨境 ETF CAPE、ETF 集中度等</td></tr>
-<tr><td><strong>总计</strong></td><td class="num"><strong>9</strong></td><td></td></tr>
+<tr><td><strong>总计</strong></td><td class="num"><strong>29</strong></td><td></td></tr>
 </table>
+
+<div style="background:#e8f5e9;border-left:4px solid #34a853;padding:12px 16px;border-radius:4px;margin:16px 0">
+<strong>✅ TODO-002 已完成（2026-04-16）</strong><br>
+Agent 读 22 个完整版 docx 对比 REQ-160~170，确认总结版骨架够用，发现 21 项补强建议。
+详见下方"语录核对新增"章节和 <code>REQUIREMENTS.md</code> REQ-CONCEPT-002。
+</div>
 
 <hr>
 
@@ -243,8 +251,69 @@ details div { padding: 8px 0 0 0; }
 <p><strong>内容</strong>：管理层诚信相关指标（董监高增减持、工商异常、司法诉讼）</p>
 </div>
 
+<h2>📦 四、完整版芒格语录核对新增（21 项，2026-04-16）</h2>
+<p>来源：Agent 读 22 个 docx 对比 REQ-160~170 发现的遗漏。详见 <code>REQUIREMENTS.md</code> REQ-CONCEPT-002</p>
+
+<h3 style="background:linear-gradient(90deg,#ffecb3,#fff);border-left:5px solid #f9a825">🟠 高优先级 8 项（建议尽快做）</h3>
+
+<div class="content-box">
+<p><strong>TODO-010 · REQ-174</strong> 公司杠杆硬否决（非金融业资产负债率 >70% 硬否决）<br>
+<span class="meta-info">源自 05_三个 L | 工作量：小</span></p>
+<p><strong>TODO-011 · REQ-180</strong> "印钞机"标签（资本开支 <20% × ROE≥20% → 喜诗糖果型）<br>
+<span class="meta-info">源自 11_穿越周期的 3 类生意 | 工作量：中（需接入现金流量表）</span></p>
+<p><strong>TODO-012 · REQ-184</strong> 保守 10% CAGR 倒推最高合理买入价（第二估值锚）<br>
+<span class="meta-info">源自 14_估值核心逻辑下 | 工作量：中</span></p>
+<p><strong>TODO-013 · REQ-185</strong> 管理层"积分卡"（分红率/回购注销/减持频率/承诺达成）<br>
+<span class="meta-info">源自 15_投资三好原则 | 工作量：大（多数据源聚合）</span></p>
+<p><strong>TODO-014 · REQ-187</strong> 极冷温度"鳄鱼出击"提示 + 总仓位上限动态调整至 90%<br>
+<span class="meta-info">源自 19_翻身 4 个死规矩 | 工作量：小（前端逻辑+文案）</span></p>
+<p><strong>TODO-015 · REQ-188</strong> 目标价+追踪止损（持仓层面，按最高价回撤 20% 建议减仓）<br>
+<span class="meta-info">源自 21_3 条卖出铁律 | 工作量：中（holdings 数据结构扩展）</span></p>
+<p><strong>TODO-016 · REQ-189</strong> 组合单股集中度上限（>25% 触发再平衡提示）<br>
+<span class="meta-info">源自 21_3 条卖出铁律 | 工作量：小</span></p>
+<p><strong>TODO-017 · REQ-191</strong> 高 ROE 杠杆化警告（ROE≥20% + 负债 >60%，非金融业）<br>
+<span class="meta-info">源自 5 个核心指标整理 | 工作量：小</span></p>
+</div>
+
+<h3 style="background:linear-gradient(90deg,#fff9c4,#fff);border-left:5px solid #fbc02d">🟡 中优先级 8 项</h3>
+
+<div class="content-box">
+<ul>
+<li><strong>TODO-018 · REQ-173</strong> ETF 杠杆/反向类型标签警告</li>
+<li><strong>TODO-019 · REQ-175</strong> 数字时代资产识别（高无形资产占比科技股不用 PB 扣分）</li>
+<li><strong>TODO-020 · REQ-176</strong> 小市值机会池（<50 亿分支，ROE 门槛放宽）</li>
+<li><strong>TODO-021 · REQ-177</strong> Too Hard 篮子（复杂生意不打"买入"信号而是"不评估"）</li>
+<li><strong>TODO-022 · REQ-179</strong> 业绩过于平滑检测（反麦道夫模式）</li>
+<li><strong>TODO-023 · REQ-181</strong> 注销型回购 vs 股权激励回购区分</li>
+<li><strong>TODO-024 · REQ-182</strong> 利率环境修正 PE 区间（10 年国债 >4% 时 PE 乘 0.8）</li>
+<li><strong>TODO-025 · REQ-186</strong> 烟蒂警告（PE<10 + 10 年 ROE 均值 <10%）</li>
+</ul>
+</div>
+
+<h3 style="background:linear-gradient(90deg,#e8f5e9,#fff);border-left:5px solid #66bb6a">🟢 低优先级 5 项（可暂缓）</h3>
+
+<div class="content-box">
+<ul>
+<li><strong>TODO-026 · REQ-171</strong> 债券同主体对标捡错配（不属选股）</li>
+<li><strong>TODO-027 · REQ-172</strong> ETF 被动持股治理风险（A 股占比低）</li>
+<li><strong>TODO-028 · REQ-178</strong> 交易频率/换手率过高提醒</li>
+<li><strong>TODO-029 · REQ-183</strong> 估值三档区间输出（保守/中性/乐观）</li>
+<li><strong>TODO-030 · REQ-190</strong> 归零心态 UI 问句</li>
+</ul>
+</div>
+
+<div style="background:#e3f2fd;border-left:4px solid #1976d2;padding:14px 18px;border-radius:4px;margin:20px 0">
+<h4 style="margin-top:0">📌 最值得补强的 3 个领域（Agent 洞察）</h4>
+<ol>
+<li><strong>卖出和组合管理完全空白</strong>：现有模型几乎全在"买入和持有"逻辑上，卖出只靠基本面恶化，缺目标价/追踪止损/集中度再平衡。→ <code>TODO-015/016/017</code> 集中解决</li>
+<li><strong>"好人"维度只做了造假</strong>：A 股大股东减持/分红吝啬问题严重。→ <code>TODO-013</code> 集中解决</li>
+<li><strong>估值第二锚</strong>：现有估值全是行业 PE 中位数，没有"10% CAGR 倒推"或"无风险利率修正"第二锚。→ <code>TODO-011/012/024</code> 集中解决</li>
+</ol>
+</div>
+
 <div class="footer">
-本表每次有新需求就更新 · <code>todo/TODO.md</code>（AI 用） · <code>todo/TODO.html</code>（人用） · 两份同步
+本表每次有新需求就更新 · <code>todo/TODO.md</code>（AI 用） · <code>todo/TODO.html</code>（人用） · 两份同步<br>
+规约（2026-04-16）：每完成一项更新立即同步 REQUIREMENTS.md + 本表
 </div>
 
 </body>
