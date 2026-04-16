@@ -178,10 +178,10 @@
 - **文件**：holdings.json 扩展 `target_price` 和 `peak_price` 字段，app.py 展示
 - **工作量**：中（数据结构调整+每日追踪）
 
-#### TODO-016：REQ-189 组合单股集中度上限
-- **内容**：用户组合中任一股 >25% 触发再平衡提示
-- **源自**：21_3 条卖出铁律 + 原模型 REQ-168
-- **工作量**：小（持仓页加校验）
+#### TODO-016：REQ-189 单股集中度上限分档 ✅ 2026-04-16 已完成
+- **实现**：`screener.py` 重构 `check_position_sizes(holdings, signals_map, total_capital)` + `app.py` 同步
+- **4 档**：王者+小资金 35/45、王者+大资金 25/35、普通标的 20/30
+- **验收**：4 场景测试全部通过（王者小资金 35% 警告、普通标的 21% 警告）
 
 #### TODO-017：REQ-191 高 ROE 杠杆化警告 ✅ 2026-04-16 已完成
 - **实现**：`screener.py` 新增 `check_roe_leverage_quality()`

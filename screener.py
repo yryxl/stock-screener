@@ -1388,9 +1388,26 @@ def check_decline_signals(stock_list, quotes_df):
 # 仓位控制（巴菲特：单只不超40%，我们用30%更保守）
 # ============================================
 
-def check_position_sizes(holdings):
+def check_position_sizes(holdings, signals_map=None, total_capital=None):
     """
-    检查仓位是否过大
+    REQ-189：单股集中度上限分档检查（2026-04-16 重构）
+
+    依据：
+      - 巴菲特合伙基金 1964 年美国运通持仓 40%
+      - 芒格 Daily Journal 三只股票几乎全仓
+      - "一刀切 40% 危险"过于保守，违背集中投资精神
+
+    分档阈值（警告线 / 危险线）：
+      1. 十年王者 + 小资金（<100 万）：35% / 45%  ← 最宽松，允许集中
+      2. 十年王者 + 大资金（≥100 万）：25% / 35%  ← 中等，防止流动性风险
+      3. 普通标的（非王者）：                20% / 30%  ← 最严，质量未证明
+      4. 下限（ >15% 仍正常）：不提示     ← 太分散违背集中投资精神
+
+    参数：
+      holdings: [{code, name, shares, cost}, ...]
+      signals_map: {code: {is_10y_king, ...}} 用于拿质量标签，可选
+      total_capital: 总资产（现金+市值），用于判断小资金/大资金，可选
+
     返回：需要提醒的持仓列表
     """
     if not holdings or len(holdings) < 2:
@@ -1401,24 +1418,47 @@ def check_position_sizes(holdings):
     if total_cost <= 0:
         return []
 
+    # 判断资金规模：总市值 <100 万算小资金
+    # 如果没有 total_capital 参数，用 total_cost 近似
+    is_small_capital = (total_capital or total_cost) < 1_000_000
+
+    signals_map = signals_map or {}
+
     for h in holdings:
+        code = str(h.get("code", ""))
+        code_6 = code.zfill(6)
         cost = h.get("shares", 0) * h.get("cost", 0)
         pct = (cost / total_cost) * 100
-        if pct >= 40:
+
+        # 拿质量标签
+        sig = signals_map.get(code) or signals_map.get(code_6) or {}
+        is_king = sig.get("is_10y_king", False)
+
+        # 选阈值档位
+        if is_king and is_small_capital:
+            warn_line, danger_line, tier_label = 35, 45, "十年王者+小资金"
+        elif is_king:
+            warn_line, danger_line, tier_label = 25, 35, "十年王者+大资金"
+        else:
+            warn_line, danger_line, tier_label = 20, 30, "普通标的"
+
+        if pct >= danger_line:
             warnings.append({
                 "code": h["code"],
                 "name": h.get("name", ""),
                 "pct": pct,
                 "level": "danger",
-                "text": f"仓位{pct:.1f}%≥40%，严重偏重！建议分散",
+                "tier": tier_label,
+                "text": f"仓位{pct:.1f}% ≥ {danger_line}%（{tier_label}危险线），严重偏重！建议减仓分散",
             })
-        elif pct >= 30:
+        elif pct >= warn_line:
             warnings.append({
                 "code": h["code"],
                 "name": h.get("name", ""),
                 "pct": pct,
                 "level": "warning",
-                "text": f"仓位{pct:.1f}%≥30%，偏重，注意分散",
+                "tier": tier_label,
+                "text": f"仓位{pct:.1f}% ≥ {warn_line}%（{tier_label}警告线），注意分散",
             })
 
     return warnings

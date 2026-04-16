@@ -474,8 +474,8 @@ with tab1:
                         st.caption(s.get("signal_text", ""))
                 st.divider()
 
-            # 仓位警告 —— 实时基于当前 holdings + holding_signals 重算
-            # 不用 daily.position_warnings（可能和 holdings 不同步）
+            # 仓位警告（REQ-189 分档：十年王者+小资金/大资金/普通标的）
+            # 实时基于当前 holdings + holding_signals 重算（不用 daily.position_warnings 可能不同步）
             _holdings_live = st.session_state.get("holdings", [])
             _sig_map = {s.get("code"): s for s in daily.get("holding_signals", [])}
             _total_mv = 0
@@ -486,32 +486,48 @@ with tab1:
                 _p = (_s or {}).get("price", 0) or _h.get("cost", 0)
                 _v = _p * _h.get("shares", 0)
                 _total_mv += _v
-                _items_mv.append({"code": _c, "name": _h.get("name", ""), "value": _v})
+                _items_mv.append({
+                    "code": _c, "name": _h.get("name", ""), "value": _v,
+                    "is_king": (_s or {}).get("is_10y_king", False),
+                })
+            # 判断资金规模（<100 万算小资金）
+            _is_small_capital = _total_mv < 1_000_000
             _warnings_live = []
             for _it in _items_mv:
                 _pct = _it["value"] / _total_mv * 100 if _total_mv > 0 else 0
-                if _pct >= 40:
+                _is_king = _it["is_king"]
+                if _is_king and _is_small_capital:
+                    _warn, _danger, _tier = 35, 45, "十年王者+小资金"
+                elif _is_king:
+                    _warn, _danger, _tier = 25, 35, "十年王者+大资金"
+                else:
+                    _warn, _danger, _tier = 20, 30, "普通标的"
+                if _pct >= _danger:
                     _warnings_live.append({
                         "code": _it["code"], "name": _it["name"],
-                        "pct": _pct, "level": "danger"
+                        "pct": _pct, "level": "danger", "tier": _tier,
+                        "warn_line": _warn, "danger_line": _danger,
                     })
-                elif _pct >= 30:
+                elif _pct >= _warn:
                     _warnings_live.append({
                         "code": _it["code"], "name": _it["name"],
-                        "pct": _pct, "level": "warning"
+                        "pct": _pct, "level": "warning", "tier": _tier,
+                        "warn_line": _warn, "danger_line": _danger,
                     })
             if _warnings_live:
-                st.subheader("⚠️ 仓位警告")
+                st.subheader("⚠️ 集中度警告（REQ-189 分档）")
                 for w in _warnings_live:
                     if w["level"] == "danger":
                         st.error(
                             f"🚨 **{w['name']}**（{w['code']}）"
-                            f"仓位 {w['pct']:.1f}% ≥ 40%，严重偏重！建议分散"
+                            f"仓位 {w['pct']:.1f}% ≥ {w['danger_line']}%"
+                            f"（{w['tier']}危险线），严重偏重！建议减仓"
                         )
                     else:
                         st.warning(
                             f"⚠️ **{w['name']}**（{w['code']}）"
-                            f"仓位 {w['pct']:.1f}% ≥ 30%，偏重警戒"
+                            f"仓位 {w['pct']:.1f}% ≥ {w['warn_line']}%"
+                            f"（{w['tier']}警告线），注意分散"
                         )
                 st.divider()
 
