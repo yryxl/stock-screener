@@ -620,6 +620,17 @@ def screen_single_stock(code, config, quotes_df):
                 pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
             result["pe"] = pe
 
+            # REQ-186：烟蒂警告（PE<10 + 10 年 ROE 均值 <10%，排除强周期）
+            # 芒格"公道价买伟大企业" > 格雷厄姆"便宜价买平庸企业"
+            try:
+                from china_adjustments import check_cigar_butt_warning
+                is_cigar, cigar_detail = check_cigar_butt_warning(code, industry, pe, df_annual)
+                if is_cigar:
+                    result["china_v3_risks"].append(cigar_detail)
+                    result["checks"]["v3_cigar_butt"] = {"passed": True, "detail": cigar_detail}
+            except Exception as e:
+                print(f"  {code} 烟蒂警告异常: {e}")
+
             # 行业已在上方查过一次，直接复用
             signal, signal_text = get_pe_signal(pe, industry)
 

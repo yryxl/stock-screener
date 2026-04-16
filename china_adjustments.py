@@ -959,6 +959,83 @@ def check_drain_business(df_annual, industry):
 
 
 # ============================================================
+# REQ-186：烟蒂警告（2026-04-16）
+# ============================================================
+# 来源：巴菲特 2014 年 50 周年股东信
+#   "是芒格打破了我的烟蒂习惯……用便宜价买平庸企业不如用公道价买伟大企业"
+#   喜诗糖果 1972 年是转折点
+#
+# 烟蒂特征：
+#   - 低 PE（<10）看起来便宜
+#   - 但 10 年 ROE 均值 <10%（长期不赚钱）
+#   - 是格雷厄姆流派的"捡烟蒂"陷阱
+#
+# 关键排除：强周期行业（钢铁/煤炭/航运等）
+#   - 这些行业周期底部 PE<10 是正常的
+#   - 周期顶部利润暴增但 PE 仍低（典型"周期反向 PE"）
+#   - 不能用"低 PE + 低长期 ROE"打烟蒂标签
+
+def check_cigar_butt_warning(code, industry, pe_ttm, df_annual):
+    """
+    REQ-186：烟蒂警告识别
+
+    参数：
+      code: 股票代码
+      industry: 行业名
+      pe_ttm: 当前 TTM PE
+      df_annual: 近 10+ 年年报 DataFrame
+
+    返回：
+      (is_cigar_butt, detail)
+    """
+    import pandas as pd
+
+    # 必须有有效的 PE 和 10 年数据
+    if pe_ttm is None or pe_ttm <= 0 or pe_ttm >= 10:
+        return False, ""
+    if df_annual is None or df_annual.empty or len(df_annual) < 10:
+        return False, ""
+
+    # 排除强周期行业（周期股底部 PE<10 正常，不是烟蒂）
+    # 和下水道不同：下水道用"长期 ROE 均值"判定（抓真正的黑洞）
+    # 烟蒂警告专门警告"非周期股但长期 ROE 偏低"的陷阱
+    strong_cyclical = [
+        "钢铁", "普钢", "特钢", "冶炼",
+        "煤炭", "煤炭开采",
+        "有色", "工业金属", "稀土", "小金属", "矿业",
+        "石油", "石化", "炼化", "油气",
+        "航运", "港口",  # 航运港口周期明显
+        "化工", "化纤", "化学制品", "农化",
+        "水泥", "玻璃", "建材",
+    ]
+    if any(k in (industry or "") for k in strong_cyclical):
+        return False, ""
+
+    # 计算 10 年 ROE 均值
+    roes = []
+    for _, row in df_annual.head(10).iterrows():
+        r = row.get("净资产收益率")
+        if r is not None and not pd.isna(r):
+            try:
+                roes.append(float(r))
+            except Exception:
+                continue
+    if len(roes) < 10:
+        return False, ""
+
+    avg_10y = sum(roes) / 10
+
+    # 烟蒂：PE<10 + 10 年 ROE 均值 <10%（长期赚不到钱却被当便宜货）
+    if avg_10y < 10:
+        return True, (
+            f"烟蒂警告：PE {pe_ttm:.1f}（看似便宜）+ 10年ROE均值仅{avg_10y:.1f}%"
+            f"（长期赚不到钱，是格雷厄姆式烟蒂陷阱）→ 芒格原则：公道价买伟大企业"
+        )
+
+    return False, ""
+
+
+# ============================================================
 # REQ-180：印钞机标签识别（2026-04-16）
 # ============================================================
 # 来源：巴菲特 2007 年伯克希尔股东信
