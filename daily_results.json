@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-16 16:52",
+  "date": "2026-04-16 18:59",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -55,9 +55,9 @@
       "category": "生物制品",
       "note": "生长激素国内市占70%+",
       "price": 87.3,
-      "pe": 36.91,
+      "pe": 37.13,
       "signal": "hold",
-      "signal_text": "PE=36.9，超出合理区间20-30，等待回落",
+      "signal_text": "PE=37.1，超出合理区间20-30，等待回落",
       "total_score": 29,
       "dividend_yield": 8.13,
       "dimensions": {
@@ -84,7 +84,7 @@
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=36.9偏高 | 简单生意"
+          "detail": "PE=37.1偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -308,9 +308,9 @@
       "category": "中药Ⅱ",
       "note": "350年国药老字号",
       "price": 27.94,
-      "pe": 32.34,
+      "pe": 32.22,
       "signal": "hold",
-      "signal_text": "PE=32.3，超出合理区间20-30，等待回落",
+      "signal_text": "PE=32.2，超出合理区间20-30，等待回落",
       "total_score": 21,
       "dividend_yield": 3.58,
       "dimensions": {
@@ -337,7 +337,7 @@
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=32.3偏高 | 简单生意"
+          "detail": "PE=32.2偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -558,15 +558,15 @@
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
         "percentile": 100.0,
-        "current_pe": 17.7,
-        "current_dividend_yield": 2.36,
-        "as_of": "2026-04-15",
-        "data_points": 2428,
+        "current_pe": 17.89,
+        "current_dividend_yield": 2.33,
+        "as_of": "2026-04-16",
+        "data_points": 2429,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
       "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +0.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 3
+      "new_records": 4
     },
     {
       "code": "512890",
@@ -587,16 +587,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 88.8,
+        "percentile": 88.7,
         "current_pe": 8.19,
         "current_dividend_yield": 4.92,
-        "as_of": "2026-04-15",
-        "data_points": 1215,
+        "as_of": "2026-04-16",
+        "data_points": 1216,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位88.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 3
+      "signal_text": "PE分位88.7%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 4
     },
     {
       "code": "510500",
@@ -617,16 +617,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 85.9,
-        "current_pe": 31.52,
-        "current_dividend_yield": 1.24,
-        "as_of": "2026-04-15",
-        "data_points": 2428,
+        "percentile": 87.4,
+        "current_pe": 32.05,
+        "current_dividend_yield": 1.22,
+        "as_of": "2026-04-16",
+        "data_points": 2429,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位85.9%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 3
+      "signal_text": "PE分位87.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 4
     }
   ],
   "portfolio_classification": {
