@@ -959,6 +959,126 @@ def check_drain_business(df_annual, industry):
 
 
 # ============================================================
+# REQ-180：印钞机标签识别（2026-04-16）
+# ============================================================
+# 来源：巴菲特 2007 年伯克希尔股东信
+#   喜诗糖果 1972-2007 年共产生 13.5 亿美元税前利润，
+#   累计再投入资本仅 3200 万美元（capex/tax_profit ≈ 2.4%）
+#
+# 本地校验（2026-04 A 股实证）：
+#   茅台 2024：CAPEX 46.8 亿 / 净利 862 亿 = 5.4%   → 卓越印钞机
+#   海天味业 2024：capex/净利 ≈ 15%                → 印钞机
+#   宁德时代 2024：capex/净利 = 61.5%              → 重资产非印钞机
+#   万华化学：capex/净利 80-150%                   → 重资产非印钞机
+#
+# 阈值（3 年滚动均值）：
+#   <10% → 🌟 卓越印钞机（喜诗级）
+#   <20% → ✅ 印钞机
+#   ≥20% → 非印钞机
+#
+# 重资产行业（complexity=complex）改用替代指标：
+#   CapEx / 折摊 <1.5（维持性资本支出，不扩产）
+
+def get_cashflow_latest(code):
+    """拉取最近 5 年年报的现金流量表数据"""
+    try:
+        import akshare as ak
+        symbol = f"SH{code}" if code.startswith(("6", "9")) else f"SZ{code}"
+        df = ak.stock_cash_flow_sheet_by_report_em(symbol=symbol)
+        if df is None or df.empty:
+            return []
+        # 只取年报（12-31 日）
+        df_annual = df[df["REPORT_DATE"].astype(str).str.contains("-12-31")].copy()
+        if df_annual.empty:
+            return []
+        df_annual = df_annual.sort_values("REPORT_DATE", ascending=False)
+        results = []
+        for _, row in df_annual.head(5).iterrows():
+            results.append({
+                "date": str(row.get("REPORT_DATE", ""))[:10],
+                "capex": float(row.get("CONSTRUCT_LONG_ASSET") or 0),
+                "net_profit": float(row.get("NETPROFIT") or 0),
+                "ocf": float(row.get("NETCASH_OPERATE") or 0),
+                "depreciation": float(row.get("FA_IR_DEPR") or 0),
+                "amortize_ia": float(row.get("IA_AMORTIZE") or 0),
+            })
+        return results
+    except Exception as e:
+        return []
+
+
+def check_cashcow_label(code, industry, roe_5y_avg=None):
+    """
+    REQ-180：印钞机标签识别
+
+    参数：
+      code: A 股代码（6 位）
+      industry: 行业名（用于判断是否重资产）
+      roe_5y_avg: 5 年 ROE 均值（可选，不足则跳过 ROE 门槛）
+
+    返回：
+      (label, tier_desc, detail)
+        label: "cashcow_elite" / "cashcow" / None
+        tier_desc: "🌟卓越印钞机" / "✅印钞机" / ""
+        detail: 说明文字
+    """
+    # 第一关：ROE 门槛（<20% 不是印钞机候选）
+    if roe_5y_avg is not None and roe_5y_avg < 20:
+        return None, "", ""
+
+    cashflow = get_cashflow_latest(code)
+    if len(cashflow) < 3:
+        return None, "", ""
+
+    # 判断行业类别（重资产行业用替代指标）
+    heavy_industries = [
+        "钢铁", "普钢", "特钢", "冶炼", "煤炭", "有色", "工业金属",
+        "化工", "化学", "化纤", "石油", "石化", "炼化",
+        "水泥", "玻璃", "建材", "建筑材料",
+        "面板", "光学光电子", "光伏", "半导体", "电池", "锂电",
+        "航空", "航运", "造船",
+    ]
+    is_heavy = any(k in (industry or "") for k in heavy_industries)
+
+    # 取近 3 年数据计算滚动均值
+    recent_3 = cashflow[:3]
+    capex_sum = sum(c["capex"] for c in recent_3)
+    net_profit_sum = sum(c["net_profit"] for c in recent_3)
+    dep_sum = sum(c["depreciation"] + c["amortize_ia"] for c in recent_3)
+
+    if is_heavy:
+        # 重资产行业：用 CapEx / 折摊 <1.5 作为"维持性资本开支"指标
+        if dep_sum <= 0:
+            return None, "", ""
+        capex_dep_ratio = capex_sum / dep_sum
+        if capex_dep_ratio < 1.0:
+            return "cashcow", "✅印钞机", (
+                f"重资产行业印钞机：近3年 CapEx/折摊={capex_dep_ratio:.2f} "
+                f"（<1.0 说明无扩产压力，只需维持设备折旧）"
+            )
+        if capex_dep_ratio < 1.5:
+            return "cashcow", "✅印钞机", (
+                f"重资产温和扩张：近3年 CapEx/折摊={capex_dep_ratio:.2f} "
+                f"（<1.5 说明扩产节制）"
+            )
+        return None, "", ""
+
+    # 非重资产行业：用 CapEx / 净利润
+    if net_profit_sum <= 0:
+        return None, "", ""
+    capex_ratio = capex_sum / net_profit_sum * 100
+    if capex_ratio < 10:
+        return "cashcow_elite", "🌟卓越印钞机", (
+            f"近3年 CapEx/净利={capex_ratio:.1f}%（<10% 喜诗糖果级）"
+        )
+    if capex_ratio < 20:
+        return "cashcow", "✅印钞机", (
+            f"近3年 CapEx/净利={capex_ratio:.1f}%（<20% 印钞机）"
+        )
+    return None, "", ""
+
+
+# ============================================================
 # REQ-160 子规则：冲浪者型（科技持续创新焦虑）识别
 # ============================================================
 

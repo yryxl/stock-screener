@@ -461,6 +461,9 @@ def screen_single_stock(code, config, quotes_df):
         "is_10y_king": False, "is_good_quality": False,
         "is_toll_bridge": False,  # 中国国情版 v3 D 规则：过路费生意标签
         "china_v3_risks": [],     # 中国国情版 v3 风险提示列表
+        "cashcow_label": None,    # REQ-180：印钞机标签（cashcow_elite / cashcow / None）
+        "cashcow_tier": "",       # REQ-180：印钞机档位描述
+        "cashcow_detail": "",     # REQ-180：印钞机详情
     }
 
     df_indicator = get_financial_indicator(code)
@@ -531,6 +534,18 @@ def screen_single_stock(code, config, quotes_df):
             result["is_toll_bridge"] = True
             result["toll_class"] = toll_class
             result["checks"]["v3_toll_bridge"] = {"passed": True, "detail": toll_reasons[0] if toll_reasons else ""}
+
+        # REQ-180：印钞机标签识别（差异化亮点，不影响通过/否决）
+        # 仅对 ROE 5 年均值 ≥20% 的高质量股做此识别（节省 API）
+        # 3 年滚动 CapEx/净利 <10% 卓越 / <20% 印钞机 / 重资产用 CapEx/折摊
+        if roe_avg_5y and roe_avg_5y >= 20:
+            from china_adjustments import check_cashcow_label
+            cc_label, cc_tier, cc_detail = check_cashcow_label(code, industry, roe_avg_5y)
+            if cc_label:
+                result["cashcow_label"] = cc_label
+                result["cashcow_tier"] = cc_tier
+                result["cashcow_detail"] = cc_detail
+                result["checks"]["v3_cashcow"] = {"passed": True, "detail": f"{cc_tier} {cc_detail}"}
     except Exception as e:
         print(f"  {code} 中国国情版 v3 检查异常: {e}")
 
