@@ -303,6 +303,61 @@ def _get_debt_tier(industry):
     return "manufacturing"
 
 
+# ============================================================
+# REQ-191：高 ROE 杠杆化警告（2026-04-16）
+# ============================================================
+# 来源：杜邦分解 + 巴菲特"ROE 质量"理念
+# 逻辑：ROE≥20% 但资产负债率过高（按行业档位）→ 警告 ROE 不可持续
+# 注意：这是警告不是否决（REQ-174 已处理过高杠杆的硬否决）
+# 目的：提醒用户"ROE 是杠杆吹起来的"，不是真正的盈利能力
+
+def check_roe_leverage_quality(df_annual, industry):
+    """
+    REQ-191：检查 ROE 是否被杠杆"吹起来"
+    返回：(has_warning, detail)
+    """
+    roe_series = get_roe_series(df_annual)
+    if roe_series is None or len(roe_series) < 5:
+        return False, ""
+    avg_roe = float(roe_series.head(5).mean())
+
+    # 只对 ROE≥20% 的公司做此检查（低 ROE 公司不存在"被吹起来"问题）
+    if avg_roe < 20:
+        return False, ""
+
+    # 金融/基建档豁免（天然高杠杆，ROE 本来就依赖杠杆）
+    tier = _get_debt_tier(industry)
+    if tier in ("finance", "infrastructure"):
+        return False, ""
+
+    debt_info = get_debt_info(df_annual)
+    if not debt_info or not debt_info.get("debt_ratio"):
+        return False, ""
+    debt_ratio = debt_info["debt_ratio"]
+    if np.isnan(debt_ratio):
+        return False, ""
+
+    # 按档位判断"高 ROE + 高负债"
+    # 消费档：ROE≥20% + 负债>50% → 警告（茅台/海天正常是 20-30%）
+    # 制造档：ROE≥20% + 负债>65% → 警告（制造业高 ROE 通常靠周期+杠杆）
+    tier_leverage_limit = {
+        "consumer": 50,
+        "manufacturing": 65,
+    }
+    limit = tier_leverage_limit.get(tier, 60)
+
+    if debt_ratio > limit:
+        # 权益乘数近似 = 1 / (1 - debt_ratio/100)
+        equity_multiplier = 1 / (1 - debt_ratio / 100) if debt_ratio < 100 else 99
+        detail = (
+            f"高 ROE 杠杆化警告：ROE {avg_roe:.1f}% + 负债率 {debt_ratio:.1f}%"
+            f"（权益乘数约 {equity_multiplier:.1f}x）→ ROE 可能靠杠杆撑起"
+        )
+        return True, detail
+
+    return False, ""
+
+
 def check_debt_health_tiered(df_annual, config, industry):
     """
     REQ-174：按行业 4 档检查负债率
@@ -506,6 +561,13 @@ def screen_single_stock(code, config, quotes_df):
         result["checks"][check_name] = {"passed": passed, "detail": detail}
         if not passed:
             return result
+
+    # REQ-191：高 ROE 杠杆化警告（和 174 协同但独立信号）
+    # 通过负债率+流动比率检查后，额外做"ROE 是否被杠杆吹起来"的质量提示
+    has_roe_lev_warning, roe_lev_detail = check_roe_leverage_quality(df_annual, industry)
+    if has_roe_lev_warning:
+        result["china_v3_risks"].append(roe_lev_detail)
+        result["checks"]["v3_roe_leverage"] = {"passed": True, "detail": roe_lev_detail}
 
     # ---- 第二关：完整 8 条护城河检查（从 live_rules 同步 backtest_engine 规则）----
     try:
