@@ -7,7 +7,7 @@
   2. 数据加载层    - 月度快照、原始数据、回购、指数 PE、年报序列
   3. 指标工具层    - ROE 历史均值、十年王者、好公司判定、回购加分
   4. 宏观温度计    - 沪深 300 指数 PE 历史分位
-  5. 护城河检查    - 分周期股/非周期股两套规则，含消费龙头豁免
+  5. 护城河检查    - 分周期股/非周期股两套规则，含"合格公司豁免"（原消费龙头豁免）
   6. 股票评分      - 周期股反向评分、非周期股主流程
   7. 月度信号入口  - get_month_signals()
 """
@@ -553,7 +553,7 @@ def get_annual_reports_before(sid, year, month, lookback_years=5):
 # 对外统一入口 check_moat()，内部按行业分发：
 #   - 周期股（type=cycle）→ check_moat_cycle：只看"连续亏损/营收暴跌"
 #   - 非周期股 → check_moat_normal：8 条规则综合判断
-# 另外 get_cash_flow_warnings() 给"消费龙头被豁免时"输出重点关注警示
+# 另外 get_cash_flow_warnings() 给"合格公司被豁免时"输出重点关注警示
 
 def check_moat(sid, year, month):
     """
@@ -672,22 +672,24 @@ def check_moat_normal(sid, year, month):
     # 连续2年比值<0.3 → 盈利严重虚化（典型：万科2021-2022，比值从0.18跌到0.12）
     # 豁免条件：
     #   A. 银行/保险/证券：经营现金流含存款/保费/客户保证金波动
-    #   B. 消费龙头豁免：ROE 仍 ≥ 20% 且 毛利率 ≥ 50%（白酒等）
+    #   B. 合格公司豁免（原"消费龙头豁免"）：最新 ROE ≥ 15% 且 毛利率 ≥ 50%
+    #      ——  这是"好公司 3 档分级"里的"辅助·合格公司"档，代表近期表现合格
     #      —— 五粮液2013-2014现金流差是三公消费限制导致的经销商去库存+延期付款，
-    #         不是财务造假。这类"高ROE+高毛利"的消费龙头，护城河（品牌+定价权）
+    #         不是财务造假。这类"高ROE+高毛利"的合格公司，护城河（品牌+定价权）
     #         没受损，短期现金流异常应豁免
     industry = STOCK_INDUSTRY.get(sid, "")
     skip_cash_check_bank = any(k in industry for k in ["银行", "保险", "证券", "券商"])
-    # 消费龙头判定：最新 ROE ≥ 15%（巴菲特合格线）且 毛利率 ≥ 50%
+    # "合格公司"判定（好公司 3 档分级中的辅助档，不是 Tier 1/2/3 之一）：
+    #   最新 ROE ≥ 15%（巴菲特合格线）且 毛利率 ≥ 50%
     # 高毛利 50% 是关键过滤器 —— 康美、万科等都没这么高的毛利
     # 15% 对应巴菲特"合格公司"下限，避免误杀五粮液这类暂时跌破 20% 的龙头
-    is_consumer_leader = (
+    is_qualified_company = (
         len(roe_list) >= 1
         and len(gm_list) >= 1
         and roe_list[0] >= 15
         and gm_list[0] >= 50
     )
-    if not skip_cash_check_bank and not is_consumer_leader and len(cash_ratio_list) >= 2:
+    if not skip_cash_check_bank and not is_qualified_company and len(cash_ratio_list) >= 2:
         latest = cash_ratio_list[0]
         prev = cash_ratio_list[1]
         if latest < 0.3 and prev < 0.3:
@@ -705,13 +707,15 @@ def check_moat_normal(sid, year, month):
 
 def get_cash_flow_warnings(sid, year, month):
     """
-    消费龙头现金流警示（已豁免但需重点关注）
+    合格公司现金流警示（已豁免但需重点关注）
+    （原名"消费龙头现金流警示"，现统一到"好公司 3 档分级"的"辅助·合格公司"档）
+
     返回 warnings 列表（字符串），空列表=无警示
 
-    背景：消费龙头（ROE≥20% 且 毛利率≥50%）的现金流连续2年<30% 时，
-    按护城河规则会触发松动。但按巴菲特/芒格理念，高ROE+高毛利的消费龙头
+    背景：合格公司（ROE≥15% 且 毛利率≥50%）的现金流连续2年<30% 时，
+    按护城河规则会触发松动。但按巴菲特/芒格理念，高ROE+高毛利的公司
     的现金流短期异常通常是行业周期扰动（如白酒塑化剂+三公消费），而非
-    真正的财务造假。因此规则7对消费龙头做了豁免。
+    真正的财务造假。因此规则7对合格公司做了豁免。
 
     豁免带来的风险：如果确实是造假或真恶化，豁免会导致未能及时识别。
     因此对已豁免的持仓股票，应该输出警示，用多维度线索协助判断：
@@ -739,19 +743,19 @@ def get_cash_flow_warnings(sid, year, month):
     if skip_bank or len(cash_ratio_list) < 2 or len(roe_list) < 1 or len(gm_list) < 1:
         return []
 
-    # 只对被豁免的消费龙头产生警示（阈值与 check_moat_normal 保持一致）
-    is_consumer_leader = roe_list[0] >= 15 and gm_list[0] >= 50
+    # 只对被豁免的合格公司产生警示（阈值与 check_moat_normal 保持一致）
+    is_qualified_company = roe_list[0] >= 15 and gm_list[0] >= 50
     latest = cash_ratio_list[0]
     prev = cash_ratio_list[1]
     cash_flow_bad = (latest < 0.3 and prev < 0.3) or (latest < 0.2 and prev < 0.5)
 
-    if not (is_consumer_leader and cash_flow_bad):
+    if not (is_qualified_company and cash_flow_bad):
         return []
 
     # 触发警示：多维度状态说明
     warnings = []
     status_lines = [
-        f"消费龙头现金流异常（连续2年仅 {prev:.0%}、{latest:.0%}）已豁免",
+        f"合格公司现金流异常（连续2年仅 {prev:.0%}、{latest:.0%}）已豁免",
         f"但需重点关注：ROE {roe_list[0]:.0f}% 毛利 {gm_list[0]:.0f}% 仍强劲",
     ]
     # 多维校验 1：ROE 是否稳定（非急剧下滑）
@@ -963,7 +967,13 @@ def _get_recent_gm(sid, year, month):
 
 def check_10_year_king(sid, year, month):
     """
-    "十年王者"判定（巴菲特/芒格核心理念）
+    Tier 2 · 十年王者判定（= ROE 门槛豁免的核心标准）
+
+    【好公司 3 档分级体系】—— 详见 docs/REQUIREMENTS.md
+      Tier 1 超级好公司 → 永恒持有豁免（is_super_good_company）
+      Tier 2 十年王者   → ROE 门槛豁免（本函数）
+      Tier 3 好公司     → 合理价格买入（is_good_quality_company）
+      辅助·合格公司     → 现金流短期异常豁免（check_moat_normal 规则7）
 
     巴菲特选股的硬规则："连续 10 年 ROE ≥ 15%" 是他筛选优质公司的起点。
     熊市时他从不放宽这个"历史记录"要求，只放宽"当下业绩"要求。
@@ -1016,38 +1026,41 @@ def check_china_v3_rules(sid, year, month, industry):
     中国国情版 v3 规则（回测用，只走纯年报序列规则）
     详见 docs/REQUIREMENTS.md REQ-160~169
 
-    概念对齐（和原模型的 complexity/type 标签对应）：
-      - "跑步机型" ≡ 原 complexity=complex（复杂生意：重资产、持续烧钱）
-      - "冲浪者型" ≡ 原 type=cycle（周期型生意：业绩随商品/技术周期大幅波动）
-      - "过路费生意" ≡ 原 type=utility（公用事业：稳定低收益、特许经营）
+    概念关系（芒格定性概念 ⊂ 原模型静态标签）—— 不是等价，是子集：
+      - "跑步机型"   ⊂ complexity=complex  (复杂生意 + ROE 长期偏低的那些)
+      - "冲浪者型"   ⊂ complexity=complex 的科技类 或 type=cycle 的技术迭代类
+        （煤炭是 cycle 但不是冲浪者——没有技术迭代焦虑）
+      - "过路费生意" ⊂ type=utility        (公用事业 + 特许经营稳定 ROE 的那些)
+        （光伏发电是 utility 但不是过路费——可替代、竞争激烈）
+      - "下水道生意" ⊂ complexity=complex 或 type=cycle  (10年 ROE 实证弱的那些)
 
-    v3 的增量价值：在标签体系之上，基于 5 年 ROE 实证表现做"硬否决/降级/放宽"：
-      A. 经营现金流连续 3 年为负（造假信号，所有行业硬否决）
-      B. 跑步机实证恶化：complexity=complex + 5 年 ROE 均值 <10% → 硬否决
-      C. 冲浪者实证恶化：type=cycle 或 complexity=complex + ROE 波动大/亏损 → 降级
-      D. 过路费稳定收益：type=utility + 5 年 ROE 均值 ≥ 8% 且方差 <10pp → 放宽门槛
+    v3 增量（2026-04 A/B 回测后精简版，只保留 A+D+E）：
+      A. 经营现金流连续 3 年为负 → 硬否决（所有行业，造假/恶化信号）
+      D. 过路费稳定收益：type=utility + 5 年 ROE ≥ 8% 且方差 <10pp → 放宽门槛
+      E. 下水道生意：complexity=complex 或 type=cycle，且 10 年 ROE 均值 <8% 或
+         10 年有 ≥4 年 ROE <5% → 硬否决（芒格"资本黑洞"）
 
-    注意：
-      - type=cycle 已由 CYCLE_STOCKS_ENABLED=False 默认全部过滤，C 主要覆盖
-        complexity=complex 但非 cycle 的行业（如半导体/军工/光伏）
-      - 不接入回测（需要实时数据）：存贷双高/异常货币资金/商誉/北向资金/ST名称
+    已撤回（2026-04 A/B 回测验证：对池内股票收益率贡献 -2.8pp）：
+      B. 跑步机 5 年实证恶化（5 年窗口被周期高点骗，中铝案例）
+      C. 冲浪者 5 年实证恶化（误伤成长股的周期低谷）
+
+    不接入回测（需要实时数据）：存贷双高/异常货币资金/商誉/北向资金/ST名称
 
     返回：
       {
-        "hard_reject": bool,      # 硬否决（A/B 触发）
-        "downgrade": bool,        # 降级（C 触发）
+        "hard_reject": bool,      # 硬否决（A/E 触发）
         "is_toll_bridge": bool,   # 过路费（D 触发，放宽 ROE 门槛）
         "reasons": [str],          # 触发原因列表
       }
     """
-    result = {"hard_reject": False, "downgrade": False,
-              "is_toll_bridge": False, "reasons": []}
+    result = {"hard_reject": False, "is_toll_bridge": False, "reasons": []}
 
     # A/B 对比开关：关闭时直接返回空结果
     if not CHINA_V3_ENABLED:
         return result
 
-    reports = get_annual_reports_before(sid, year, month, lookback_years=6)
+    # 取 11 年保证 E 规则 10 年均值有足够数据
+    reports = get_annual_reports_before(sid, year, month, lookback_years=11)
     if len(reports) < 3:
         return result
 
@@ -1068,46 +1081,30 @@ def check_china_v3_rules(sid, year, month, industry):
         )
         return result  # 提前返回
 
-    # -------- B. 跑步机实证恶化（原"复杂生意"+ROE 长期偏低）--------
-    # 原模型已用 complexity=complex 把 ROE 门槛提到 25/20/15
-    # v3 增量：即使 PE 低、护城河过关，只要 5 年 ROE 均值 <10% → 硬否决
-    # 典型：京东方A（5年均值 7.7%），中铝/宝钢（均被周期股过滤）
-    if complexity == "complex" and len(roes) >= 5:
-        avg_roe_5y = sum(roes[:5]) / 5
-        if avg_roe_5y < 10:
+    # -------- E. 下水道生意（10 年视角，解决中铝式"周期高点骗人"）--------
+    # 芒格原话："有些生意就像往下水道扔钱，钱进去就没了"
+    # 案例：中国铝业 2016-2020 ROE 连续 5 年 <5%，但 2021-2025 铝价暴涨
+    #      把近 5 年均值拉到 13%——短窗口完全被周期高点骗
+    # 只用 10 年视角能戳破：真正的优质生意 10 年均值必然 ≥ 15%（巴菲特合格线）
+    # 下水道特征：10 年均值 <8% 或 10 年中有 ≥4 年 ROE <5%
+    is_drain_candidate = (complexity == "complex") or (industry_type == "cycle")
+    if is_drain_candidate and len(roes) >= 10:
+        avg_roe_10y = sum(roes[:10]) / 10
+        low_years = sum(1 for r in roes[:10] if r < 5)
+        if avg_roe_10y < 8:
             result["hard_reject"] = True
             result["reasons"].append(
-                f"跑步机型（复杂生意）：{industry}行业 5年ROE均值仅{avg_roe_5y:.1f}%"
-                f"（资本黑洞，芒格不碰）"
+                f"下水道生意：{industry}行业 10年ROE均值仅{avg_roe_10y:.1f}%"
+                f"（芒格'资本黑洞'，短期高点骗人）"
             )
             return result
-
-    # -------- C. 冲浪者实证恶化（原"周期/复杂生意"+波动大）--------
-    # type=cycle 已被 CYCLE_STOCKS_ENABLED 默认过滤（看不到这里）
-    # 所以 C 实际主要作用于 complexity=complex 但非 cycle（半导体/军工/光伏/面板等）
-    # 三条件任一触发：
-    #   1. 5年 ROE 峰谷差 ≥ 15pp（真正的周期波动）
-    #   2. 5 年有亏损年（技术/产能失控）
-    #   3. 5年 ROE 均值 <10%（技术路线追赶乏力）
-    is_surfer_candidate = (industry_type == "cycle") or (complexity == "complex")
-    if is_surfer_candidate and len(roes) >= 5:
-        max_roe = max(roes[:5])
-        min_roe = min(roes[:5])
-        avg_roe_5y = sum(roes[:5]) / 5
-        has_loss = any(r < 0 for r in roes[:5])
-        volatility = max_roe - min_roe
-        if volatility >= 15 or has_loss or avg_roe_5y < 10:
-            result["downgrade"] = True
-            if avg_roe_5y < 10 and volatility < 15 and not has_loss:
-                result["reasons"].append(
-                    f"冲浪者型（周期/复杂生意）：{industry}行业 5年ROE均值仅{avg_roe_5y:.1f}%"
-                    f"（技术追赶乏力）"
-                )
-            else:
-                result["reasons"].append(
-                    f"冲浪者型（周期/复杂生意）：{industry}行业 5年ROE波动{volatility:.0f}pp"
-                    f"（峰{max_roe:.0f}%/谷{min_roe:.0f}%）"
-                )
+        if low_years >= 4:
+            result["hard_reject"] = True
+            result["reasons"].append(
+                f"下水道生意：{industry}行业 10年中有{low_years}年ROE<5%"
+                f"（周期频繁陷入深谷）"
+            )
+            return result
 
     # -------- D. 过路费生意（原"公用事业"+稳定 ROE）--------
     # 复用 type=utility 标签（电力/公用事业/交通运输/铁路/铁路公路/高速）
@@ -1130,11 +1127,17 @@ def check_china_v3_rules(sid, year, month, industry):
 def is_good_quality_company(sid, year, month,
                              roe_threshold=20.0, gm_threshold=30.0):
     """
-    判定是否为"好公司"（用于"合理价格买好公司"规则）
-    两种情况下都视为好公司：
-      A. 十年王者（近10年ROE均值≥15%+近期未崩塌）—— 巴菲特核心标准
-      B. 近5年ROE均值≥20%+毛利率≥30% —— 更严格的"卓越"标准
-    任一满足即可触发"合理价格买入"
+    Tier 3 · 好公司判定（= 最常用的"好公司"，用于"合理价格买好公司"规则）
+
+    【好公司 3 档分级体系】—— 详见 docs/REQUIREMENTS.md
+      Tier 1 超级好公司 → 永恒持有豁免（is_super_good_company）
+      Tier 2 十年王者   → ROE 门槛豁免（check_10_year_king）
+      Tier 3 好公司     → 合理价格买入（本函数）
+      辅助·合格公司     → 现金流短期异常豁免
+
+    两种情况下都视为 Tier 3 好公司（任一满足即可）：
+      A. 十年王者（自动包含在 Tier 3 中）—— 巴菲特历史稳定性标准
+      B. 近5年ROE均值≥20%+毛利率≥30% —— 近 5 年卓越表现
     """
     if not sid or not year or not month:
         return False
@@ -1290,9 +1293,8 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         buyback_score, buyback_yi = get_buyback_score(sid, year, month)
         is_king_flag, king_avg_roe, _ = check_10_year_king(sid, year, month)
 
-    # 中国国情版 v3 规则检查（纯年报序列部分）
-    china_v3 = {"hard_reject": False, "downgrade": False,
-                "is_toll_bridge": False, "reasons": []}
+    # 中国国情版 v3 规则检查（纯年报序列部分，精简版 A+D+E）
+    china_v3 = {"hard_reject": False, "is_toll_bridge": False, "reasons": []}
     if sid and year and month:
         china_v3 = check_china_v3_rules(sid, year, month, industry_hint)
 
@@ -1316,7 +1318,7 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
         result["signal_text"] = "该证券已停止交易"
         return result
 
-    # ---- 中国国情版 v3 硬否决（经营现金流连续为负 / 跑步机型）----
+    # ---- 中国国情版 v3 硬否决（OCF连续为负 / 下水道生意）----
     # 比护城河检查更早拦截，避免造假股/资本黑洞进入后续流程
     if china_v3["hard_reject"]:
         result["signal"] = "hold"
@@ -1426,17 +1428,9 @@ def evaluate_stock(stock_data, industry_hint="", sid=None, year=None, month=None
                 result["signal"] = "hold"
                 result["signal_text"] += f" 毛利率{effective_gm:.0f}%过低"
 
-        # ---- 冲浪者降级（周期/复杂生意实证波动大）----
-        # 对应原模型 type=cycle 或 complexity=complex 且 ROE 实证波动大
-        # 巴菲特/芒格理念：不买自己看不懂的技术迭代、依赖商品周期的行业
-        # 宁可错过，不犯错：买信号直接降为 buy_watch 或 hold
-        if china_v3["downgrade"] and "buy" in result["signal"]:
-            if result["signal"] in ("buy_heavy", "buy_medium"):
-                result["signal"] = "buy_watch"
-                result["signal_text"] += " 但冲浪者（周期/复杂生意）降级观望"
-            elif result["signal"] == "buy_light":
-                result["signal"] = "hold"
-                result["signal_text"] = china_v3["reasons"][-1]
+        # ---- 冲浪者降级（已撤回）----
+        # 2026-04 A/B 回测验证：误伤成长股周期低谷，对收益贡献 -2.8pp
+        # 原逻辑保留在 china_adjustments.py check_tech_surfer 作为警示信号用
 
         # ---- 合理价格买好公司（巴菲特 1989 年致股东信）----
         # 好公司在合理区间内也可以买入，不必等极端低估

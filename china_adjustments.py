@@ -808,8 +808,16 @@ def check_capital_intensive_treadmill(df_annual, industry):
     """
     识别"跑步机型"生意——必须持续投入资本才能维持现有地位
 
-    概念对齐：对应原模型 screener.py 里的 complexity=complex（复杂生意）
+    概念关系：跑步机型 ⊂ complexity=complex（是复杂生意的子集，不等于）
+      - 复杂生意 = 静态行业标签（重资产 + 技术变化快）
+      - 跑步机型 = 实证上 ROE 长期偏低的那部分复杂生意
+      - 比如半导体是 complexity=complex，但台积电/韦尔股份 ROE 并不低，
+        就不属于跑步机型
+
     典型：航空（无差异化）、纺织、钢铁、面板、造船
+
+    ⚠ 警告：此规则用 5 年窗口，可能被商品周期高点骗（中铝案例）
+    真正的"资本黑洞"请用 check_drain_business（10 年视角）
 
     返回：(is_treadmill, reasons)
     """
@@ -846,6 +854,111 @@ def check_capital_intensive_treadmill(df_annual, industry):
 
 
 # ============================================================
+# REQ-160 子规则：下水道生意识别（10 年视角，REQ-160E）
+# ============================================================
+
+def check_drain_business(df_annual, industry):
+    """
+    识别"下水道生意"——芒格原话："有些生意就像往下水道扔钱，钱进去就没了"
+
+    比跑步机更严重：跑步机是"持续跑才能原地不动"，下水道是"钱直接扔掉"。
+    只能用长周期（10 年）才能戳破商品周期高点的伪装。
+
+    典型案例：
+      中国铝业 2016-2020 ROE 连续 5 年 <5%，2021-2025 铝价暴涨把近 5 年
+      均值拉到 13%。但 10 年均值仍仅 7.5%——跑步机规则漏了，下水道规则抓到。
+
+    触发条件（行业必须是 complex 或 cycle，且任一触发）：
+      1. 10 年 ROE 均值 < 8%（长期看根本不赚钱）
+      2. 10 年中有 ≥4 年 ROE < 5%（周期频繁陷入深谷）
+
+    概念对齐：跟 check_capital_intensive_treadmill 互补——
+      跑步机看近 5 年实证，下水道看 10 年长周期
+
+    返回：(is_drain, reasons)
+    """
+    import pandas as pd
+    if df_annual is None or df_annual.empty or len(df_annual) < 10:
+        return False, []
+
+    # 必须是 complex 或 cycle 行业（下水道生意的基础特征）
+    # 用关键词模糊匹配覆盖 akshare 返回的各种子行业名
+    drain_industries = [
+        # 金属/冶炼（重资产，同质化产品）
+        "钢铁", "普钢", "特钢", "冶炼", "铝", "有色金属", "工业金属",
+        "矿业", "金属", "稀土", "小金属",
+        # 能源/化工（商品周期依赖）
+        "煤炭", "石油", "石化", "炼化", "油气", "化工", "化纤", "化学",
+        "农化",
+        # 建材/水泥（周期产能过剩）
+        "水泥", "玻璃玻纤", "建筑材料", "建材",
+        # 重资产制造（技术迭代+产能过剩）
+        "面板", "光学光电子", "光伏", "锂电", "锂电池", "电池", "新能源",
+        # 运输/施工（长期同质化）
+        "航空", "航运", "造船", "纺织", "建筑", "工程",
+        "轨道交通", "轨交设备", "机械制造",
+        "汽车玻璃", "汽车零部件",
+        # 周期性农业
+        "农业", "养殖", "农牧",
+    ]
+    in_drain = any(h in (industry or "") for h in drain_industries)
+    if not in_drain:
+        return False, []
+
+    # 取 10 年 ROE
+    roes = []
+    for _, row in df_annual.head(10).iterrows():
+        roe = row.get("净资产收益率")
+        if roe is not None and not pd.isna(roe):
+            try:
+                roes.append(float(roe))
+            except Exception:
+                continue
+    if len(roes) < 10:
+        return False, []  # 上市不足 10 年不判
+
+    avg_10y = sum(roes) / 10
+    low_years = sum(1 for r in roes if r < 5)
+    loss_years = sum(1 for r in roes if r < 0)
+    reasons = []
+
+    # 条件 1：10年均值<8%（长期看根本不赚钱）
+    if avg_10y < 8:
+        reasons.append(
+            f"'{industry}'下水道生意：10年ROE均值仅{avg_10y:.1f}%"
+            f"（芒格'资本黑洞'，长期看根本不赚钱）"
+        )
+        return True, reasons
+
+    # 条件 2：低于5%年数≥4（周期频繁陷入深谷）
+    if low_years >= 4:
+        reasons.append(
+            f"'{industry}'下水道生意：10年中有{low_years}年ROE<5%"
+            f"（周期频繁陷入深谷，10年均值{avg_10y:.1f}%被高点骗）"
+        )
+        return True, reasons
+
+    # 条件 3：综合弱表现 —— 10年均值 <10% 且 低5%年数≥3（TCL 科技这类边缘）
+    # 典型案例：TCL 科技（10年均值9.5%，3年<5%）—— 面板周期性好一次后仍是下水道
+    if avg_10y < 10 and low_years >= 3:
+        reasons.append(
+            f"'{industry}'下水道生意：10年均值{avg_10y:.1f}%且有{low_years}年ROE<5%"
+            f"（接近卓越线却频繁掉入深谷）"
+        )
+        return True, reasons
+
+    # 条件 4：有亏损年（ROE<0）≥2 次（无论均值多少，频繁亏损都是危险信号）
+    if loss_years >= 2:
+        reasons.append(
+            f"'{industry}'下水道生意：10年中有{loss_years}年亏损（ROE<0）"
+            f"（10年均值{avg_10y:.1f}%，周期低谷亏损严重）"
+        )
+        return True, reasons
+
+    return False, reasons
+
+
+# ============================================================
 # REQ-160 子规则：冲浪者型（科技持续创新焦虑）识别
 # ============================================================
 
@@ -853,10 +966,12 @@ def check_tech_surfer(df_annual, industry, name):
     """
     识别"冲浪者型"——必须持续技术创新才能维持地位
 
-    概念对齐：对应原模型 screener.py 里的 type=cycle（周期型生意）
-    典型：半导体、光伏、锂电、消费电子（技术迭代周期明显）
+    概念关系：冲浪者型 ⊂ complexity=complex 的科技类 或 type=cycle 的技术类
+      - 不等于 type=cycle：煤炭/钢铁是 cycle 但不是冲浪者（没有技术迭代焦虑）
+      - 核心特征是"技术换代就出局"——半导体/光伏/锂电/面板典型
+      - 消费电子（除苹果/小米生态外）也属此类
 
-    典型：半导体、光伏、锂电池设备、消费电子（除苹果/小米生态外）
+    典型：半导体、光伏、锂电池设备、消费电子
 
     返回：(is_surfer, reasons)
     """

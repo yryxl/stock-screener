@@ -1010,7 +1010,7 @@ with tab2:
                 elif pnl_advice and ("⚠" in pnl_advice or "无意义" in pnl_advice):
                     st.info(f"💡 {h.get('name', '未知')}：{pnl_advice}")
 
-                # 消费龙头现金流警示（已豁免护城河规则但需重点关注）
+                # 合格公司现金流警示（已豁免护城河规则但需重点关注）
                 cf_warning = sig_data.get("cf_warning") if not is_etf else None
                 if cf_warning:
                     st.warning(
