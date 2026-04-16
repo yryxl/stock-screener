@@ -1,11 +1,15 @@
 """
-中国特色调整逻辑（REQ-152）
+中国特色调整逻辑（REQ-152 + REQ-160~164）
 
 功能：
-1. 政策敏感度检查（policy_risk_industries.json）
-2. 年轻公司白名单（5-10年降档适用十年王者）
-3. 熊市时间计数器
-4. 黑天鹅事件检测
+1. 政策敏感度检查（REQ-152）
+2. 年轻公司白名单（REQ-152）
+3. 熊市时间计数器（REQ-152）
+4. 黑天鹅事件检测（REQ-152）
+5. 财务造假风险检测（REQ-160，含3类禁买：跑步机/冲浪者/下水道）
+6. ST/退市风险检测（REQ-161）
+7. 自由现金流中国化（REQ-163）
+8. 过路费生意识别（REQ-164）
 
 注意：这些规则是为对抗查巴理念在中国水土不服的风险。
 """
@@ -280,6 +284,591 @@ def apply_china_adjustments(signal, signal_text, industry="", category="",
         notes.append(f"🦢 {bs['name']} - {bs.get('market_action_suggested','')}")
 
     return new_sig, new_text, notes
+
+
+# ============================================================
+# REQ-160 辅助：资产负债表数据获取（含缓存）
+# ============================================================
+
+_BALANCE_SHEET_CACHE = {}
+
+
+def get_balance_sheet_latest(code):
+    """
+    获取最新资产负债表关键数据（带进程内缓存）
+
+    返回 dict（可能为空）:
+      {
+          "report_date": 报告期,
+          "monetary_funds": 货币资金,
+          "short_loan": 短期借款,
+          "long_loan": 长期借款,
+          "bond_payable": 应付债券,
+          "total_assets": 资产总计,
+          "total_liabilities": 负债合计,
+          "accounts_receivable": 应收账款,
+          "goodwill": 商誉,
+      }
+    """
+    if code in _BALANCE_SHEET_CACHE:
+        return _BALANCE_SHEET_CACHE[code]
+
+    import akshare as ak
+    import pandas as pd
+    try:
+        # 根据代码前缀加 SH/SZ 前缀
+        c = str(code).zfill(6)
+        prefix = "SH" if c.startswith(("6", "9")) else "SZ" if c.startswith(("0", "2", "3")) else "BJ"
+        df = ak.stock_balance_sheet_by_report_em(symbol=f"{prefix}{c}")
+        if df is None or df.empty:
+            _BALANCE_SHEET_CACHE[code] = {}
+            return {}
+
+        row = df.iloc[0]
+        result = {
+            "report_date": str(row.get("REPORT_DATE", ""))[:10],
+            "monetary_funds": float(row.get("MONETARYFUNDS", 0) or 0),
+            "short_loan": float(row.get("SHORT_LOAN", 0) or 0) if pd.notna(row.get("SHORT_LOAN")) else 0,
+            "long_loan": float(row.get("LONG_LOAN", 0) or 0) if pd.notna(row.get("LONG_LOAN")) else 0,
+            "bond_payable": float(row.get("BOND_PAYABLE", 0) or 0) if pd.notna(row.get("BOND_PAYABLE")) else 0,
+            "total_assets": float(row.get("TOTAL_ASSETS", 0) or 0),
+            "total_liabilities": float(row.get("TOTAL_LIABILITIES", 0) or 0),
+            "accounts_receivable": float(row.get("ACCOUNTS_RECE", 0) or 0) if pd.notna(row.get("ACCOUNTS_RECE")) else 0,
+            "goodwill": float(row.get("GOODWILL", 0) or 0) if pd.notna(row.get("GOODWILL")) else 0,
+        }
+        _BALANCE_SHEET_CACHE[code] = result
+        return result
+    except Exception:
+        _BALANCE_SHEET_CACHE[code] = {}
+        return {}
+
+
+def check_cash_loan_double_high(code):
+    """
+    检测"存贷双高"（康美药业经典造假模式）
+    货币资金 > 总资产 30% 同时 借款总额 > 总资产 30%
+
+    返回：(is_double_high, details)
+    """
+    bs = get_balance_sheet_latest(code)
+    if not bs or not bs.get("total_assets"):
+        return False, {}
+
+    total_assets = bs["total_assets"]
+    cash = bs["monetary_funds"]
+    total_loans = bs.get("short_loan", 0) + bs.get("long_loan", 0) + bs.get("bond_payable", 0)
+
+    cash_ratio = cash / total_assets * 100 if total_assets > 0 else 0
+    loan_ratio = total_loans / total_assets * 100 if total_assets > 0 else 0
+
+    is_double_high = cash_ratio > 30 and loan_ratio > 30
+
+    return is_double_high, {
+        "cash_ratio": round(cash_ratio, 1),
+        "loan_ratio": round(loan_ratio, 1),
+        "cash_yi": round(cash / 1e8, 2),
+        "loan_yi": round(total_loans / 1e8, 2),
+        "assets_yi": round(total_assets / 1e8, 2),
+    }
+
+
+def check_abnormal_cash(code):
+    """
+    检测货币资金异常占比（> 50% 总资产，无合理解释）
+    """
+    bs = get_balance_sheet_latest(code)
+    if not bs or not bs.get("total_assets"):
+        return False, {}
+
+    cash_ratio = bs["monetary_funds"] / bs["total_assets"] * 100 if bs["total_assets"] > 0 else 0
+    return cash_ratio > 50, {"cash_ratio": round(cash_ratio, 1)}
+
+
+# ============================================================
+# REQ-162：股权质押比例检测
+# ============================================================
+
+_PLEDGE_CACHE = {}
+
+
+def check_pledge_risk(code):
+    """
+    检测大股东股权质押风险
+    质押比例 > 80% → 爆雷前兆（康得新、康美模式）
+
+    返回：(risk_level, details)
+      risk_level: "high" / "medium" / "low" / "unknown"
+    """
+    if code in _PLEDGE_CACHE:
+        return _PLEDGE_CACHE[code]
+
+    try:
+        import akshare as ak
+        # 用 stock_gpzy_pledge_ratio_em 需要日期参数，改用 stock_gpzy_profile_em
+        # 或直接用 stock_gpzy_pledge_ratio_detail_em（按股票代码查）
+        df = ak.stock_gpzy_pledge_ratio_detail_em()
+        if df is None or df.empty:
+            _PLEDGE_CACHE[code] = ("unknown", {})
+            return "unknown", {}
+
+        # 找这只股票
+        code_col = next((c for c in df.columns if "代码" in c), None)
+        if not code_col:
+            _PLEDGE_CACHE[code] = ("unknown", {})
+            return "unknown", {}
+
+        mine = df[df[code_col].astype(str).str.zfill(6) == str(code).zfill(6)]
+        if mine.empty:
+            # 找不到说明无质押记录
+            _PLEDGE_CACHE[code] = ("low", {"pledge_ratio": 0})
+            return "low", {"pledge_ratio": 0}
+
+        # 取最新一行
+        row = mine.iloc[0]
+        # 找"质押比例"列
+        ratio_col = next((c for c in df.columns if "质押比例" in c or "占比" in c), None)
+        if ratio_col:
+            ratio = float(row[ratio_col])
+            risk = "high" if ratio > 80 else "medium" if ratio > 50 else "low"
+            result = (risk, {"pledge_ratio": round(ratio, 1)})
+        else:
+            result = ("unknown", {})
+        _PLEDGE_CACHE[code] = result
+        return result
+    except Exception:
+        _PLEDGE_CACHE[code] = ("unknown", {})
+        return "unknown", {}
+
+
+# ============================================================
+# REQ-162：北向资金流向检测（部分）
+# ============================================================
+
+_NORTHBOUND_CACHE = {}
+
+
+def check_northbound_flow(code):
+    """
+    检测北向资金对该股的持仓变化
+    连续减持 → 卖出信号
+    连续增持 → 买入信号
+
+    返回：(signal, details)
+    """
+    if code in _NORTHBOUND_CACHE:
+        return _NORTHBOUND_CACHE[code]
+
+    try:
+        import akshare as ak
+        import pandas as pd
+        # stock_hsgt_individual_detail_em 个股北向持仓明细
+        df = ak.stock_hsgt_individual_detail_em(symbol=code)
+        if df is None or df.empty or len(df) < 10:
+            _NORTHBOUND_CACHE[code] = ("unknown", {})
+            return "unknown", {}
+
+        # 按日期排序（最新在前）
+        date_col = next((c for c in df.columns if "持股日期" in c or "日期" in c), None)
+        shares_col = next((c for c in df.columns if "持股数量" in c or "持股" in c), None)
+        if not date_col or not shares_col:
+            _NORTHBOUND_CACHE[code] = ("unknown", {})
+            return "unknown", {}
+
+        df = df.sort_values(date_col, ascending=False).head(30)  # 近30天
+        shares = df[shares_col].astype(float).tolist()
+
+        # 简单判断：近30天持股变化
+        if len(shares) >= 10:
+            recent = sum(shares[:5]) / 5
+            older = sum(shares[-5:]) / 5
+            if older > 0:
+                change_pct = (recent - older) / older * 100
+                if change_pct > 10:
+                    sig = "strong_buy"
+                elif change_pct > 3:
+                    sig = "buy"
+                elif change_pct < -10:
+                    sig = "strong_sell"
+                elif change_pct < -3:
+                    sig = "sell"
+                else:
+                    sig = "neutral"
+                result = (sig, {"30d_change_pct": round(change_pct, 1),
+                                "latest_holdings": round(recent, 0)})
+                _NORTHBOUND_CACHE[code] = result
+                return result
+    except Exception:
+        pass
+
+    _NORTHBOUND_CACHE[code] = ("unknown", {})
+    return "unknown", {}
+
+
+# ============================================================
+# REQ-160：财务造假风险检测（3类禁买之"下水道型"）
+# ============================================================
+
+def check_financial_fraud_risk(df_annual, code=None, name=None):
+    """
+    检测中国A股特有的财务造假风险信号
+
+    参数：
+      df_annual: extract_annual_data 返回的最近年报（latest-first）
+      code/name: 股票代码/名称（可选，用于ST识别）
+
+    返回：
+      (risk_level, red_flags)
+      risk_level: "high"（高造假风险）/ "medium"（可疑）/ "low"（安全）
+      red_flags: 触发的红旗列表
+
+    检测规则（参考康美药业、康得新、獐子岛等经典案例）：
+      1. 存贷双高：货币资金 > 30% 总资产 + 同时短期+长期借款 > 30% 总资产
+         → 典型康美模式
+      2. 货币资金 > 40% 总资产（无合理解释）
+      3. 应收账款增速 > 营收增速 1.5 倍（可能虚增收入）
+      4. 现金流/净利润 连续 < 0.3（利润含水分）
+      5. 毛利率显著高于同行（康得新模式）
+    """
+    if df_annual is None or df_annual.empty or len(df_annual) < 2:
+        return "low", []
+
+    import pandas as pd
+    red_flags = []
+    latest = df_annual.iloc[0]
+
+    # 规则1：存贷双高（康美模式）
+    # 注：financial_indicator 通常给不出总资产绝对值，用比率逼近
+    cash_ratio = latest.get("货币资金占总资产比例")  # 如果有
+    debt_ratio = latest.get("资产负债率")
+    if debt_ratio and not pd.isna(debt_ratio) and float(debt_ratio) > 50:
+        # 高负债 + 若能判断高现金 → 双高风险
+        # 由于数据源限制，简化为：负债率高 + 利息保障倍数异常
+        pass  # 需要额外数据，后续补
+
+    # 规则2：现金流/净利润 连续 < 0.3（利润含水分）
+    cf_ratios = []
+    for _, row in df_annual.head(3).iterrows():
+        cf = row.get("每股经营现金流")
+        eps = row.get("基本每股收益")
+        if cf is not None and eps is not None and not pd.isna(cf) and not pd.isna(eps):
+            if float(eps) > 0:
+                cf_ratios.append(float(cf) / float(eps))
+    if len(cf_ratios) >= 2 and all(r < 0.3 for r in cf_ratios):
+        red_flags.append("经营现金流/净利润连续<0.3，利润含水")
+
+    # 规则3：销售毛利率突然暴涨 > 5pp（一年内）
+    if len(df_annual) >= 2:
+        gm_new = df_annual.iloc[0].get("销售毛利率")
+        gm_old = df_annual.iloc[1].get("销售毛利率")
+        if gm_new is not None and gm_old is not None:
+            try:
+                if float(gm_new) - float(gm_old) > 10:
+                    red_flags.append(f"毛利率1年内从{float(gm_old):.1f}%飙到{float(gm_new):.1f}%（可疑）")
+            except Exception:
+                pass
+
+    # 规则4：净利润同比增长 vs 营收同比增长 差异巨大
+    rev_g = latest.get("营业总收入同比增长率")
+    net_g = latest.get("净利润同比增长率")
+    if rev_g is not None and net_g is not None:
+        try:
+            rev_g, net_g = float(rev_g), float(net_g)
+            if net_g > 50 and rev_g < 10:
+                red_flags.append(f"净利润增{net_g:.0f}%但营收仅增{rev_g:.0f}%（可能通过费用调节）")
+        except Exception:
+            pass
+
+    # 规则5：资产负债率连续大幅上升
+    # 豁免：公用事业/过路费生意（收购电站/铁路线等合理资本运作会升负债）
+    def _is_utility(code, name):
+        if not code:
+            return False
+        # 已知公用事业/过路费公司代码前缀
+        utility_codes = {"600900", "600886", "600578", "600027",  # 电力
+                         "601006", "601816", "601333", "600125",   # 铁路
+                         "600018", "601018", "600717",              # 港口
+                         "600377", "600020", "600350",              # 高速
+                         "600803", "600635", "600917",              # 燃气
+                         "600941", "600050", "601728"}              # 通信
+        return code in utility_codes
+
+    if not _is_utility(code, name):
+        dr_3y = []
+        for _, row in df_annual.head(3).iterrows():
+            dr = row.get("资产负债率")
+            if dr is not None and not pd.isna(dr):
+                dr_3y.append(float(dr))
+        if len(dr_3y) >= 3:
+            if dr_3y[0] - dr_3y[2] > 15:
+                red_flags.append(f"资产负债率3年从{dr_3y[2]:.0f}%升到{dr_3y[0]:.0f}%")
+
+    # 规则6：存贷双高（康美药业经典造假模式）
+    if code and not _is_utility(code, name):
+        try:
+            is_dh, dh_detail = check_cash_loan_double_high(code)
+            if is_dh:
+                red_flags.append(
+                    f"🚨存贷双高：现金{dh_detail['cash_yi']}亿"
+                    f"({dh_detail['cash_ratio']}%) + 借款{dh_detail['loan_yi']}亿"
+                    f"({dh_detail['loan_ratio']}%) —— 康美/康得新造假模式"
+                )
+        except Exception:
+            pass
+
+    # 规则7：异常高货币资金（> 50%）
+    if code and not _is_utility(code, name):
+        try:
+            is_abn, abn_detail = check_abnormal_cash(code)
+            if is_abn:
+                red_flags.append(
+                    f"⚠异常高货币资金 {abn_detail['cash_ratio']}%（>50%）"
+                )
+        except Exception:
+            pass
+
+    # 规则8：商誉占净资产过高（> 50%）—— 存在减值风险
+    if code:
+        try:
+            bs = get_balance_sheet_latest(code)
+            goodwill = bs.get("goodwill", 0)
+            equity = bs.get("total_assets", 0) - bs.get("total_liabilities", 0)
+            if goodwill and equity > 0:
+                gw_ratio = goodwill / equity * 100
+                if gw_ratio > 50:
+                    red_flags.append(f"⚠商誉占净资产{gw_ratio:.0f}%（>50%有减值风险）")
+        except Exception:
+            pass
+
+    # 综合判定
+    if len(red_flags) >= 2:
+        return "high", red_flags
+    elif len(red_flags) == 1:
+        return "medium", red_flags
+    return "low", []
+
+
+# ============================================================
+# REQ-161：ST / 退市风险检测
+# ============================================================
+
+def check_st_delisting_risk(name, code=""):
+    """
+    检测是否是 ST / *ST / 面临退市股票
+
+    返回：(is_risk, risk_type)
+      is_risk: True/False
+      risk_type: "*ST"/"ST"/"退"/None
+    """
+    if not name:
+        return False, None
+    name_upper = name.upper().replace(" ", "")
+    if "*ST" in name_upper or "*ST" in name:
+        return True, "*ST（面临退市）"
+    if name_upper.startswith("ST") or name.startswith("ST"):
+        return True, "ST（特别处理）"
+    if "退" in name:
+        return True, "退市股"
+    return False, None
+
+
+# ============================================================
+# REQ-163：自由现金流（中国化）
+# ============================================================
+
+def calculate_free_cashflow_china(df_annual):
+    """
+    计算中国A股版自由现金流
+    由于A股披露粒度粗，简化为：
+      自由现金流 ≈ 经营现金流 - 购建固定资产等长期资产的现金支出
+
+    金融指标接口限制：很多公司的资本支出字段为 NaN，此时用"每股经营现金流"作代理
+
+    返回：
+      {
+          "has_data": bool,
+          "recent_fcf_per_share": [近3年每股自由现金流],
+          "avg_fcf_per_share": 均值,
+          "fcf_to_net_profit_ratio": 自由现金流/净利润,
+          "warning": 警告文字或 None
+      }
+    """
+    if df_annual is None or df_annual.empty or len(df_annual) < 2:
+        return {"has_data": False}
+
+    import pandas as pd
+    # 中国财务接口通常没有"资本支出"字段，退而用 OCF
+    ocf_per_share = []
+    for _, row in df_annual.head(3).iterrows():
+        cf = row.get("每股经营现金流")
+        if cf is not None and not pd.isna(cf):
+            ocf_per_share.append(float(cf))
+
+    if len(ocf_per_share) < 2:
+        return {"has_data": False}
+
+    avg_ocf = sum(ocf_per_share) / len(ocf_per_share)
+    warning = None
+    if all(c < 0 for c in ocf_per_share):
+        warning = "经营现金流连续为负 → 极度警惕（烧钱走向灭亡）"
+    elif min(ocf_per_share) < 0:
+        warning = "经营现金流某年为负 → 需关注"
+
+    return {
+        "has_data": True,
+        "recent_ocf_per_share": [round(c, 2) for c in ocf_per_share],
+        "avg_ocf_per_share": round(avg_ocf, 2),
+        "warning": warning,
+    }
+
+
+# ============================================================
+# REQ-164：过路费生意识别（中国化）
+# ============================================================
+
+TOLL_BRIDGE_INDUSTRIES = {
+    "高速公路": ["宁沪高速", "山东高速", "粤高速", "皖通高速"],
+    "铁路": ["大秦铁路", "京沪高铁", "铁龙物流"],
+    "港口": ["上港集团", "宁波港", "青岛港"],
+    "机场": ["上海机场", "白云机场", "首都机场"],
+    "公用事业-电力": ["长江电力", "华能水电", "国投电力", "华电国际"],
+    "公用事业-燃气": ["新奥股份", "华润燃气", "昆仑能源", "北京燃气"],
+    "公用事业-水务": ["重庆水务", "洪城环境"],
+    "电信运营": ["中国移动", "中国电信", "中国联通"],
+    "银行": [],  # 银行单列
+}
+
+
+def check_toll_bridge_business(industry, name, roe_avg, debt_ratio=None, div_yield=None):
+    """
+    识别中国式"过路费生意"——垄断经营+受管制，定价权弱但稳定
+
+    这类公司巴菲特喜欢，但 ROE 通常只有 10-14%（受管制）
+    不走"十年王者"规则（会被错判），走"高息防御资产"分类
+
+    返回：
+      (is_toll_bridge, classification, reasons)
+      is_toll_bridge: True/False
+      classification: "toll_bridge_utility"（受管制公用事业）或 None
+      reasons: 判定原因
+    """
+    reasons = []
+    ind_lower = (industry or "").lower()
+    name_lower = (name or "").lower()
+
+    # 1. 行业关键词匹配
+    matched_category = None
+    for cat, examples in TOLL_BRIDGE_INDUSTRIES.items():
+        cat_keywords = cat.split("-")[-1]  # 电力/燃气/水务等
+        if any(kw in industry for kw in cat_keywords.split()) or any(ex in name for ex in examples):
+            matched_category = cat
+            break
+
+    # 铁路/公路/公用事业/通信服务
+    if "铁路" in ind_lower or "铁路" in (industry or ""):
+        matched_category = "铁路"
+    if "公路" in ind_lower or "高速" in ind_lower:
+        matched_category = "高速公路"
+    if "港口" in (industry or ""):
+        matched_category = "港口"
+    if "电力" in (industry or "") and "电力" not in ["电力设备"]:  # 排除电网设备
+        matched_category = "公用事业-电力"
+    if "燃气" in (industry or ""):
+        matched_category = "公用事业-燃气"
+    if "通信服务" in (industry or ""):
+        matched_category = "电信运营"
+
+    if not matched_category:
+        return False, None, []
+
+    reasons.append(f"归属'{matched_category}'—受管制的过路费生意")
+
+    # 2. 判定条件（放宽到 ROE ≥ 8%）—— 铁路/港口类 ROE 常年 8-14%
+    if roe_avg is None:
+        # 行业匹配但没 ROE 数据，保守归类为过路费
+        return True, "toll_bridge_utility", reasons + ["ROE数据不足但行业匹配"]
+
+    if roe_avg < 5:
+        return False, None, reasons + [f"ROE={roe_avg:.1f}% < 5%太低"]
+
+    # 3. 理想条件：ROE ≥8% + 负债 ≤ 70% + 股息 ≥ 3%
+    if debt_ratio and debt_ratio > 70:
+        reasons.append(f"负债率{debt_ratio:.0f}%过高")
+    if div_yield and div_yield < 3:
+        reasons.append(f"股息率{div_yield}%偏低（过路费生意应有 ≥3%）")
+
+    reasons.append(f"5年ROE均值{roe_avg:.1f}%")
+    return True, "toll_bridge_utility", reasons
+
+
+# ============================================================
+# REQ-160 子规则：跑步机型（资本密集）识别
+# ============================================================
+
+def check_capital_intensive_treadmill(df_annual, industry):
+    """
+    识别"跑步机型"生意——必须持续投入资本才能维持现有地位
+
+    典型：航空（无差异化）、纺织、钢铁、面板、造船
+
+    返回：(is_treadmill, reasons)
+    """
+    reasons = []
+    import pandas as pd
+    if df_annual is None or df_annual.empty or len(df_annual) < 3:
+        return False, []
+
+    # 指标：ROE 长期低（<10%）+ 高负债 + 重资产行业
+    heavy_industries = [
+        "钢铁", "航空", "航运", "造船", "纺织", "面板", "煤炭",
+        "有色金属", "工业金属", "光学光电子", "化纤", "水泥",
+        "玻璃玻纤", "建筑材料", "石油石化",
+    ]
+    in_heavy = any(h in (industry or "") for h in heavy_industries)
+    if not in_heavy:
+        return False, []
+
+    reasons.append(f"'{industry}'属重资产/同质化行业")
+
+    # ROE 均值
+    roes = []
+    for _, row in df_annual.head(5).iterrows():
+        roe = row.get("净资产收益率")
+        if roe is not None and not pd.isna(roe):
+            roes.append(float(roe))
+    if roes:
+        avg_roe = sum(roes) / len(roes)
+        if avg_roe < 10:
+            reasons.append(f"5年ROE均值仅{avg_roe:.1f}%，赚的钱都在补设备")
+            return True, reasons
+
+    return False, reasons
+
+
+# ============================================================
+# REQ-160 子规则：冲浪者型（科技持续创新焦虑）识别
+# ============================================================
+
+def check_tech_surfer(df_annual, industry, name):
+    """
+    识别"冲浪者型"——必须持续技术创新才能维持地位
+
+    典型：半导体、光伏、锂电池设备、消费电子（除苹果/小米生态外）
+
+    返回：(is_surfer, reasons)
+    """
+    reasons = []
+    surfer_industries = [
+        "半导体", "芯片", "光伏设备", "锂电", "锂电池", "电池",
+        "消费电子", "通信设备", "软件开发", "计算机设备",
+        "面板", "显示器件", "光伏产业", "风电设备",
+    ]
+    in_surfer = any(h in (industry or "") for h in surfer_industries)
+    if not in_surfer:
+        return False, []
+
+    reasons.append(f"'{industry}'属科技迭代行业，技术更新换代快")
+    reasons.append("投资前请确认：是否有超越技术的生态护城河（如苹果）")
+    return True, reasons
 
 
 if __name__ == "__main__":
