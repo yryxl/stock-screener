@@ -293,22 +293,96 @@ def screen_single_stock(code, config, quotes_df):
         "code": code, "passed": False, "checks": {},
         "signal": None, "signal_text": "", "pe": None, "price": None,
         "is_10y_king": False, "is_good_quality": False,
+        "is_toll_bridge": False,  # 中国国情版 v3 D 规则：过路费生意标签
+        "china_v3_risks": [],     # 中国国情版 v3 风险提示列表
     }
 
     df_indicator = get_financial_indicator(code)
     if df_indicator is None:
         return result
-    df_annual = extract_annual_data(df_indicator, years=10)
+    df_annual = extract_annual_data(df_indicator, years=12)  # 取 12 年保证 E 规则 10 年数据
     if df_annual.empty or len(df_annual) < 3:
         return result
 
+    # 行业只查一次，后续复用
+    industry = get_stock_industry(code)
+
+    # ---- 第零关：中国国情版 v3 硬否决（REQ-160 造假 + REQ-160E 下水道）----
+    # A/B 回测验证：与原模型比，均值 -0.79pp（近乎持平），但逻辑正确性大幅提升
+    # 真实世界避雷价值远高于回测（回测池是幸存者偏差）
+    try:
+        from china_adjustments import (
+            check_drain_business,
+            check_toll_bridge_business,
+            check_cash_loan_double_high,
+        )
+
+        # A1. 经营现金流连续 3 年为负（造假/恶化信号）
+        ocfs = []
+        for _, row in df_annual.head(3).iterrows():
+            ocf = row.get("每股经营现金流")
+            if ocf is not None and not pd.isna(ocf):
+                try:
+                    ocfs.append(float(ocf))
+                except Exception:
+                    pass
+        if len(ocfs) >= 3 and all(o < 0 for o in ocfs):
+            detail = f"经营现金流连续3年为负（{ocfs[2]:.2f}/{ocfs[1]:.2f}/{ocfs[0]:.2f}元）→ 造假或恶化"
+            result["checks"]["v3_fraud"] = {"passed": False, "detail": detail}
+            result["china_v3_risks"].append(detail)
+            return result
+
+        # A2. 存贷双高（康美药业经典模式，仅对非银/保/证行业有效）
+        if not any(k in (industry or "") for k in ["银行", "保险", "证券", "券商"]):
+            is_double_high, dh_detail = check_cash_loan_double_high(code)
+            if is_double_high:
+                detail = (
+                    f"存贷双高（货币{dh_detail.get('cash_ratio', 0):.0f}% + "
+                    f"借款{dh_detail.get('loan_ratio', 0):.0f}%）→ 康美式造假疑似"
+                )
+                result["checks"]["v3_fraud"] = {"passed": False, "detail": detail}
+                result["china_v3_risks"].append(detail)
+                return result
+
+        # E. 下水道生意（10 年 ROE 实证弱）
+        is_drain, drain_reasons = check_drain_business(df_annual, industry)
+        if is_drain:
+            detail = drain_reasons[0] if drain_reasons else "下水道生意"
+            result["checks"]["v3_drain"] = {"passed": False, "detail": detail}
+            result["china_v3_risks"].append(detail)
+            return result
+
+        # D. 过路费生意识别（后续在 ROE 检查里给放宽门槛）
+        roe_series = get_roe_series(df_annual)
+        roe_avg_5y = None
+        if roe_series is not None and len(roe_series) >= 5:
+            roe_avg_5y = float(roe_series.head(5).mean())
+        div_yield_hint = None  # 股息率在后面拉 quotes_df 时才有
+        is_toll, toll_class, toll_reasons = check_toll_bridge_business(
+            industry, code, roe_avg_5y or 0, None, div_yield_hint
+        )
+        if is_toll:
+            result["is_toll_bridge"] = True
+            result["toll_class"] = toll_class
+            result["checks"]["v3_toll_bridge"] = {"passed": True, "detail": toll_reasons[0] if toll_reasons else ""}
+    except Exception as e:
+        print(f"  {code} 中国国情版 v3 检查异常: {e}")
+
     # ---- 第一关：基础财务检查 ----
+    # 过路费生意（公用事业特许经营）：临时放宽 ROE 门槛到 8%（REQ-164）
+    # 巴菲特思路：稳定收益+股息 > 高 ROE 波动
+    effective_config = config
+    if result.get("is_toll_bridge"):
+        import copy
+        effective_config = copy.deepcopy(config)
+        effective_config["screener"]["roe_min"] = 8
+
     for check_name, check_func in [
-        ("roe", lambda: check_roe_no_leverage(df_annual, config)),
-        ("debt", lambda: check_debt_health(df_annual, config)),
-        ("opm", lambda: check_opm_stable(df_annual, config)),
-        ("fcf", lambda: check_fcf(df_annual, config)),
-        ("gross_margin", lambda: check_gross_margin(df_annual, config)),
+        ("roe", lambda: check_roe_no_leverage(df_annual, effective_config)),
+        ("debt", lambda: check_debt_health(df_annual, effective_config)),
+        ("opm", lambda: check_opm_stable(df_annual, effective_config)),
+        ("fcf", lambda: check_fcf(df_annual, effective_config)),
+        ("gross_margin", lambda: check_gross_margin(df_annual, effective_config)),
     ]:
         passed, detail = check_func()
         result["checks"][check_name] = {"passed": passed, "detail": detail}
@@ -316,8 +390,6 @@ def screen_single_stock(code, config, quotes_df):
             return result
 
     # ---- 第二关：完整 8 条护城河检查（从 live_rules 同步 backtest_engine 规则）----
-    # 行业只查一次，后续复用（之前重复调两次 get_stock_industry）
-    industry = get_stock_industry(code)
     try:
         from live_rules import check_moat_live, check_10_year_king_live, is_good_quality_live
         moat_intact, moat_problems = check_moat_live(df_annual, industry=industry)
