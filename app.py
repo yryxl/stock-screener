@@ -238,6 +238,36 @@ def render_market_temperature_banner():
     )
     st.markdown(banner_html, unsafe_allow_html=True)
 
+    # REQ-187：极冷温度"鳄鱼出击"显性提示
+    # 依据：芒格"等几年十年一次的机会"、巴菲特 2008《我在买入美国》
+    # 总仓位上限 80%（对齐伯克希尔 15-30% 现金实操，不是 90%）
+    if level == -2:
+        croc_html = (
+            '<div style="background:#c8e6c9;padding:12px 18px;border-left:5px solid #2e7d32;'
+            'border-radius:6px;margin-bottom:15px;">'
+            '<div style="font-size:17px;font-weight:bold;color:#1b5e20;">🐊 鳄鱼出击机会（REQ-187）</div>'
+            '<div style="color:#222;font-size:14px;line-height:1.6;margin-top:4px;">'
+            '市场在历史最冷 15% 分位，属于芒格"等几年十年一次"的级别。'
+            '建议总仓位上限 <b>80%</b>（保留 20% 现金应对极端流动性——对齐伯克希尔 2020-03 约 36% 现金实操）。'
+            '现金充裕应集中买入优质低估标的；不是梭哈清空现金。</div></div>'
+        )
+        st.markdown(croc_html, unsafe_allow_html=True)
+
+
+# REQ-187：按市场温度动态计算总仓位上限（用于持仓页健康度提示）
+# 阈值来源：
+#   - 温度 -2（极冷 PE≤10% 分位）：80%（鳄鱼出击期，但仍保 20% 现金）
+#   - 温度 -1（偏冷 10-30% 分位）：70%（继续加仓，保留弹药）
+#   - 温度 0（正常）：60%（标准股债平衡）
+#   - 温度 1（偏热）：50%（停止加仓，现金回升）
+#   - 温度 2（极热）：40%（卖出盈利部分，现金充足）
+SUGGESTED_POSITION_CAP = {-2: 80, -1: 70, 0: 60, 1: 50, 2: 40}
+
+
+def get_suggested_position_cap(level):
+    """REQ-187：按温度档位返回建议股票总仓位上限（%）"""
+    return SUGGESTED_POSITION_CAP.get(level, 60)
+
 
 render_market_temperature_banner()
 
@@ -606,7 +636,7 @@ with tab2:
         investable_cash = float(cash_data.get("amount", 0))
         total_assets = total_market_value + investable_cash
 
-        # 顶部展示：持仓市值 + 可投资现金 + 总资产
+        # 顶部展示：持仓市值 + 可投资现金 + 总资产 + 股债比（REQ-187 建议上限）
         _ta_col1, _ta_col2, _ta_col3, _ta_col4 = st.columns(4)
         with _ta_col1:
             st.metric("持仓市值", f"¥{total_market_value:,.0f}",
@@ -617,8 +647,21 @@ with tab2:
         with _ta_col3:
             st.metric("总资产", f"¥{total_assets:,.0f}")
         with _ta_col4:
-            st.metric("股债比", f"{total_market_value/total_assets*100:.1f}%" if total_assets > 0 else "—",
-                      "股票占比")
+            _stock_pct = total_market_value / total_assets * 100 if total_assets > 0 else 0
+            # REQ-187：按市场温度取建议上限
+            _mt = st.session_state.get("daily", {}).get("market_temperature") or {}
+            _mt_level = _mt.get("level", 0)
+            _cap = get_suggested_position_cap(_mt_level)
+            # 判断是否超限
+            _delta_str = f"建议上限 {_cap}%（按温度）"
+            _delta_color = "normal"
+            if _stock_pct > _cap + 5:
+                _delta_str = f"⚠超上限 {_cap}% {_stock_pct - _cap:+.1f}pp"
+                _delta_color = "inverse"
+            elif _stock_pct < _cap * 0.6 and total_assets > 0:
+                _delta_str = f"低于上限 {_cap}%（可加仓）"
+            st.metric("股债比", f"{_stock_pct:.1f}%",
+                      _delta_str, delta_color=_delta_color)
 
         # 可编辑现金金额
         with st.expander("✏️ 修改可投资现金"):
