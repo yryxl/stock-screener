@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>待做需求表 · 股票筛选模型</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  max-width: 960px; margin: 24px auto; padding: 0 20px; line-height: 1.65;
+  color: #222; background: #f8f9fa;
+}
+h1 { border-bottom: 3px solid #1a73e8; padding-bottom: 10px; color: #1a73e8; }
+h2 { margin-top: 36px; padding-left: 14px; border-left: 5px solid #1a73e8; }
+h3 {
+  background: #fff; padding: 14px 18px; border-radius: 8px;
+  border-left: 4px solid #1a73e8; margin-top: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+h3.inprogress { border-left-color: #fbbc04; }
+h3.pending { border-left-color: #34a853; }
+h3.legacy { border-left-color: #999; }
+.meta-info { font-size: 0.85em; color: #5f6368; margin-top: 8px; }
+.content-box {
+  background: #fff; padding: 16px 20px; border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 16px;
+}
+.content-box ul { padding-left: 20px; }
+.priority-high { color: #d93025; font-weight: 600; }
+.priority-medium { color: #f9ab00; font-weight: 600; }
+.priority-low { color: #5f6368; font-weight: 600; }
+.tag {
+  display: inline-block; padding: 2px 10px; border-radius: 12px;
+  font-size: 0.8em; font-weight: 600; margin-right: 6px;
+}
+.tag-inprogress { background: #fef7e0; color: #b86e00; }
+.tag-pending { background: #e6f4ea; color: #1e8e3e; }
+.tag-legacy { background: #f1f3f4; color: #5f6368; }
+.user-quote {
+  background: #e8f0fe; border-left: 4px solid #4285f4;
+  padding: 10px 14px; margin: 10px 0; border-radius: 4px;
+  font-style: italic; color: #1a73e8;
+}
+.stats-table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  background: #fff; border-radius: 8px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.stats-table th, .stats-table td {
+  padding: 12px 16px; border-bottom: 1px solid #e8eaed; text-align: left;
+}
+.stats-table th { background: #f1f3f4; font-weight: 600; }
+.stats-table td.num { text-align: center; font-family: monospace; font-size: 1.1em; }
+.footer {
+  margin-top: 40px; padding-top: 20px; border-top: 1px solid #dadce0;
+  color: #5f6368; font-size: 0.85em; text-align: center;
+}
+ul li { margin: 4px 0; }
+code {
+  background: #f1f3f4; padding: 2px 6px; border-radius: 3px;
+  font-family: "SF Mono", Monaco, Consolas, monospace; font-size: 0.92em;
+}
+details {
+  margin: 8px 0; background: #fafbfc; padding: 8px 12px;
+  border-radius: 6px; border: 1px solid #e8eaed;
+}
+details summary { cursor: pointer; font-weight: 600; color: #1a73e8; }
+details div { padding: 8px 0 0 0; }
+</style>
+</head>
+<body>
+
+<h1>📋 待做需求表</h1>
+<p class="meta-info">
+最后更新：2026-04-16 | 项目：股票筛选模型 · 中国国情版 v3
+</p>
+
+<table class="stats-table">
+<tr><th>类别</th><th>数量</th><th>典型事项</th></tr>
+<tr><td><span class="tag tag-inprogress">进行中未完成</span></td><td class="num">2</td><td>熔断展示、语录完整版核对</td></tr>
+<tr><td><span class="tag tag-pending">用户提出未启动</span></td><td class="num">2</td><td>模型自升级、AI 舆情 Skill</td></tr>
+<tr><td><span class="tag tag-legacy">历史遗留</span></td><td class="num">5</td><td>跨境 ETF CAPE、ETF 集中度等</td></tr>
+<tr><td><strong>总计</strong></td><td class="num"><strong>9</strong></td><td></td></tr>
+</table>
+
+<hr>
+
+<h2>📌 一、进行中（做了一半未完成）</h2>
+
+<h3 class="inprogress">TODO-001：熔断机制前端展示</h3>
+<div class="content-box">
+<p><strong>优先级：</strong><span class="priority-high">高</span></p>
+<div class="user-quote">"前端没看到熔断机制的相关内容" — 用户反馈 2026-04-16</div>
+<p><strong>现状</strong>：后端可能已实现熔断逻辑（market_temp == -2 / path_b 大底逻辑），但前端没看到相关内容</p>
+<p><strong>需要做</strong>：</p>
+<ul>
+  <li>☐ 搜索后端熔断相关代码（market_temp == -2 / path_b 大底逻辑）</li>
+  <li>☐ 确认是否已经触发过熔断（回测历史中）</li>
+  <li>☐ 设计前端展示位：温度计模块旁边加一个"熔断状态"灯</li>
+  <li>☐ 熔断时的文案提示：大底区间不卖、加仓信号置顶</li>
+</ul>
+<p><strong>拦路虎</strong>：需要先确认后端是否真有熔断机制，还是只是暂停卖出（path_b）</p>
+<p><strong>相关文件</strong>：<code>app.py</code>（温度计展示区）、<code>backtest_autorun.py</code>（熔断逻辑来源）</p>
+</div>
+
+<h3 class="inprogress">TODO-002：芒格语录完整版核对</h3>
+<div class="content-box">
+<p><strong>优先级：</strong><span class="priority-medium">中</span></p>
+<div class="user-quote">"今天的语录是总结版，记得让你看看完整版，看是否有遗漏" — 用户反馈 2026-04-16</div>
+<p><strong>现状</strong>：本次（2026-04-16）概念审计用的是<strong>总结版</strong> 21 条芒格语录（来自 <code>G:\Claude Code\ask\芒格语录</code>）</p>
+<p><strong>需要做</strong>：</p>
+<ul>
+  <li>☐ 找到芒格语录的完整版文件（来源待确认：《穷查理宝典》？Daily Journal 股东会问答？）</li>
+  <li>☐ 逐条对比 21 条总结版和完整版的差异</li>
+  <li>☐ 识别总结版遗漏的重点语录 → 新的 REQ 追加</li>
+  <li>☐ 更新 REQUIREMENTS.md 十六节（如有新增）</li>
+</ul>
+<p><strong>关联</strong>：REQ-160 ~ REQ-169（中国国情版 v3）都是基于总结版推出的</p>
+<details>
+<summary>可能的遗漏领域（点击展开）</summary>
+<div>
+  <ul>
+    <li>资本分配（ROIC vs ROE）</li>
+    <li>股东回报率（分红 + 回购 + 再投资）</li>
+    <li>"反过来想"的具体应用</li>
+    <li>机会成本比较</li>
+  </ul>
+</div>
+</details>
+</div>
+
+<h2>📝 二、用户已提出，但尚未启动</h2>
+
+<h3 class="pending">TODO-003：模型自升级功能</h3>
+<div class="content-box">
+<p><strong>优先级：</strong><span class="priority-medium">中</span></p>
+<div class="user-quote">"增加一个模型自升级功能，定期跑相关数据，确认模型是否需要做相应的数据调整" — 用户原话 2026-04-16</div>
+<p><strong>需求理解</strong>：</p>
+<ul>
+  <li>模型的阈值（比如下水道 10 年均值 &lt;8%）、行业 PE 区间、ROE 门槛 都是<strong>经验参数</strong></li>
+  <li>经验参数会随市场变化失效（比如 2026 年的"合理 PE" vs 2016 年的）</li>
+  <li>需要定期验证：用新数据跑一遍旧模型，看是否仍然有效</li>
+</ul>
+<details>
+<summary>设计草案（点击展开）</summary>
+<div>
+  <p><strong>触发方式</strong>：GitHub Actions 每月 1 日自动跑</p>
+  <p><strong>检查内容</strong>：</p>
+  <ol>
+    <li><strong>阈值合理性</strong>：过去 12 个月的下水道股 / 伪下水道股分布</li>
+    <li><strong>行业 PE 区间是否漂移</strong>：各行业中位 PE 变化</li>
+    <li><strong>十年王者数量变化</strong>：王者数量减少 → 整体盈利能力下降信号</li>
+    <li><strong>假阳性/假阴性率</strong>：和前 1 年同期对比</li>
+  </ol>
+  <p><strong>输出</strong>：生成 <code>model_health_report_YYYY-MM.md</code>，自动提交到 <code>docs/model_health/</code> 目录</p>
+  <p><strong>异常时</strong>：通过微信推送告警</p>
+</div>
+</details>
+<p><strong>依赖</strong>：先把 TODO-002（完整版语录）看完再动，避免重复工作</p>
+<p><strong>新文件</strong>：<code>model_health_check.py</code>，<code>.github/workflows/model-health.yml</code></p>
+</div>
+
+<h3 class="pending">TODO-004：AI 筛股 Skill 文件（核心价值）</h3>
+<div class="content-box">
+<p><strong>优先级：</strong><span class="priority-high">高（独特价值点）</span></p>
+<div class="user-quote">"做一个 skill 文件，是用来给 AI 按模型来跑数据筛选股票的，但和模型不同的是……模型有些东西是无法及时获取的，比如，相关行业的政策新闻、该公司最近的负面新闻……让 AI 在根据模型跑的同时，加入上网搜索相关新闻、数据，更完整的校验模型的推荐是否正确、给出更准确的判断" — 用户原话 2026-04-16</div>
+
+<p><strong>核心价值</strong>：<em>模型是滞后指标（财务数据），AI 能补上实时信号（新闻/政策/舆情）</em></p>
+
+<p><strong>纯数据模型的盲区</strong>：</p>
+<ul>
+  <li>📰 <strong>政策风险</strong>：教育双减、互联网反垄断、地产三道红线</li>
+  <li>⚠️ <strong>舆情风险</strong>：食品安全、药品质量、管理层丑闻</li>
+  <li>🏭 <strong>行业新闻</strong>：AI 算力需求爆发、新能源补贴退坡</li>
+  <li>⚡ <strong>突发事件</strong>：疫情、战争、制裁</li>
+</ul>
+
+<details>
+<summary>设计草案（点击展开）</summary>
+<div>
+  <p><strong>Skill 文件路径</strong>：<code>.claude/skills/stock_screening/SKILL.md</code></p>
+  <p><strong>触发方式</strong>：用户在 Claude 里说"帮我筛今天的候选股"</p>
+  <p><strong>流程</strong>：</p>
+  <ol>
+    <li>跑 <code>screener.py screen_all_stocks()</code> 得到候选清单</li>
+    <li>对每只候选股，AI 搜索：
+      <ul>
+        <li>最近 30 天的负面新闻（造假、裁员、董事长被查、产品召回等）</li>
+        <li>所在行业的政策变化（利好/利空）</li>
+        <li>财报期附近的预喜/预警公告</li>
+      </ul>
+    </li>
+    <li>根据新闻情绪，对每只股输出：
+      <ul>
+        <li>✅ 无风险信号（可以按模型信号执行）</li>
+        <li>⚠ 有争议（用户自己判断）</li>
+        <li>🚨 重大利空（强烈建议跳过，即使模型说买）</li>
+      </ul>
+    </li>
+    <li>最终输出：<strong>模型信号 + AI 舆情分类</strong> 的合并清单</li>
+  </ol>
+  <p><strong>技术栈</strong>：Claude + WebSearch（搜新闻）+ WebFetch（看具体文章）</p>
+  <p><strong>产出物</strong>：</p>
+  <ul>
+    <li><code>.claude/skills/stock_screening/SKILL.md</code>（skill 定义）</li>
+    <li><code>.claude/skills/stock_screening/templates/</code>（候选股分析模板）</li>
+    <li>可选：小型缓存 <code>cache/news_sentiment.json</code> 避免重复搜索</li>
+  </ul>
+</div>
+</details>
+</div>
+
+<h2>🔍 三、历史遗留（从 REQUIREMENTS.md 迁过来）</h2>
+
+<h3 class="legacy">TODO-005：REQ-165 跨境 ETF CAPE 透支警告</h3>
+<div class="content-box">
+<p><strong>优先级：</strong><span class="priority-high">高</span></p>
+<p><strong>原因</strong>：Shiller 预测 S&amp;P 500 未来 10 年年化仅 1.3%，CAPE 40 历史次高</p>
+<p><strong>计划</strong>：对纳指 513100 警告"CAPE 40 = 历史最贵，未来 10 年预期低回报"</p>
+</div>
+
+<h3 class="legacy">TODO-006：REQ-166 ETF 内部集中度按类型分档</h3>
+<div class="content-box">
+<p><strong>优先级：</strong><span class="priority-medium">中</span></p>
+<p><strong>计划</strong>：宽基前 10 大 &gt;35% 警告 / 主题 &gt;50% / 红利 &gt;40%</p>
+</div>
+
+<h3 class="legacy">TODO-007：REQ-167 营业利润率改扣非净利率</h3>
+<div class="content-box">
+<p><strong>优先级：</strong><span class="priority-low">低</span></p>
+<p><strong>原因</strong>：扣非净利率更能反映主业真实盈利</p>
+</div>
+
+<h3 class="legacy">TODO-008：REQ-162 股权质押 + 北向资金全量接入</h3>
+<div class="content-box">
+<p><strong>优先级：</strong><span class="priority-medium">中</span></p>
+<p><strong>现状</strong>：<code>china_adjustments.py</code> 已留接口但未接入 screener.py</p>
+</div>
+
+<h3 class="legacy">TODO-009：REQ-169 "好人"维度增强</h3>
+<div class="content-box">
+<p><strong>优先级：</strong><span class="priority-low">低</span></p>
+<p><strong>内容</strong>：管理层诚信相关指标（董监高增减持、工商异常、司法诉讼）</p>
+</div>
+
+<div class="footer">
+本表每次有新需求就更新 · <code>todo/TODO.md</code>（AI 用） · <code>todo/TODO.html</code>（人用） · 两份同步
+</div>
+
+</body>
+</html>
