@@ -233,6 +233,10 @@ def check_roe_no_leverage(df_annual, config):
 
 
 def check_debt_health(df_annual, config):
+    """
+    [旧版] 一刀切负债率检查（保留兼容）。
+    新版优先使用 check_debt_health_tiered（按行业分档）。
+    """
     debt_info = get_debt_info(df_annual)
     if debt_info is None:
         return False, "负债数据不足"
@@ -246,6 +250,113 @@ def check_debt_health(df_annual, config):
             return False, f"流动比率{current_ratio:.2f}偏低"
         detail += f" 流动比率{current_ratio:.2f}"
     return True, detail
+
+
+# ============================================================
+# REQ-174：公司杠杆 4 档行业分档（2026-04-16）
+# ============================================================
+# 来源：芒格"三 L 理论"（Liquor/Ladies/Leverage）+ A 股实证数据
+# 实证依据：
+#   白酒/食品龙头负债率 20-30%（茅台、海天）
+#   家电龙头 60-62%（美的、格力）
+#   房地产央企 70.5%、民企 72.2%
+#   建筑央企中位数 75%（中国铁建 79%）
+#   金融业 90%+（豁免）
+#
+# 4 档分档：
+#   消费档（白酒/食品/家电/中药/调味品）：健康≤45%, 警告 45-60%, 否决>70%
+#   制造档（半导体/电子/机械/医药/医疗器械/汽车）：健康≤65%, 警告 65-75%, 否决>85%
+#   基建档（房地产/建筑/交运/港口/航运）：健康≤80%, 否决>85%（行业天然高杠杆）
+#   金融档（银行/保险/证券/券商）：完全豁免，不用此规则
+# ============================================================
+
+# 4 档阈值表
+DEBT_TIER_THRESHOLDS = {
+    "consumer": {"healthy": 45, "warning": 60, "reject": 70, "label": "消费档"},
+    "manufacturing": {"healthy": 65, "warning": 75, "reject": 85, "label": "制造档"},
+    "infrastructure": {"healthy": 80, "warning": 82, "reject": 85, "label": "基建档"},
+    "finance": {"healthy": None, "warning": None, "reject": None, "label": "金融档（豁免）"},
+}
+
+# 行业 → 档位映射（基于 INDUSTRY_PE 的 type 字段 + 实证调研）
+def _get_debt_tier(industry):
+    """根据行业返回适用档位"""
+    if not industry:
+        return "manufacturing"  # 默认中档
+    # 金融档（完全豁免）
+    for kw in ["银行", "保险", "证券", "券商", "多元金融"]:
+        if kw in industry:
+            return "finance"
+    # 基建档（天然高杠杆）
+    for kw in ["房地产", "地产", "房屋建设", "基础建设", "建筑工程",
+               "航空", "航运", "港口", "铁路公路", "高速公路",
+               "公用事业", "电力", "燃气"]:
+        if kw in industry:
+            return "infrastructure"
+    # 消费档（轻资产高利润）
+    for kw in ["白酒", "食品", "饮料", "调味品", "调味发酵", "乳制品",
+               "家电", "白色家电", "中药", "免税", "旅游",
+               "传媒", "化妆品", "个护"]:
+        if kw in industry:
+            return "consumer"
+    # 其余归制造档
+    return "manufacturing"
+
+
+def check_debt_health_tiered(df_annual, config, industry):
+    """
+    REQ-174：按行业 4 档检查负债率
+
+    返回：(passed, detail, warning_flag)
+      passed=False 表示硬否决
+      warning_flag=True 表示达到警告档（持续关注但不否决）
+    """
+    debt_info = get_debt_info(df_annual)
+    if debt_info is None:
+        return False, "负债数据不足", False
+
+    debt_ratio = debt_info.get("debt_ratio")
+    current_ratio = debt_info.get("current_ratio")
+
+    if debt_ratio is None or np.isnan(debt_ratio):
+        return False, "负债率数据缺失", False
+
+    tier = _get_debt_tier(industry)
+    thresholds = DEBT_TIER_THRESHOLDS[tier]
+    label = thresholds["label"]
+
+    # 金融档豁免
+    if tier == "finance":
+        detail = f"负债率{debt_ratio:.1f}%（{label}豁免）"
+        if current_ratio and not np.isnan(current_ratio):
+            detail += f" 流动比率{current_ratio:.2f}"
+        return True, detail, False
+
+    # 硬否决
+    if debt_ratio > thresholds["reject"]:
+        return False, f"负债率{debt_ratio:.1f}%超{label}硬否决线{thresholds['reject']}%", False
+
+    warning_flag = False
+    # 警告档（达到但未硬否决）
+    if debt_ratio > thresholds["warning"]:
+        warning_flag = True
+        detail = f"⚠负债率{debt_ratio:.1f}%（{label}警告 >{thresholds['warning']}%）"
+    elif debt_ratio > thresholds["healthy"]:
+        # 偏高但未到警告
+        detail = f"负债率{debt_ratio:.1f}%（{label}偏高，健康线 {thresholds['healthy']}%）"
+    else:
+        detail = f"负债率{debt_ratio:.1f}%（{label}健康）"
+
+    # 流动比率补充（降级为警告而不否决——家电/建筑行业流动比率本来就低）
+    # 原一刀切 1.5 会误伤美的/格力/中建，改为只在极低时警告
+    if current_ratio and not np.isnan(current_ratio):
+        detail += f" 流动比率{current_ratio:.2f}"
+        # 极低（<0.8）视为短期偿付能力风险，作为警告不否决
+        if current_ratio < 0.8:
+            warning_flag = True
+            detail += "⚠极低"
+
+    return True, detail, warning_flag
 
 
 def check_opm_stable(df_annual, config):
@@ -377,9 +488,16 @@ def screen_single_stock(code, config, quotes_df):
         effective_config = copy.deepcopy(config)
         effective_config["screener"]["roe_min"] = 8
 
+    # REQ-174：负债率改用 4 档行业分档（替代原 check_debt_health）
+    def _check_debt_tiered():
+        passed, detail, warning = check_debt_health_tiered(df_annual, effective_config, industry)
+        if warning:
+            result["china_v3_risks"].append(f"杠杆预警：{detail}")
+        return passed, detail
+
     for check_name, check_func in [
         ("roe", lambda: check_roe_no_leverage(df_annual, effective_config)),
-        ("debt", lambda: check_debt_health(df_annual, effective_config)),
+        ("debt", _check_debt_tiered),
         ("opm", lambda: check_opm_stable(df_annual, effective_config)),
         ("fcf", lambda: check_fcf(df_annual, effective_config)),
         ("gross_margin", lambda: check_gross_margin(df_annual, effective_config)),
