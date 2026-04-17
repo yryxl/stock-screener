@@ -862,6 +862,66 @@ with tab2:
         except Exception as _e:
             pass  # 国企判定失败不影响主流程
 
+        # TODO-033 / REQ-150：资产配置健康度（6 类目标 vs 实际偏差）
+        # 设计依据：docs/ALLOCATION_STRATEGY.md（40/20/20/10/5/5 目标）
+        # 让用户一眼看到"配置健康度"，不用拿计算器算
+        try:
+            from allocation_check import calc_allocation_breakdown
+            # 拉当前价
+            _hp_map = {}
+            for sig in (st.session_state.get("daily", {}) or {}).get("holding_signals", []):
+                _c = str(sig.get("code", "")).zfill(6)
+                _p = sig.get("price")
+                if _c and _p:
+                    _hp_map[_c] = _p
+            allocation = calc_allocation_breakdown(holdings, investable_cash, _hp_map)
+            if allocation:
+                # 综合状态展示
+                _status = allocation['overall_status']
+                _bg = {'green': '#e8f5e9', 'yellow': '#fff3e0', 'red': '#ffebee'}[_status]
+                _bd = {'green': '#2e7d32', 'yellow': '#ef6c00', 'red': '#c62828'}[_status]
+                _txt = {'green': '#1b5e20', 'yellow': '#bf360c', 'red': '#b71c1c'}[_status]
+                _label = {'green': '✅ 配置健康', 'yellow': '⚠ 部分偏离',
+                          'red': '🚨 配置严重偏离目标'}[_status]
+                _desc = (f'最大偏差 {allocation["max_deviation"]}pp。'
+                         f'目标比例来自 docs/ALLOCATION_STRATEGY.md：'
+                         f'40% 价值股 / 20% 指数 / 20% 跨境 / 10% 高股息 / 5% 黄金 / 5% 现金')
+                st.markdown(
+                    f'<div style="background:{_bg};padding:10px 16px;border-left:4px solid {_bd};'
+                    f'border-radius:6px;margin-top:12px;margin-bottom:8px;">'
+                    f'<div style="font-size:15px;font-weight:bold;color:{_txt};">{_label}（REQ-150 资产配置健康度）</div>'
+                    f'<div style="color:#555;font-size:12px;margin-top:3px;">{_desc}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+                # 6 类资产 metric（2 行 × 3 列）
+                _row1 = st.columns(3)
+                _row2 = st.columns(3)
+                _cols = list(_row1) + list(_row2)
+                for _i, _b in enumerate(allocation['breakdown']):
+                    with _cols[_i]:
+                        _color = {'green': 'normal', 'yellow': 'normal', 'red': 'inverse'}[_b['status']]
+                        _delta = f"目标 {_b['target_pct']}% (偏差 {_b['deviation_pp']:+.1f}pp)"
+                        st.metric(_b['label'], f"{_b['actual_pct']}%", _delta,
+                                  delta_color=_color)
+
+                # 可展开明细
+                with st.expander("📋 资产配置明细（每只持仓属于哪类）"):
+                    for _b in allocation['breakdown']:
+                        if _b['holdings_count'] > 0:
+                            st.markdown(f"**{_b['label']}** "
+                                        f"（实际 {_b['actual_pct']}% / 目标 {_b['target_pct']}%）")
+                            for _h in _b['holdings']:
+                                st.markdown(f"- {_h['code']} **{_h['name']}** "
+                                            f"¥{_h['value']:,.0f} — _{_h['reason']}_")
+                    st.caption(
+                        "💡 自动按持仓代码+名称+行业字段归类。"
+                        "未识别的 ETF 暂归价值股池；未识别的个股按行业关键词判（银行/电力等→高股息）"
+                    )
+        except Exception as _e:
+            pass  # 配置检查失败不影响主流程
+
         # 可编辑现金金额
         with st.expander("✏️ 修改可投资现金"):
             _new_cash = st.number_input(
