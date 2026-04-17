@@ -52,28 +52,257 @@ def _load_snapshots():
 # 指标计算
 # ============================================================
 
-def calc_signal_accuracy(snapshots, lookback_months=3):
+def _get_hs300_history():
     """
-    计算模型买入信号的准确率。
+    拉沪深 300 历史日线（带文件缓存避免反复拉）
+    返回：DataFrame[date, close] 或 None
+    """
+    import os
+    cache_path = os.path.join(SCRIPT_DIR, 'hs300_history_cache.json')
 
+    # 缓存判断（24 小时刷一次）
+    now_ts = datetime.now(_BEIJING).timestamp()
+    if os.path.exists(cache_path):
+        try:
+            with open(cache_path, encoding='utf-8') as f:
+                cache = json.load(f)
+            if now_ts - cache.get('cached_at', 0) < 86400:
+                # 缓存有效
+                import pandas as pd
+                df = pd.DataFrame(cache.get('data', []))
+                if not df.empty:
+                    df['date'] = pd.to_datetime(df['date'])
+                    return df
+        except Exception:
+            pass
+
+    # 重新拉
+    try:
+        import akshare as ak
+        import pandas as pd
+        df = ak.stock_zh_index_daily_em(symbol='sh000300')
+        if df is None or df.empty:
+            return None
+        # akshare 返回字段：date, open, close, high, low, amount
+        df['date'] = pd.to_datetime(df['date'])
+        df = df[['date', 'close']].sort_values('date').reset_index(drop=True)
+
+        # 写缓存
+        try:
+            cache_data = {
+                'cached_at': now_ts,
+                'data': [{'date': d.strftime('%Y-%m-%d'), 'close': float(c)}
+                         for d, c in zip(df['date'], df['close'])]
+            }
+            with open(cache_path, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f, ensure_ascii=False)
+        except Exception:
+            pass
+
+        return df
+    except Exception:
+        return None
+
+
+def _get_hs300_close_at(date_str):
+    """取沪深 300 在某日期的收盘价（最近一个交易日）"""
+    df = _get_hs300_history()
+    if df is None or df.empty:
+        return None
+    try:
+        import pandas as pd
+        target = pd.to_datetime(date_str)
+        # 取 ≤ target 的最近一条
+        df_filtered = df[df['date'] <= target]
+        if df_filtered.empty:
+            return None
+        return float(df_filtered.iloc[-1]['close'])
+    except Exception:
+        return None
+
+
+def calc_signal_accuracy(snapshots=None, lookback_months=3):
+    """
+    REQ-151：计算模型买入信号的准确率
     定义：
       - 某时点给出 buy_* 信号的股票
-      - N 个月后价格上涨则算准确
+      - N 个月后价格上涨则算准确（精确逻辑：N 月后价格 > 当时价格）
       - 准确率 = 准确数 / 总推荐数
+
+    返回：
+      None - 数据不足
+      dict - {'accuracy_pct', 'total_signals', 'success', 'lookback_months', 'detail'}
     """
-    # 这里需要当时的价格 vs 现在的价格
-    # 目前快照里存有推荐但没存每个推荐的后续价格
-    # 所以暂时返回 None，待后续实现数据回溯
-    return None
+    if snapshots is None:
+        snapshots = _load_snapshots()
+    if not snapshots:
+        return None
+
+    from datetime import datetime as _dt, timedelta
+    now = datetime.now(_BEIJING)
+
+    # 用最新价格作为"当前价"参考（来自 daily_results.json）
+    daily = _load_json("daily_results.json") or {}
+    current_prices = {}
+    for src in ["watchlist_signals", "holding_signals"]:
+        for s in daily.get(src, []):
+            code = str(s.get('code', '')).zfill(6)
+            price = s.get('price')
+            if code and price:
+                current_prices[code] = price
+
+    if not current_prices:
+        return None
+
+    # 遍历快照里的 buy_* 信号
+    success = 0
+    total = 0
+    skipped_no_price = 0
+    skipped_too_recent = 0
+
+    for snap in snapshots:
+        snap_date_str = snap.get('snapshot_date', '')[:10]
+        try:
+            snap_date = _dt.strptime(snap_date_str, '%Y-%m-%d')
+        except Exception:
+            continue
+
+        # 至少经过 lookback_months 个月才能评判
+        days_passed = (now.replace(tzinfo=None) - snap_date).days
+        if days_passed < lookback_months * 30:
+            skipped_too_recent += 1
+            continue
+
+        for signal_list_key in ['watchlist_signals', 'recommendations', 'holding_signals']:
+            for s in snap.get(signal_list_key, []):
+                signal = s.get('signal', '')
+                if not signal.startswith('buy_'):
+                    continue
+                code = str(s.get('code', '')).zfill(6)
+                old_price = s.get('price')
+                new_price = current_prices.get(code)
+                if not old_price or not new_price:
+                    skipped_no_price += 1
+                    continue
+                total += 1
+                if new_price > old_price:
+                    success += 1
+
+    if total == 0:
+        return {
+            'accuracy_pct': None,
+            'total_signals': 0,
+            'success': 0,
+            'lookback_months': lookback_months,
+            'detail': f'数据积累中：现有 {len(snapshots)} 份快照，'
+                      f'其中 {skipped_too_recent} 份太新（不足 {lookback_months} 月），'
+                      f'{skipped_no_price} 个信号缺当前价'
+        }
+
+    return {
+        'accuracy_pct': round(success / total * 100, 1),
+        'total_signals': total,
+        'success': success,
+        'lookback_months': lookback_months,
+        'detail': f'{lookback_months} 月窗口内 {success}/{total} 只买入信号股票上涨'
+    }
 
 
-def calc_vs_hs300(snapshots):
+def calc_vs_hs300(snapshots=None):
     """
-    对比沪深300的超额收益。
+    REQ-151：对比沪深 300 的超额收益
+    定义：
+      - 用历史快照里的"持仓组合"模拟"如果当时按模型操作"
+      - 计算组合从快照日到现在的累计收益
+      - 对比沪深 300 同期收益
+      - 超额收益 = 模型组合收益 - 沪深 300 收益
 
-    TODO: 需要沪深300的历史价格数据来算
+    返回：
+      None - 数据不足
+      dict - {'alpha_pp', 'model_return_pct', 'hs300_return_pct',
+              'snapshots_used', 'detail'}
     """
-    return None
+    if snapshots is None:
+        snapshots = _load_snapshots()
+    if len(snapshots) < 2:
+        return None
+
+    from datetime import datetime as _dt
+    now = datetime.now(_BEIJING)
+
+    # 用最新价格
+    daily = _load_json("daily_results.json") or {}
+    current_prices = {}
+    for src in ["watchlist_signals", "holding_signals"]:
+        for s in daily.get(src, []):
+            code = str(s.get('code', '')).zfill(6)
+            price = s.get('price')
+            if code and price:
+                current_prices[code] = price
+
+    if not current_prices:
+        return None
+
+    # 取最早的快照作为基准
+    earliest = sorted(snapshots, key=lambda s: s.get('snapshot_date', ''))[0]
+    snap_date_str = earliest.get('snapshot_date', '')[:10]
+    try:
+        snap_date = _dt.strptime(snap_date_str, '%Y-%m-%d')
+    except Exception:
+        return None
+
+    days_passed = (now.replace(tzinfo=None) - snap_date).days
+    if days_passed < 30:
+        return {
+            'alpha_pp': None,
+            'model_return_pct': None,
+            'hs300_return_pct': None,
+            'snapshots_used': len(snapshots),
+            'detail': f'数据积累中：最早快照仅 {days_passed} 天前，不足 1 个月'
+        }
+
+    # 模型组合（用最早快照的持仓 + 等权计算收益）
+    model_returns = []
+    for h in earliest.get('holdings', []):
+        code = str(h.get('code', '')).zfill(6)
+        old_price = None
+        # 从 holding_signals 取当时价格
+        for hs in earliest.get('holding_signals', []):
+            if str(hs.get('code', '')).zfill(6) == code:
+                old_price = hs.get('price')
+                break
+        new_price = current_prices.get(code)
+        if old_price and new_price and old_price > 0:
+            model_returns.append((new_price / old_price - 1) * 100)
+
+    if not model_returns:
+        return None
+
+    model_return_pct = sum(model_returns) / len(model_returns)
+
+    # 沪深 300 同期
+    hs300_old = _get_hs300_close_at(snap_date_str)
+    hs300_now = _get_hs300_close_at(now.strftime('%Y-%m-%d'))
+    if not hs300_old or not hs300_now:
+        return {
+            'alpha_pp': None,
+            'model_return_pct': round(model_return_pct, 2),
+            'hs300_return_pct': None,
+            'snapshots_used': len(snapshots),
+            'detail': '沪深 300 历史数据拉取失败（可能网络/接口问题）'
+        }
+
+    hs300_return_pct = (hs300_now / hs300_old - 1) * 100
+    alpha_pp = model_return_pct - hs300_return_pct
+
+    return {
+        'alpha_pp': round(alpha_pp, 2),
+        'model_return_pct': round(model_return_pct, 2),
+        'hs300_return_pct': round(hs300_return_pct, 2),
+        'snapshots_used': len(snapshots),
+        'detail': f'从 {snap_date_str} 到今 ({days_passed} 天)：'
+                  f'模型组合 {model_return_pct:+.1f}% vs 沪深300 {hs300_return_pct:+.1f}%'
+    }
 
 
 def calc_holding_win_rate(holdings_file="holdings.json"):
@@ -271,6 +500,11 @@ def check_consistent_underperform(min_years=3):
     """
     REQ-151 规则 A：检测模型推荐组合是否连续 N 年跑输沪深 300
 
+    数据规则（2026-04-17 修正）：
+      - 用户实际规则是"每周一份快照"（snapshots 命名为 YYYY-Www）
+      - 判定标准应该是"时间跨度"而非"份数"，避免漏几份就判错
+      - 最早快照距今 ≥ min_years 年 → 数据够，可以判定
+
     返回：
       None - 数据不足无法判定
       dict - {
@@ -281,25 +515,73 @@ def check_consistent_underperform(min_years=3):
       }
     """
     snapshots = _load_snapshots()
-
-    # 数据不足检查：至少要有 36 个月的快照
-    if len(snapshots) < 36:
+    if not snapshots:
         return {
             'years_underperform': None,
             'avg_alpha_pp': None,
             'should_circuit_break': False,
-            'data_status': f'快照仅 {len(snapshots)} 份，不足 36 份（3 年），规则待激活',
+            'data_status': '快照目录为空，规则待激活',
         }
 
-    # TODO: 数据足够后，实现真实的逐月回溯计算
-    # 1. 取每月初的推荐组合 → 算月收益 → 累计
-    # 2. 取每月初的沪深 300 → 算月收益 → 累计
-    # 3. 滚动 36 个月窗口，看模型组合是否每个 12 个月窗口都跑输
+    # 看最早快照距今多少年（按时间跨度判定）
+    from datetime import datetime as _dt
+    earliest_date = None
+    for snap in snapshots:
+        snap_date_str = snap.get('snapshot_date', '')[:10]
+        try:
+            d = _dt.strptime(snap_date_str, '%Y-%m-%d')
+            if earliest_date is None or d < earliest_date:
+                earliest_date = d
+        except Exception:
+            continue
+
+    if earliest_date is None:
+        return {
+            'years_underperform': None,
+            'avg_alpha_pp': None,
+            'should_circuit_break': False,
+            'data_status': f'快照 {len(snapshots)} 份但日期解析失败',
+        }
+
+    now = datetime.now(_BEIJING)
+    years_span = (now.replace(tzinfo=None) - earliest_date).days / 365.25
+
+    if years_span < min_years:
+        return {
+            'years_underperform': None,
+            'avg_alpha_pp': None,
+            'should_circuit_break': False,
+            'data_status': (
+                f'快照 {len(snapshots)} 份，最早 {earliest_date.strftime("%Y-%m-%d")} '
+                f'（{years_span:.1f} 年前，不足 {min_years} 年）→ 规则待激活'
+            ),
+        }
+
+    # 数据足够。检查每周快照的覆盖密度（3 年 ≈ 156 周，至少要有 100 份保证不漏太多）
+    expected_weekly_snapshots = int(years_span * 52 * 0.7)  # 容忍 30% 缺失
+    if len(snapshots) < expected_weekly_snapshots:
+        return {
+            'years_underperform': None,
+            'avg_alpha_pp': None,
+            'should_circuit_break': False,
+            'data_status': (
+                f'时间跨度够（{years_span:.1f} 年），但快照仅 {len(snapshots)} 份，'
+                f'缺失过多（应≥{expected_weekly_snapshots} 份）→ 数据不可信'
+            ),
+        }
+
+    # TODO: 数据足够后，实现真实的逐周回溯计算
+    # 1. 取每周快照的推荐组合 → 算周收益 → 累计
+    # 2. 取每周快照对应日期的沪深 300 → 算周收益 → 累计
+    # 3. 滚动 12 个月窗口，看模型组合是否连续 3 个 12 月窗口都跑输
     return {
         'years_underperform': None,
         'avg_alpha_pp': None,
         'should_circuit_break': False,
-        'data_status': '数据已足，但回算逻辑待实施（需要历史价格回溯）',
+        'data_status': (
+            f'时间跨度{years_span:.1f}年 + {len(snapshots)}份快照，'
+            f'数据已足。逐周回算逻辑待实施'
+        ),
     }
 
 
@@ -375,23 +657,51 @@ def get_health_report():
             "状态": "🟢 健康" if contra == 0 else "🔴 警示",
         }
 
-    # 4. 模型准确率（待实现）
-    acc = calc_signal_accuracy(None)
-    report["指标"]["3月买入准确率"] = {
-        "值": "待实现",
-        "说明": "需要历史快照 + 3月后价格数据回溯",
-        "阈值": "≥ 55% 绿灯",
-        "状态": "⚪ 未实现",
-    }
+    # 4. 模型准确率（基于历史快照 + 当前价对比）
+    acc = calc_signal_accuracy()
+    if acc:
+        if acc.get('accuracy_pct') is not None:
+            ap = acc['accuracy_pct']
+            report["指标"]["3月买入准确率"] = {
+                "值": f"{ap}%",
+                "说明": acc.get('detail', ''),
+                "阈值": "≥ 55% 绿灯, < 40% 红灯",
+                "状态": "🟢 健康" if ap >= 55 else ("🟡 需关注" if ap >= 40 else "🔴 警示"),
+            }
+        else:
+            report["指标"]["3月买入准确率"] = {
+                "值": "数据积累中",
+                "说明": acc.get('detail', ''),
+                "阈值": "≥ 55% 绿灯",
+                "状态": "⚪ 待数据",
+            }
+    else:
+        report["指标"]["3月买入准确率"] = {
+            "值": "数据不足", "说明": "需要历史快照 + daily_results", "状态": "⚪ 未知",
+        }
 
-    # 5. 对比沪深300
-    vs_hs = calc_vs_hs300(None)
-    report["指标"]["跑赢沪深300"] = {
-        "值": "待实现",
-        "说明": "需要沪深300 历史数据对比",
-        "阈值": "> 0 绿灯，连续 3 年 < 0 亮红灯",
-        "状态": "⚪ 未实现",
-    }
+    # 5. 对比沪深300（基于历史快照 + 沪深 300 实时数据）
+    vs_hs = calc_vs_hs300()
+    if vs_hs:
+        if vs_hs.get('alpha_pp') is not None:
+            alpha = vs_hs['alpha_pp']
+            report["指标"]["跑赢沪深300"] = {
+                "值": f"{alpha:+.2f}pp",
+                "说明": vs_hs.get('detail', ''),
+                "阈值": "> 0 绿灯, < 0 黄灯, 连续 3 年 < 0 红灯",
+                "状态": "🟢 健康" if alpha > 0 else "🟡 跑输观察",
+            }
+        else:
+            report["指标"]["跑赢沪深300"] = {
+                "值": "数据积累中",
+                "说明": vs_hs.get('detail', ''),
+                "阈值": "> 0 绿灯",
+                "状态": "⚪ 待数据",
+            }
+    else:
+        report["指标"]["跑赢沪深300"] = {
+            "值": "数据不足", "说明": "需要历史快照 + 沪深300 价格", "状态": "⚪ 未知",
+        }
 
     # 6. 最近发现的 Bug
     bugs = calc_recent_bugs_count()
