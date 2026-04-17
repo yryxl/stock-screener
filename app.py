@@ -253,6 +253,29 @@ def render_market_temperature_banner():
         )
         st.markdown(croc_html, unsafe_allow_html=True)
 
+        # TODO-001：大底熔断状态展示（2026-04-17）
+        # 用户反馈"前端没看到熔断机制相关内容"，把回测 path_c 策略的两条规则
+        # 显式告诉用户，让他知道极冷温度下系统在做什么
+        # 来源：backtest_autorun.py path_b/path_c（market_temp == -2 触发）
+        meltdown_html = (
+            '<div style="background:#fff3cd;padding:12px 18px;border-left:5px solid #f57f17;'
+            'border-radius:6px;margin-bottom:15px;">'
+            '<div style="font-size:17px;font-weight:bold;color:#bf360c;">'
+            '🚨 大底熔断已激活（path_c 策略）</div>'
+            '<div style="color:#222;font-size:14px;line-height:1.7;margin-top:6px;">'
+            '系统在回测中对极冷温度（沪深300 PE ≤ 历史 15% 分位）执行的两条特殊规则：'
+            '<ul style="margin:6px 0 0 0;padding-left:20px;">'
+            '<li><b>⛔ 跳过"贵了卖出"信号</b>：极冷区任何 PE 类减仓都是错的（保留必须卖：退市/护城河松动）</li>'
+            '<li><b>💰 买入预算翻倍</b>：常规 1.30 万/月 → 大底 2.00 万/月（54% 加仓力度）</li>'
+            '</ul>'
+            '<div style="color:#5d4037;font-size:13px;margin-top:8px;">'
+            '💡 实操建议：这是回测策略的自动行为，实际操作仍按"宁可错过不犯错"原则。'
+            '回测验证：path_c 比基线（baseline）+ 28.9pp（25 年累计）'
+            '</div>'
+            '</div></div>'
+        )
+        st.markdown(meltdown_html, unsafe_allow_html=True)
+
     # REQ-182：利率环境监测（利率冲击 → PE 区间收紧）
     # 巴菲特：利率是万物的引力。利率 12 个月上升 >1.5pp 会系统性压低股票估值
     try:
