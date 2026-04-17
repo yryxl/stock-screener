@@ -253,6 +253,48 @@ def render_market_temperature_banner():
         )
         st.markdown(croc_html, unsafe_allow_html=True)
 
+    # REQ-182：利率环境监测（利率冲击 → PE 区间收紧）
+    # 巴菲特：利率是万物的引力。利率 12 个月上升 >1.5pp 会系统性压低股票估值
+    try:
+        from china_adjustments import check_interest_rate_shock
+        rate_info = _get_cached_interest_rate()
+        if rate_info and rate_info.get("yield_data"):
+            y = rate_info["yield_data"]
+            current = y["current"]
+            delta = y["delta_pp"]
+            if rate_info["shock"]:
+                # 利率冲击：红色警告
+                rate_html = (
+                    '<div style="background:#ffe0b2;padding:10px 16px;border-left:5px solid #ef6c00;'
+                    'border-radius:6px;margin-bottom:15px;">'
+                    '<div style="font-size:15px;font-weight:bold;color:#e65100;">⚡ 利率冲击警告（REQ-182）</div>'
+                    f'<div style="color:#333;font-size:13px;line-height:1.6;margin-top:3px;">'
+                    f'10 年国债 12 个月上升 <b>+{delta:.2f}pp</b>（{y["past"]:.2f}% → {current:.2f}%）。'
+                    f'利率是万物的引力——PE 合理区间建议内部乘 <b>0.85</b>。'
+                    '</div></div>'
+                )
+                st.markdown(rate_html, unsafe_allow_html=True)
+            else:
+                # 正常：蓝色小提示（低调展示）
+                rate_caption = (
+                    f'<div style="color:#666;font-size:12px;margin-bottom:8px;">'
+                    f'🏦 10 年国债 {current:.2f}%（12 个月 {delta:+.2f}pp，利率环境正常）'
+                    '</div>'
+                )
+                st.markdown(rate_caption, unsafe_allow_html=True)
+    except Exception:
+        pass
+
+
+# REQ-182：国债利率缓存（调用 china_adjustments）
+@st.cache_data(ttl=86400, show_spinner=False)
+def _get_cached_interest_rate():
+    try:
+        from china_adjustments import check_interest_rate_shock
+        return check_interest_rate_shock()
+    except Exception:
+        return None
+
 
 # REQ-187：按市场温度动态计算总仓位上限（用于持仓页健康度提示）
 # 阈值来源：

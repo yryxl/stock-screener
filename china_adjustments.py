@@ -959,6 +959,138 @@ def check_drain_business(df_annual, industry):
 
 
 # ============================================================
+# REQ-182：利率环境修正（2026-04-16）
+# ============================================================
+# 校验后完全改逻辑（REQ-VERIFY-001）：
+#   原方案"国债 >4% 触发 PE 收窄"严重过时
+#   当前中国 10 年国债 1.78%，2026 机构预测区间 1.6-2.1%
+#   历史高点 2014 年约 4.6%，4% 是历史级别高位，日常用不到
+#
+# 新逻辑（2 条）：
+#   1. 利率冲击：国债 12 个月内上升 >1.5pp → PE 区间乘 0.85（冲击性收紧）
+#   2. 债股切换线：股息率 - 国债 > 2pp → 高股息股吸引力标签（当前环境股息>4% 就触发）
+#
+# 数据源：akshare bond_zh_us_rate
+
+_BOND_CACHE = {"data": None, "ts": 0}
+
+
+def get_china_bond_yield(lookback_months=12):
+    """
+    REQ-182：拉取中国 10 年国债收益率（当前值 + 12 个月前值）
+    缓存 24 小时（国债数据日更）
+
+    返回：{"current": 1.78, "past": 3.30, "delta_pp": -1.52, "date_current": "...", "date_past": "..."}
+          或 None（数据拉取失败）
+    """
+    import time
+    # 24h 缓存
+    if _BOND_CACHE["data"] and (time.time() - _BOND_CACHE["ts"]) < 86400:
+        return _BOND_CACHE["data"]
+
+    try:
+        import akshare as ak
+        df = ak.bond_zh_us_rate(start_date="20200101")  # 拉近 6 年
+        if df is None or df.empty:
+            return None
+        df = df.sort_values("日期").reset_index(drop=True)
+        # 最新
+        latest = df.iloc[-1]
+        current = float(latest.get("中国国债收益率10年", 0))
+        date_current = str(latest.get("日期", ""))
+        if current <= 0:
+            return None
+
+        # 12 个月前（约 244 个交易日前）
+        target_idx = max(0, len(df) - 1 - lookback_months * 22)  # 每月约 22 交易日
+        past_row = df.iloc[target_idx]
+        past = float(past_row.get("中国国债收益率10年", 0))
+        date_past = str(past_row.get("日期", ""))
+
+        result = {
+            "current": current,
+            "past": past,
+            "delta_pp": current - past,
+            "date_current": date_current,
+            "date_past": date_past,
+        }
+        _BOND_CACHE["data"] = result
+        _BOND_CACHE["ts"] = time.time()
+        return result
+    except Exception as e:
+        print(f"国债数据拉取失败: {e}")
+        return None
+
+
+def check_interest_rate_shock():
+    """
+    REQ-182：检测利率冲击（12 个月国债上升 >1.5pp）
+    触发时建议 PE 区间乘 0.85
+
+    返回：{"shock": bool, "multiplier": 0.85 or 1.0, "detail": str, "yield_data": {...}}
+    """
+    y = get_china_bond_yield(lookback_months=12)
+    if not y:
+        return {"shock": False, "multiplier": 1.0, "detail": "", "yield_data": None}
+
+    delta = y["delta_pp"]
+    current = y["current"]
+
+    if delta > 1.5:
+        return {
+            "shock": True,
+            "multiplier": 0.85,
+            "detail": (
+                f"利率冲击：10 年国债 12 个月上升 +{delta:.2f}pp "
+                f"（{y['past']:.2f}% → {current:.2f}%）→ PE 区间建议乘 0.85"
+            ),
+            "yield_data": y,
+        }
+    return {
+        "shock": False,
+        "multiplier": 1.0,
+        "detail": f"10 年国债 {current:.2f}%（12 月 {delta:+.2f}pp），利率环境正常",
+        "yield_data": y,
+    }
+
+
+def check_dividend_yield_premium(dividend_yield_pct):
+    """
+    REQ-182：债股切换线检测
+    当股息率 - 国债 > 2pp 时，高股息股吸引力增强（在当前 1.78% 环境下，股息 >3.78% 就触发）
+
+    参数：
+      dividend_yield_pct: 股息率（百分比，如 5.2 表示 5.2%）
+
+    返回：{"premium": bool, "spread_pp": float, "detail": str}
+    """
+    if dividend_yield_pct is None or dividend_yield_pct <= 0:
+        return {"premium": False, "spread_pp": 0, "detail": ""}
+
+    y = get_china_bond_yield()
+    if not y:
+        return {"premium": False, "spread_pp": 0, "detail": ""}
+
+    bond_yield = y["current"]
+    spread = dividend_yield_pct - bond_yield
+
+    if spread >= 2.0:
+        return {
+            "premium": True,
+            "spread_pp": spread,
+            "detail": (
+                f"高股息溢价：股息 {dividend_yield_pct:.1f}% - 国债 {bond_yield:.2f}% "
+                f"= +{spread:.2f}pp（>2pp 切换线，债股吸引力显著）"
+            ),
+        }
+    return {
+        "premium": False,
+        "spread_pp": spread,
+        "detail": f"股息 {dividend_yield_pct:.1f}% - 国债 {bond_yield:.2f}% = {spread:+.2f}pp",
+    }
+
+
+# ============================================================
 # REQ-184：要求 10% 年化回报倒推最高合理买入价（2026-04-16）
 # ============================================================
 # 校验后纠正（REQ-VERIFY-001）：
