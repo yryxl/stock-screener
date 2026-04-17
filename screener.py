@@ -466,6 +466,9 @@ def screen_single_stock(code, config, quotes_df):
         "cashcow_detail": "",     # REQ-180：印钞机详情
         "max_buy_price_rr10": None,  # REQ-184：10% required return 倒推的最高合理买入价
         "rr10_detail": "",        # REQ-184：倒推计算过程详情
+        "mgmt_score": None,       # REQ-185：管理层积分卡（0-100）
+        "mgmt_tier": "",          # REQ-185：优秀/中性/注意/警告
+        "mgmt_flags": [],         # REQ-185：管理层触发的警告列表
     }
 
     df_indicator = get_financial_indicator(code)
@@ -557,6 +560,21 @@ def screen_single_stock(code, config, quotes_df):
         if is_smooth_suspicious:
             result["china_v3_risks"].append(smooth_detail)
             result["checks"]["v3_smoothness"] = {"passed": True, "detail": smooth_detail}
+
+        # REQ-185：管理层积分卡（MVP 3 维度：质押+商誉+分红）
+        # 好人维度 —— 巴菲特三好原则之一
+        from china_adjustments import check_management_scorecard
+        mgmt = check_management_scorecard(code, roe_avg_5y, df_annual)
+        result["mgmt_score"] = mgmt["score"]
+        result["mgmt_tier"] = mgmt["tier"]
+        result["mgmt_flags"] = mgmt["flags"]
+        if mgmt["score"] < 60:
+            for flag in mgmt["flags"]:
+                result["china_v3_risks"].append(f"管理层：{flag}")
+            result["checks"]["v3_mgmt"] = {
+                "passed": mgmt["score"] >= 40,
+                "detail": f"管理层评分 {mgmt['score']:.0f}/100 ({mgmt['tier']})"
+            }
     except Exception as e:
         print(f"  {code} 中国国情版 v3 检查异常: {e}")
 

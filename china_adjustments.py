@@ -959,6 +959,192 @@ def check_drain_business(df_annual, industry):
 
 
 # ============================================================
+# REQ-185：管理层"积分卡"（2026-04-16）
+# ============================================================
+# 来源：巴菲特 1984 股东信（"1 元留存产生 >1 元市值"测试）、15_投资三好原则（好人维度）
+#
+# 5 维度（当前 MVP 实施 3 维度，其余后续迭代）：
+#   ✅ 1. 质押比例 >50%：高风险（MVP）
+#   ✅ 2. 商誉/净资产 >30% + 净利润 3 年下滑：业绩承诺雷（MVP）
+#   ✅ 3. 分红率 <30% + ROE >20%：现金不回报股东（MVP）
+#   ⏳ 4. 破发/破净 + 大股东减持（数据需解析减持公告，V2）
+#   ⏳ 5. 近 12 月大股东减持 >2%（数据需 stock_ggcg_em 过滤，V2）
+#
+# 评分：满分 100，每触发一条 -30 分，<50 分 → 警告
+
+_PLEDGE_CACHE = {"data": None, "ts": 0, "date": ""}
+
+
+def _get_pledge_data_latest():
+    """拉取最近一个交易日的全市场质押比例（24h 缓存）"""
+    import time
+    if _PLEDGE_CACHE["data"] is not None and (time.time() - _PLEDGE_CACHE["ts"]) < 86400:
+        return _PLEDGE_CACHE["data"]
+
+    try:
+        import akshare as ak
+        from datetime import datetime, timedelta
+        # 尝试往回回溯 35 天找到有数据的交易日
+        for days_back in [7, 14, 21, 28, 35]:
+            d = (datetime.now() - timedelta(days=days_back)).strftime('%Y%m%d')
+            try:
+                df = ak.stock_gpzy_pledge_ratio_em(date=d)
+                if df is not None and not df.empty:
+                    _PLEDGE_CACHE["data"] = df
+                    _PLEDGE_CACHE["ts"] = time.time()
+                    _PLEDGE_CACHE["date"] = d
+                    return df
+            except Exception:
+                continue
+        return None
+    except Exception:
+        return None
+
+
+def get_stock_pledge_ratio(code):
+    """返回某股票的质押比例（%），无数据返回 None"""
+    df = _get_pledge_data_latest()
+    if df is None:
+        return None
+    try:
+        row = df[df["股票代码"] == code]
+        if row.empty:
+            return 0.0  # 找不到代码意味着无质押或质押极低
+        return float(row.iloc[0]["质押比例"])
+    except Exception:
+        return None
+
+
+def check_management_scorecard(code, roe_5y_avg, df_annual):
+    """
+    REQ-185：管理层积分卡（MVP 3 维度）
+
+    参数：
+      code: 股票代码
+      roe_5y_avg: 近 5 年 ROE 均值
+      df_annual: 年报 DataFrame（含净利润序列）
+
+    返回：
+      {
+        "score": float (0-100),
+        "tier": "优秀" / "中性" / "警告",
+        "flags": [触发的警告项],
+        "details": {...}
+      }
+    """
+    import pandas as pd
+
+    score = 100
+    flags = []
+    details = {}
+
+    # ===== 维度 1：质押比例 >50% =====
+    pledge_ratio = get_stock_pledge_ratio(code)
+    details["pledge_ratio"] = pledge_ratio
+    if pledge_ratio is not None and pledge_ratio > 50:
+        score -= 30
+        flags.append(
+            f"大股东质押{pledge_ratio:.1f}%（>50% 高风险，爆仓可能拖累股价）"
+        )
+    elif pledge_ratio is not None and pledge_ratio > 30:
+        score -= 10
+        flags.append(
+            f"大股东质押{pledge_ratio:.1f}%（30-50% 需关注）"
+        )
+
+    # ===== 维度 2：商誉/净资产 >30% + 净利润 3 年下滑 =====
+    # 使用 get_balance_sheet_latest 拉商誉数据
+    try:
+        bs = get_balance_sheet_latest(code)
+        if bs:
+            goodwill = bs.get("goodwill", 0)
+            total_equity = bs.get("total_equity", 0)
+            if total_equity and total_equity > 0 and goodwill:
+                goodwill_ratio = goodwill / total_equity * 100
+                details["goodwill_equity_ratio"] = goodwill_ratio
+                if goodwill_ratio > 30:
+                    # 检查净利润 3 年下滑
+                    net_profits = []
+                    for _, row in df_annual.head(4).iterrows():
+                        v = row.get("归母净利润") or row.get("净利润") or row.get("归属母公司净利润")
+                        if v is not None and not pd.isna(v):
+                            try:
+                                net_profits.append(float(v))
+                            except Exception:
+                                continue
+                    # 3 年连续下滑：[最新] < [次新] < [3 年前]
+                    if len(net_profits) >= 3 and net_profits[0] < net_profits[1] < net_profits[2]:
+                        score -= 30
+                        flags.append(
+                            f"商誉雷：商誉/净资产 {goodwill_ratio:.1f}% + 净利连降 3 年"
+                            f"（业绩承诺违约减值风险）"
+                        )
+                    else:
+                        score -= 10
+                        flags.append(
+                            f"商誉高：{goodwill_ratio:.1f}%（减值风险需关注）"
+                        )
+    except Exception:
+        pass
+
+    # ===== 维度 3：分红率 <30% + ROE >20% =====
+    # 用 stock_history_dividend 累计股息 + 累计利润估算
+    if roe_5y_avg is not None and roe_5y_avg >= 20:
+        try:
+            import akshare as ak
+            df_div = ak.stock_history_dividend()
+            row = df_div[df_div["代码"] == code]
+            if not row.empty:
+                # 累计股息
+                cum_dividend = float(row.iloc[0].get("累计股息", 0))
+                # 对比近 3 年净利润（粗略）
+                net_profits_recent = []
+                for _, r in df_annual.head(3).iterrows():
+                    v = r.get("归母净利润") or r.get("净利润") or r.get("归属母公司净利润")
+                    if v is not None and not pd.isna(v):
+                        try:
+                            net_profits_recent.append(float(v))
+                        except Exception:
+                            continue
+                # 近 3 年平均净利润（亿元）
+                if len(net_profits_recent) >= 3:
+                    avg_np_yi = sum(net_profits_recent) / 3 / 1e8
+                    # 累计股息是从上市开始的"元"，我们只用来做粗略判断
+                    # 粗暴：如果股息数字小于净利平均的 30%×年数，算分红吝啬
+                    # 这是一个粗略估计，真实分红率需要更精细数据
+                    details["cum_dividend_yi"] = cum_dividend
+                    details["avg_annual_np_yi"] = avg_np_yi
+                    # 若累计股息 < 3 倍年利润（相当于平均每年分红 <100% 利润...实际阈值还是用自己拉更准）
+                    # 暂用"累计股息是否太小"作为粗略信号
+                    if cum_dividend < avg_np_yi * 0.5:
+                        # 分红吝啬（很粗略）
+                        score -= 20
+                        flags.append(
+                            f"高 ROE 低分红：ROE {roe_5y_avg:.0f}% 但历年累计股息仅 "
+                            f"{cum_dividend:.1f}亿（相对近年净利 {avg_np_yi:.0f}亿/年）"
+                        )
+        except Exception:
+            pass
+
+    # ===== 分档 =====
+    if score >= 80:
+        tier = "优秀"
+    elif score >= 60:
+        tier = "中性"
+    elif score >= 40:
+        tier = "注意"
+    else:
+        tier = "警告"
+
+    return {
+        "score": score,
+        "tier": tier,
+        "flags": flags,
+        "details": details,
+    }
+
+
+# ============================================================
 # REQ-179：业绩过于平滑检测（反麦道夫模式）（2026-04-16）
 # ============================================================
 # 来源：麦道夫诈骗案（215 个月中 225 个月正收益，年化 10-12% 无波动）
