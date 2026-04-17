@@ -899,11 +899,12 @@
     - 函数：`china_adjustments.check_policy_risk()` + `adjust_signal_by_policy_risk()`
     - 接入：`china_adjustments.py:273` 主流程已调用
     - 效果：政策敏感行业的买入信号自动降级
-  - **子项 B：国企/民企区分** ❌ **未实现**
-    - 设想：按股票代码前缀识别（如 600/601/603 多为国企，002/300 多为民企）
-    - 价值：A 股政策风险主要落在民企，国企稳定
-    - 当前缺失：全代码搜索无 is_soe/国企/state_owned 关键词
-    - **见 TODO-032**
+  - **子项 B：国企/民企区分** ✅ 2026-04-17 已完成（TODO-032）
+    - 后端：`china_adjustments.is_state_owned(code)` + `calc_holdings_ownership_breakdown(holdings)`
+    - 前端：app.py 持仓总览区下方 4 列指标（国企/民企/未知 + 健康度提示）
+    - 数据：高置信度白名单（约 80 只大型国企 + 民企对照）+ 板块前缀粗判（002/003/300/301 必民企）
+    - 设计原则：宁可错过不犯错，不确定的归"未知"
+    - 警示阈值：民企占比 > 70% 红色警示
   - **子项 C：年轻公司白名单** ✅ 已完成
     - 函数：`china_adjustments.py:131-180`
     - 5 年 ROE ≥ 15% + 最低年份 ≥ 12% → 视同十年王者

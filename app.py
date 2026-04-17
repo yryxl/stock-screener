@@ -810,6 +810,58 @@ with tab2:
             st.metric("股债比", f"{_stock_pct:.1f}%",
                       _delta_str, delta_color=_delta_color)
 
+        # TODO-032 / REQ-152 子项 B：国企/民企占比展示
+        # 设计依据：A 股政策风险主要落在民企，国企稳定
+        # 民企占比 > 70% 时给警示，避免"看似分散，实际全压民企"
+        try:
+            from china_adjustments import calc_holdings_ownership_breakdown
+            # 排除 ETF/基金（5/1 开头），只算个股
+            stock_holdings = [h for h in holdings
+                              if not str(h.get('code', '')).startswith(('5', '1'))]
+            ownership = calc_holdings_ownership_breakdown(stock_holdings)
+            if ownership and ownership['total'] > 0:
+                _o1, _o2, _o3, _o4 = st.columns(4)
+                with _o1:
+                    st.metric("🏛️ 国企占比", f"{ownership['state_owned_pct']}%",
+                              f"{ownership['state_owned_count']} 只")
+                with _o2:
+                    _private_delta = "⚠ 政策风险高" if ownership['private_alert'] else f"{ownership['private_count']} 只"
+                    _private_color = "inverse" if ownership['private_alert'] else "normal"
+                    st.metric("🏢 民企占比", f"{ownership['private_pct']}%",
+                              _private_delta, delta_color=_private_color)
+                with _o3:
+                    st.metric("❓ 未知占比", f"{ownership['unknown_pct']}%",
+                              f"{ownership['unknown_count']} 只" if ownership['unknown_count'] else None)
+                with _o4:
+                    if ownership['private_alert']:
+                        st.markdown(
+                            '<div style="background:#ffebee;padding:8px 12px;border-left:3px solid #c62828;'
+                            'border-radius:4px;font-size:13px;color:#b71c1c;">'
+                            '⚠ 民企占比 > 70%<br>政策风险集中</div>',
+                            unsafe_allow_html=True)
+                    elif ownership['unknown_count'] >= ownership['total'] * 0.5:
+                        st.markdown(
+                            '<div style="background:#fff3e0;padding:8px 12px;border-left:3px solid #ef6c00;'
+                            'border-radius:4px;font-size:13px;color:#bf360c;">'
+                            '❓ 50%+ 未知<br>建议手动确认</div>',
+                            unsafe_allow_html=True)
+                    else:
+                        st.markdown(
+                            '<div style="background:#e8f5e9;padding:8px 12px;border-left:3px solid #2e7d32;'
+                            'border-radius:4px;font-size:13px;color:#1b5e20;">'
+                            '✅ 国企/民企<br>分布合理</div>',
+                            unsafe_allow_html=True)
+                # 可展开看明细
+                with st.expander("📋 国企/民企明细"):
+                    for d in ownership['detail']:
+                        st.markdown(f"- {d['status_label']} **{d['code']} {d['name']}**：{d['reason']}")
+                    st.caption(
+                        "💡 判定逻辑：高置信度白名单优先 → 板块前缀粗判 → 不确定的归未知。"
+                        "宁可错过不犯错，避免误判。"
+                    )
+        except Exception as _e:
+            pass  # 国企判定失败不影响主流程
+
         # 可编辑现金金额
         with st.expander("✏️ 修改可投资现金"):
             _new_cash = st.number_input(
