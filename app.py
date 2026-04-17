@@ -1235,10 +1235,25 @@ with tab2:
         with c2:
             new_name = st.text_input("名称", placeholder="贵州茅台")
             new_cost = st.number_input("成本价", min_value=0.01, value=10.0, step=0.01, format="%.3f")
-        new_cat = st.text_input("行业/类型（可选）", placeholder="ETF基金、白酒、医药等")
+        c3, c4 = st.columns(2)
+        with c3:
+            # REQ-151 规则 C 需要：买入日期字段（用于"持有 >3 年累计负收益"判定）
+            from datetime import date as _date
+            new_buy_date = st.date_input(
+                "买入日期", value=_date.today(),
+                help="REQ-151 规则 C 用：识别长期亏损股（持有>3年且累计为负 → 强制复查）"
+            )
+        with c4:
+            new_cat = st.text_input("行业/类型（可选）", placeholder="ETF基金、白酒、医药等")
         if st.form_submit_button("添加", use_container_width=True, type="primary"):
             if new_code:
-                new_h = {"code": new_code.strip(), "name": new_name.strip() or new_code.strip(), "shares": int(new_shares), "cost": float(new_cost)}
+                new_h = {
+                    "code": new_code.strip(),
+                    "name": new_name.strip() or new_code.strip(),
+                    "shares": int(new_shares),
+                    "cost": float(new_cost),
+                    "buy_date": new_buy_date.strftime("%Y-%m-%d"),
+                }
                 if new_cat.strip():
                     new_h["category"] = new_cat.strip()
                 holdings.append(new_h)
@@ -1255,18 +1270,36 @@ with tab2:
         if sel:
             idx = opts[sel]
             h = holdings[idx]
+            # 提示是否缺买入日期（REQ-151 规则 C 需要）
+            if not h.get("buy_date"):
+                st.warning("⚠ 此持仓缺买入日期，REQ-151 规则 C 长期亏损检测会跳过它。请补填。")
             with st.form("edit_h_form"):
                 c1, c2 = st.columns(2)
                 with c1:
                     es = st.number_input("新股数", min_value=0, value=h.get("shares", 0), step=100)
                 with c2:
                     ec = st.number_input("新成本价", min_value=0.01, value=float(h.get("cost", 10)), step=0.01, format="%.2f")
+                # 买入日期编辑（REQ-151 规则 C 用）
+                from datetime import date as _date, datetime as _dt
+                _existing_date = h.get("buy_date")
+                if _existing_date:
+                    try:
+                        _default_date = _dt.strptime(_existing_date, "%Y-%m-%d").date()
+                    except Exception:
+                        _default_date = _date.today()
+                else:
+                    _default_date = _date.today()
+                new_buy_date_edit = st.date_input(
+                    "买入日期", value=_default_date,
+                    help="REQ-151 规则 C 用：长期亏损股识别（>3年且累计负收益）"
+                )
                 if st.form_submit_button("更新", use_container_width=True):
                     if es == 0:
                         holdings.pop(idx)
                     else:
                         holdings[idx]["shares"] = int(es)
                         holdings[idx]["cost"] = float(ec)
+                        holdings[idx]["buy_date"] = new_buy_date_edit.strftime("%Y-%m-%d")
                     new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
                     if new_sha:
                         st.session_state["holdings_sha"] = new_sha
