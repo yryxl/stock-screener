@@ -186,6 +186,83 @@ load_all_data()
 st.title("📊 芒格选股系统")
 
 
+# REQ-151：模型可靠性熔断 banner（最高优先级，永远在最顶部）
+# 设计原则：模型本身是否可用 > 市场状态 > 个股信号
+# 触发：3 条规则任一红 → 红灯熔断；任一黄 → 黄灯警告；都绿 → 绿灯
+@st.cache_data(ttl=3600, show_spinner=False)
+def _get_cached_health_report():
+    try:
+        from model_health_monitor import get_health_report
+        return get_health_report()
+    except Exception:
+        return None
+
+
+def render_model_health_banner():
+    """渲染模型可靠性熔断 banner（REQ-151）"""
+    report = _get_cached_health_report()
+    if not report:
+        return
+
+    overall = report.get("总体", "")
+    advice = report.get("建议", "")
+    indicators = report.get("指标", {})
+
+    # 提取关键告警项（红/黄）
+    red_items = [k for k, v in indicators.items() if "🔴" in v.get("状态", "")]
+    yellow_items = [k for k, v in indicators.items() if "🟡" in v.get("状态", "")]
+
+    # 颜色配置
+    if "🔴" in overall:
+        bg, bd, txt = "#ffebee", "#c62828", "#b71c1c"  # 红
+        title = "🚨 模型可能失效 — 建议暂停按信号操作，转定投宽基"
+    elif "🟡" in overall:
+        bg, bd, txt = "#fff3e0", "#ef6c00", "#bf360c"  # 黄
+        title = "⚠ 模型需要关注"
+    else:
+        bg, bd, txt = "#e8f5e9", "#2e7d32", "#1b5e20"  # 绿
+        title = "✅ 模型健康（REQ-151 自动检测）"
+
+    # 黑天鹅特别提示（即使总体绿灯也要醒目展示）
+    swan = indicators.get("黑天鹅状态", {})
+    swan_html = ""
+    if "🔴" in swan.get("状态", "") or "🟡" in swan.get("状态", ""):
+        swan_html = (
+            f'<div style="margin-top:6px;padding:6px 10px;background:rgba(255,255,255,0.6);'
+            f'border-radius:4px;font-size:13px;">'
+            f'🦢 <b>{swan.get("值", "")}</b>：{swan.get("说明", "")}</div>'
+        )
+
+    # 警告项简述
+    alerts_html = ""
+    if red_items or yellow_items:
+        all_alerts = ["🔴 " + i for i in red_items] + ["🟡 " + i for i in yellow_items]
+        alerts_html = (
+            f'<div style="margin-top:4px;color:#555;font-size:12px;">'
+            f'告警项：{" / ".join(all_alerts[:5])}</div>'
+        )
+
+    # 健康度详情链接
+    detail_link = (
+        '<div style="margin-top:6px;font-size:12px;">'
+        '<a href="docs/模型健康度监控.html" target="_blank" style="color:#1976d2;">'
+        '📋 查看详细健康度报告 →</a></div>'
+    )
+
+    banner = (
+        f'<div style="background:{bg};padding:12px 18px;border-left:6px solid {bd};'
+        f'border-radius:6px;margin-bottom:15px;">'
+        f'<div style="font-size:16px;font-weight:bold;color:{txt};">{title}</div>'
+        f'<div style="color:#444;font-size:13px;margin-top:4px;">{advice}</div>'
+        f'{swan_html}{alerts_html}{detail_link}'
+        f'</div>'
+    )
+    st.markdown(banner, unsafe_allow_html=True)
+
+
+render_model_health_banner()
+
+
 # 市场温度计 banner（沪深300指数 PE 历史分位）
 # 先尝试从 daily_results 读取（快）, 没有则实时拉取（缓存 1 小时）
 # 重要：label/description 总是从 market_temperature.TEMP_LEVELS 动态查找

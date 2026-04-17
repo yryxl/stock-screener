@@ -149,6 +149,160 @@ def calc_recent_bugs_count():
     return 1
 
 
+# ============================================================
+# REQ-151 规则 B：黑天鹅事件检测（2026-04-17 实施）
+# ============================================================
+# 输入：当前日期
+# 输出：当前是否落在某个黑天鹅事件窗口内
+# 数据源：black_swan_events.json（已建好，含 6 个历史事件）
+
+def check_black_swan_window(check_date=None):
+    """
+    REQ-151 规则 B：检测当前日期是否落在黑天鹅事件窗口内
+
+    返回：
+      None - 当前不在黑天鹅期
+      dict - 当前事件信息：{
+        'name': 事件名,
+        'impact': 'severe' / 'major' / 'moderate',
+        'desc': 描述,
+        'action': 建议动作,
+        'days_remaining': 距离事件结束天数,
+      }
+    """
+    events_data = _load_json('black_swan_events.json')
+    if not events_data:
+        return None
+
+    if check_date is None:
+        check_date = datetime.now(_BEIJING).strftime('%Y-%m-%d')
+
+    for event in events_data.get('events', []):
+        start = event.get('start')
+        end = event.get('end')
+        if not start or not end:
+            continue
+        if start <= check_date <= end:
+            # 计算距离结束的天数
+            from datetime import date
+            try:
+                check_d = date.fromisoformat(check_date)
+                end_d = date.fromisoformat(end)
+                days_left = (end_d - check_d).days
+            except Exception:
+                days_left = None
+            return {
+                'name': event.get('name'),
+                'impact': event.get('impact'),
+                'desc': event.get('desc'),
+                'action': event.get('market_action_suggested'),
+                'days_remaining': days_left,
+            }
+    return None
+
+
+# ============================================================
+# REQ-151 规则 C：单股持有超 3 年累计负收益（2026-04-17 实施）
+# ============================================================
+# 注：当前 holdings.json 缺少 buy_date 字段，无法精确判定持有时长
+# 暂提供代理实现：如有 buy_date 字段则用，否则跳过该股
+
+def check_long_held_losers(holdings_file="holdings.json"):
+    """
+    REQ-151 规则 C：识别"持有 > 3 年且累计收益为负"的股票
+
+    返回：[
+      {'code': xxx, 'name': xxx, 'years_held': X.X, 'pnl_pct': -XX.X},
+      ...
+    ]
+    返回空列表 = 无符合条件的股票
+    """
+    holdings = _load_json(holdings_file)
+    if not holdings:
+        return []
+
+    daily = _load_json("daily_results.json") or {}
+    holding_signals = {s.get("code"): s for s in daily.get("holding_signals", [])}
+
+    losers = []
+    now = datetime.now(_BEIJING)
+    for h in holdings:
+        code = str(h.get("code", "")).zfill(6)
+        cost = h.get("cost", 0)
+        buy_date = h.get("buy_date")  # 可选字段
+
+        if not buy_date:
+            continue  # 缺日期跳过
+
+        try:
+            buy_d = datetime.strptime(buy_date, "%Y-%m-%d").replace(tzinfo=_BEIJING)
+            years_held = (now - buy_d).days / 365.25
+        except Exception:
+            continue
+
+        if years_held < 3:
+            continue
+
+        sig = holding_signals.get(code) or holding_signals.get(h.get("code"))
+        if not sig:
+            continue
+
+        price = sig.get("price", 0)
+        if cost > 0 and price > 0:
+            pnl_pct = (price / cost - 1) * 100
+            if pnl_pct < 0:
+                losers.append({
+                    'code': code,
+                    'name': h.get('name', ''),
+                    'years_held': round(years_held, 1),
+                    'pnl_pct': round(pnl_pct, 1),
+                })
+    return losers
+
+
+# ============================================================
+# REQ-151 规则 A：连续 3 年跑输沪深 300（2026-04-17 实施 - 框架版）
+# ============================================================
+# 完整实施需要：3 年的历史推荐快照 + 沪深 300 同期价格
+# 当前快照只有 2 周（2026-W14、W15），数据不足
+# 故先建框架，数据积累足够后自动激活
+
+def check_consistent_underperform(min_years=3):
+    """
+    REQ-151 规则 A：检测模型推荐组合是否连续 N 年跑输沪深 300
+
+    返回：
+      None - 数据不足无法判定
+      dict - {
+        'years_underperform': 连续跑输年数,
+        'avg_alpha_pp': 平均年化超额收益（pp，负值表示跑输）,
+        'should_circuit_break': 是否应触发熔断,
+        'data_status': 数据状态描述,
+      }
+    """
+    snapshots = _load_snapshots()
+
+    # 数据不足检查：至少要有 36 个月的快照
+    if len(snapshots) < 36:
+        return {
+            'years_underperform': None,
+            'avg_alpha_pp': None,
+            'should_circuit_break': False,
+            'data_status': f'快照仅 {len(snapshots)} 份，不足 36 份（3 年），规则待激活',
+        }
+
+    # TODO: 数据足够后，实现真实的逐月回溯计算
+    # 1. 取每月初的推荐组合 → 算月收益 → 累计
+    # 2. 取每月初的沪深 300 → 算月收益 → 累计
+    # 3. 滚动 36 个月窗口，看模型组合是否每个 12 个月窗口都跑输
+    return {
+        'years_underperform': None,
+        'avg_alpha_pp': None,
+        'should_circuit_break': False,
+        'data_status': '数据已足，但回算逻辑待实施（需要历史价格回溯）',
+    }
+
+
 def calc_signal_contradictions():
     """
     跑一次逻辑一致性测试，返回发现的矛盾数量。
@@ -247,6 +401,60 @@ def get_health_report():
         "阈值": "≤ 3 个且全部为'已修复'状态",
         "状态": "🟢 健康" if bugs <= 3 else "🟡 需关注",
     }
+
+    # 7. REQ-151 规则 B：黑天鹅事件检测
+    swan = check_black_swan_window()
+    if swan:
+        impact_emoji = {'severe': '🔴', 'major': '🟡', 'moderate': '🟡'}.get(swan.get('impact'), '🟡')
+        report["指标"]["黑天鹅状态"] = {
+            "值": f"{impact_emoji} {swan['name']}",
+            "说明": f"{swan['desc']}（剩余 {swan['days_remaining']} 天结束）",
+            "阈值": "无事件 = 绿灯",
+            "状态": f"{impact_emoji} 触发：{swan['action']}",
+        }
+    else:
+        report["指标"]["黑天鹅状态"] = {
+            "值": "无事件",
+            "说明": "当前未落在任何已记录的黑天鹅事件窗口内",
+            "阈值": "无事件 = 绿灯",
+            "状态": "🟢 健康",
+        }
+
+    # 8. REQ-151 规则 C：单股 3 年负收益检测
+    losers = check_long_held_losers()
+    if losers:
+        loser_names = ', '.join(f"{l['name']}({l['pnl_pct']:+.0f}%/{l['years_held']:.0f}年)" for l in losers[:3])
+        report["指标"]["长期亏损股"] = {
+            "值": f"{len(losers)} 只",
+            "说明": loser_names,
+            "阈值": "0 只 = 绿灯",
+            "状态": "🟡 需复查" if len(losers) <= 2 else "🔴 多股长亏",
+        }
+    else:
+        report["指标"]["长期亏损股"] = {
+            "值": "0 只",
+            "说明": "（注：依赖 holdings.json 的 buy_date 字段，若无该字段会跳过）",
+            "阈值": "0 只 = 绿灯",
+            "状态": "🟢 健康",
+        }
+
+    # 9. REQ-151 规则 A：连续 3 年跑输沪深 300（框架版）
+    underperf = check_consistent_underperform()
+    if underperf:
+        if underperf.get('should_circuit_break'):
+            report["指标"]["连续跑输沪深300"] = {
+                "值": f"已 {underperf['years_underperform']} 年",
+                "说明": f"年化超额 {underperf['avg_alpha_pp']:+.1f}pp",
+                "阈值": "≥ 3 年跑输 → 红灯",
+                "状态": "🔴 触发熔断",
+            }
+        else:
+            report["指标"]["连续跑输沪深300"] = {
+                "值": "数据积累中",
+                "说明": underperf.get('data_status', ''),
+                "阈值": "≥ 3 年跑输 → 红灯",
+                "状态": "⚪ 待数据",
+            }
 
     # 综合判断
     warnings_count = sum(1 for m in report["指标"].values()

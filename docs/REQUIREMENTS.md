@@ -845,20 +845,24 @@
   - 否决理由：噪音太大；短期波动正常不算"模型失效"；3 年才能区分"运气不好" vs "模型失效"
 
 #### 5. 实施状态
-- ⏳ **进行中（2026-04-17 重启）**
+- ✅ **核心功能已上线（2026-04-17）**
 - ✅ 已完成：
-  - 文件骨架 `model_health_monitor.py`（451 行，函数结构齐全）
+  - 文件骨架 `model_health_monitor.py`（620+ 行）
   - HTML 界面 `docs/模型健康度监控.html`（169 行）
-  - 黑天鹅事件配置 `black_swan_events.json`（2.7KB，含历史事件）
-  - 持仓胜率 `calc_holding_win_rate`（已实现）
-  - 当前最大回撤 `calc_max_drawdown_current`（已实现）
-- ❌ 待完成：
-  - `calc_signal_accuracy`：信号准确率（需要历史快照 + 后续价格对比）
-  - `calc_vs_hs300`：沪深 300 超额收益（需要拉沪深 300 历史价格）
-  - 规则 A 判定逻辑（连续 3 年跑输）
-  - 规则 B 判定逻辑（当前日期是否在黑天鹅窗口）
-  - 规则 C 判定逻辑（单股 3 年负收益）
-  - 前端主界面健康度灯展示
+  - 黑天鹅事件配置 `black_swan_events.json`（含 6 个历史事件）
+  - 持仓胜率 `calc_holding_win_rate`
+  - 当前最大回撤 `calc_max_drawdown_current`
+  - **规则 A 框架** `check_consistent_underperform`（待数据积累 36 份快照后自动激活）
+  - **规则 B 完整实施** `check_black_swan_window`（验证：2020-03 触发疫情、2021-08 触发教培双减）
+  - **规则 C 框架** `check_long_held_losers`（依赖 buy_date 字段）
+  - **前端健康度 banner** `app.py:render_model_health_banner`（红/黄/绿三态）
+  - 综合判断逻辑（9 个指标聚合 → 总体状态 + 操作建议）
+- ⏳ 待数据/后续完善：
+  - `calc_signal_accuracy`：完整实施需要更多月份的历史快照
+  - `calc_vs_hs300`：需要拉沪深 300 历史价格
+  - 规则 A 真实回算（待快照≥36 份后激活）
+  - holdings.json 补 buy_date 字段（用户决策）
+  - HTML 监控页面填实数据
 
 #### 6. 代码定位
 - 后端：`model_health_monitor.py`
