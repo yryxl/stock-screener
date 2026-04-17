@@ -464,6 +464,8 @@ def screen_single_stock(code, config, quotes_df):
         "cashcow_label": None,    # REQ-180：印钞机标签（cashcow_elite / cashcow / None）
         "cashcow_tier": "",       # REQ-180：印钞机档位描述
         "cashcow_detail": "",     # REQ-180：印钞机详情
+        "max_buy_price_rr10": None,  # REQ-184：10% required return 倒推的最高合理买入价
+        "rr10_detail": "",        # REQ-184：倒推计算过程详情
     }
 
     df_indicator = get_financial_indicator(code)
@@ -630,6 +632,26 @@ def screen_single_stock(code, config, quotes_df):
                     result["checks"]["v3_cigar_butt"] = {"passed": True, "detail": cigar_detail}
             except Exception as e:
                 print(f"  {code} 烟蒂警告异常: {e}")
+
+            # REQ-184：基于 10% required return 倒推最高合理买入价
+            # 作为第二估值锚（和行业 PE 区间互补，不替代）
+            try:
+                from china_adjustments import calc_required_return_max_price
+                pe_range = match_industry_pe(industry)
+                pe_fair_low = pe_range.get("fair_low") if pe_range else None
+                rr_result = calc_required_return_max_price(df_annual, pe_fair_low)
+                if rr_result:
+                    result["max_buy_price_rr10"] = rr_result["max_price"]
+                    result["rr10_detail"] = rr_result["detail"]
+                    # 如果当前价格超过 max_buy_price，加一条风险提示
+                    if price and price > rr_result["max_price"]:
+                        over_pct = (price / rr_result["max_price"] - 1) * 100
+                        result["china_v3_risks"].append(
+                            f"10% 回报锚超限：当前 ¥{price:.2f} 高于安全边际价 "
+                            f"¥{rr_result['max_price']:.2f}（超 {over_pct:.0f}%）"
+                        )
+            except Exception as e:
+                print(f"  {code} 10% 回报倒推异常: {e}")
 
             # 行业已在上方查过一次，直接复用
             signal, signal_text = get_pe_signal(pe, industry)

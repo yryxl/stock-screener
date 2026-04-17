@@ -959,6 +959,105 @@ def check_drain_business(df_annual, industry):
 
 
 # ============================================================
+# REQ-184：要求 10% 年化回报倒推最高合理买入价（2026-04-16）
+# ============================================================
+# 校验后纠正（REQ-VERIFY-001）：
+#   巴菲特的"10%"是 required return（要求回报率），不是 CAGR 增速假设
+#   折现用长期国债收益率，不是 10%
+#
+# 公式：
+#   基于保守假设的"安全边际价"：
+#   max_buy_price = future_eps_10y × target_pe_exit / (1 + required_return)^10
+#
+# 参数选择：
+#   future_eps_10y：用过去 3 年 EPS CAGR（capped at 12%，保守）外推 10 年后 EPS
+#   target_pe_exit：行业 fair_low（退出时保守估值）
+#   required_return：10%（巴菲特门槛）
+#
+# 解读：
+#   如果当前价格 ≤ max_buy_price → 有 10 年年化 10% 潜力的安全边际
+#   如果当前价格 > max_buy_price → 买入后难以达到 10% 年化回报
+
+def calc_required_return_max_price(df_annual, pe_fair_low, required_return=0.10):
+    """
+    REQ-184：基于 10% required return 倒推最高合理买入价
+
+    参数：
+      df_annual: 近 5+ 年年报 DataFrame（需要 EPS 字段）
+      pe_fair_low: 行业合理区间下限（退出估值假设）
+      required_return: 要求的年化回报率（默认 10%）
+
+    返回：
+      {
+        "max_price": float,       # 最高合理买入价
+        "eps_cagr_3y": float,     # 近 3 年 EPS CAGR
+        "future_eps_10y": float,  # 10 年后预期 EPS
+        "target_pe_exit": float,  # 退出 PE 假设
+        "detail": str,
+      }
+      或 None（数据不足）
+    """
+    import pandas as pd
+
+    if df_annual is None or df_annual.empty or len(df_annual) < 3:
+        return None
+    if not pe_fair_low or pe_fair_low <= 0:
+        return None
+
+    # 取 EPS（最新 → 最旧）
+    eps_list = []
+    for _, row in df_annual.head(5).iterrows():
+        e = row.get("摊薄每股收益") or row.get("每股收益") or row.get("基本每股收益")
+        if e is None or pd.isna(e):
+            continue
+        try:
+            eps_list.append(float(e))
+        except Exception:
+            continue
+    if len(eps_list) < 3:
+        return None
+
+    # 近 3 年 EPS CAGR（保守）
+    eps_latest = eps_list[0]
+    eps_3y_ago = eps_list[2]
+    if eps_3y_ago <= 0 or eps_latest <= 0:
+        return None
+    eps_cagr_3y = (eps_latest / eps_3y_ago) ** (1 / 2) - 1  # 2 年复合（3 年 3 个数据点 = 2 个周期）
+
+    # 保守假设：EPS CAGR 封顶 12%（现实世界里 10 年 12% CAGR 已经很优秀）
+    # 下限 0%（负增长就用 0 保守估计）
+    eps_cagr_capped = max(0, min(eps_cagr_3y, 0.12))
+
+    # 10 年后预期 EPS
+    future_eps_10y = eps_latest * (1 + eps_cagr_capped) ** 10
+
+    # 退出估值：用行业合理下限（保守）
+    target_pe_exit = pe_fair_low
+
+    # 倒推最高合理买入价
+    # 满足：buy_price × (1 + 10%)^10 = future_eps × target_pe_exit
+    # → buy_price = future_eps × target_pe_exit / (1.10)^10
+    discount_factor = (1 + required_return) ** 10
+    max_price = future_eps_10y * target_pe_exit / discount_factor
+
+    detail = (
+        f"按 10% required return 倒推：当前 EPS {eps_latest:.2f}元，"
+        f"3 年 EPS CAGR {eps_cagr_3y * 100:.1f}%（capped {eps_cagr_capped * 100:.0f}%），"
+        f"10 年后 EPS {future_eps_10y:.2f}元，"
+        f"退出 PE {target_pe_exit:.0f}，最高合理买入价 ¥{max_price:.2f}"
+    )
+
+    return {
+        "max_price": max_price,
+        "eps_cagr_3y": eps_cagr_3y,
+        "eps_cagr_used": eps_cagr_capped,
+        "future_eps_10y": future_eps_10y,
+        "target_pe_exit": target_pe_exit,
+        "detail": detail,
+    }
+
+
+# ============================================================
 # REQ-186：烟蒂警告（2026-04-16）
 # ============================================================
 # 来源：巴菲特 2014 年 50 周年股东信

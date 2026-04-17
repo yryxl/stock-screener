@@ -1009,6 +1009,28 @@
 ### REQ-169："好人"维度增强（待实施）
 - 管理层诚信相关指标（部分已在 REQ-160 中）
 
+### REQ-184：10% Required Return 倒推最高合理买入价（2026-04-16 ✅ 已实施）
+- **时间**：2026-04-16
+- **校验后纠正（REQ-VERIFY-001）**：
+  - 原方案误用"10% CAGR 增速假设"
+  - 实际：巴菲特的"10%"是 **required return（要求回报率）**，不是 CAGR 增速假设
+- **公式**：
+  - `max_buy_price = future_eps_10y × target_pe_exit / (1 + required_return)^10`
+  - `future_eps_10y = current_eps × (1 + eps_cagr_capped)^10`
+  - `eps_cagr_capped = max(0, min(eps_cagr_3y, 12%))` 保守封顶
+  - `target_pe_exit = 行业 fair_low`（退出估值保守）
+  - `required_return = 10%`（巴菲特门槛）
+- **实现**：
+  - `china_adjustments.py` 新增 `calc_required_return_max_price(df_annual, pe_fair_low, required_return=0.10)`
+  - `screener.py` 第三关 PE 拿到后调用
+  - 新增字段：`max_buy_price_rr10`、`rr10_detail`
+  - 若当前价超出安全边际，加入 `china_v3_risks` 警告
+- **验收（单元测试）**：
+  - 🟢 贵州茅台 EPS 68.64 → 最高买入价 ¥1643.84（当前 ~1500-1700 接近边际，合理）
+  - 🟢 格力电器 EPS 5.83 → ¥104.72（当前 ~40-50 远低于，明显低估）
+  - 🟡 海天味业 EPS 1.23 → ¥27.95（当前 ~40-50 超限）
+  - 🟢 五粮液 EPS 8.21 → ¥153.21（当前 ~120-150 接近）
+
 ### REQ-186：烟蒂警告（2026-04-16 ✅ 已实施）
 - **时间**：2026-04-16
 - **来源**：巴菲特 2014 年 50 周年股东信（"是芒格打破了我的烟蒂习惯"）
