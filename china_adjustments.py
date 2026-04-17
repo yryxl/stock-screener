@@ -1037,20 +1037,23 @@ def check_management_scorecard(code, roe_5y_avg, df_annual):
     score = 100
     flags = []
     details = {}
+    dimensions_evaluated = 0  # 实际拿到数据的维度数（0 表示完全没数据）
 
     # ===== 维度 1：质押比例 >50% =====
     pledge_ratio = get_stock_pledge_ratio(code)
     details["pledge_ratio"] = pledge_ratio
-    if pledge_ratio is not None and pledge_ratio > 50:
-        score -= 30
-        flags.append(
-            f"大股东质押{pledge_ratio:.1f}%（>50% 高风险，爆仓可能拖累股价）"
-        )
-    elif pledge_ratio is not None and pledge_ratio > 30:
-        score -= 10
-        flags.append(
-            f"大股东质押{pledge_ratio:.1f}%（30-50% 需关注）"
-        )
+    if pledge_ratio is not None:
+        dimensions_evaluated += 1
+        if pledge_ratio > 50:
+            score -= 30
+            flags.append(
+                f"大股东质押{pledge_ratio:.1f}%（>50% 高风险，爆仓可能拖累股价）"
+            )
+        elif pledge_ratio > 30:
+            score -= 10
+            flags.append(
+                f"大股东质押{pledge_ratio:.1f}%（30-50% 需关注）"
+            )
 
     # ===== 维度 2：商誉/净资产 >30% + 净利润 3 年下滑 =====
     # 使用 get_balance_sheet_latest 拉商誉数据
@@ -1060,6 +1063,7 @@ def check_management_scorecard(code, roe_5y_avg, df_annual):
             goodwill = bs.get("goodwill", 0)
             total_equity = bs.get("total_equity", 0)
             if total_equity and total_equity > 0 and goodwill:
+                dimensions_evaluated += 1
                 goodwill_ratio = goodwill / total_equity * 100
                 details["goodwill_equity_ratio"] = goodwill_ratio
                 if goodwill_ratio > 30:
@@ -1095,6 +1099,7 @@ def check_management_scorecard(code, roe_5y_avg, df_annual):
             df_div = ak.stock_history_dividend()
             row = df_div[df_div["代码"] == code]
             if not row.empty:
+                dimensions_evaluated += 1
                 # 累计股息
                 cum_dividend = float(row.iloc[0].get("累计股息", 0))
                 # 对比近 3 年净利润（粗略）
@@ -1127,6 +1132,16 @@ def check_management_scorecard(code, roe_5y_avg, df_annual):
             pass
 
     # ===== 分档 =====
+    # 边界保护（2026-04-17 修复）：所有维度都拿不到数据时，返回"数据不足"
+    # 旧 bug：3 维度全空仍然给 100 分，会让新股/退市股被误标为"优秀"
+    if dimensions_evaluated == 0:
+        return {
+            "score": None,
+            "tier": "数据不足",
+            "flags": ["管理层评分：3 个维度（质押/商誉/分红）全部无数据，无法判定"],
+            "details": details,
+        }
+
     if score >= 80:
         tier = "优秀"
     elif score >= 60:
@@ -1544,11 +1559,20 @@ def check_cigar_butt_warning(code, industry, pe_ttm, df_annual):
 
     avg_10y = sum(roes) / 10
 
-    # 烟蒂：PE<10 + 10 年 ROE 均值 <10%（长期赚不到钱却被当便宜货）
+    # 烟蒂陷阱：PE<10 + 10 年 ROE 均值 <10%（长期赚不到钱却被当便宜货）
+    # ============================================================
+    # 文案强化（2026-04-17）：明确"陷阱、不可买"，避免任何"价值低估"暗示
+    # 设计依据（基于用户投资场景分析）：
+    #   1. 巴菲特捡烟蒂靠的是控股+换 CEO+清算派现，散户做不到，只能被动等
+    #   2. A 股环境对烟蒂更不利：造假率高、大股东掏空严重、退市机制不完善
+    #   3. 数学期望接近 0 甚至为负（造假率 1/5 时净收益 -50%）
+    #   4. 烟蒂规则的真实价值是"识别陷阱"，不是"推荐买入"
+    # ============================================================
     if avg_10y < 10:
         return True, (
-            f"烟蒂警告：PE {pe_ttm:.1f}（看似便宜）+ 10年ROE均值仅{avg_10y:.1f}%"
-            f"（长期赚不到钱，是格雷厄姆式烟蒂陷阱）→ 芒格原则：公道价买伟大企业"
+            f"🚫 烟蒂陷阱（不可买）：PE {pe_ttm:.1f} 看似便宜 + 10 年 ROE 均值仅 {avg_10y:.1f}%"
+            f" → A 股造假率高+大股东掏空，便宜大概率是便宜得有道理。"
+            f"芒格：烟蒂永远在跑步机上，赚不到大钱"
         )
 
     return False, ""
@@ -1619,7 +1643,11 @@ def check_cashcow_label(code, industry, roe_5y_avg=None):
         detail: 说明文字
     """
     # 第一关：ROE 门槛（<20% 不是印钞机候选）
-    if roe_5y_avg is not None and roe_5y_avg < 20:
+    # 边界保护（2026-04-17 修复）：ROE 数据缺失时直接拒绝判定
+    # 旧 bug：传 None 会绕过 ROE 门槛，可能把"数据不足"的股误标为印钞机
+    if roe_5y_avg is None:
+        return None, "", ""
+    if roe_5y_avg < 20:
         return None, "", ""
 
     cashflow = get_cashflow_latest(code)

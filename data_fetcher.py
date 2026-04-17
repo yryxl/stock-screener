@@ -305,18 +305,24 @@ def get_debt_info(df_annual):
 
 
 def get_opm_series(df_annual):
-    """提取营业利润率序列"""
-    col = find_column(df_annual, ["营业利润率", "销售利润率"])
+    """提取利润率序列
+    优先级：营业利润率 > 销售利润率 > 销售净利率（akshare 默认字段名）
+    备注：akshare stock_financial_analysis_indicator 实际只返回"销售净利率"和"销售毛利率"
+    """
+    col = find_column(df_annual, ["营业利润率", "销售利润率", "销售净利率"])
     if col is None:
         return None
     return pd.to_numeric(df_annual[col], errors="coerce").dropna()
 
 
 def get_fcf_series(df_annual):
-    """提取每股经营现金流序列（近似自由现金流）"""
-    col = find_column(df_annual, ["每股经营性现金流", "每股经营现金流量"])
+    """提取每股经营现金流序列（近似自由现金流）
+    优先级：每股经营性现金流 > 每股经营现金流量 > 每股经营现金流（akshare 默认字段名）
+    备注：find_column 是子串匹配不支持正则，必须列出所有可能字段名
+    """
+    col = find_column(df_annual, ["每股经营性现金流", "每股经营现金流量", "每股经营现金流"])
     if col is None:
-        col = find_column(df_annual, ["经营.*现金"])
+        col = find_column(df_annual, ["经营现金", "经营性现金"])
     if col is None:
         return None
     return pd.to_numeric(df_annual[col], errors="coerce").dropna()

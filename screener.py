@@ -218,17 +218,24 @@ def get_pe_signal(current_pe, industry="", net_profit_growth=None):
 # ============================================
 
 def check_roe_no_leverage(df_annual, config):
+    """
+    第一关 ROE 检查：仅判断 ROE 高低（方案 A 重构 2026-04-17）
+
+    重构说明：
+    - 旧版同时检查"ROE 通过 + 负债率不超阈值（一刀切 60%）"，会误杀美的/格力等
+      "高 ROE + 中等杠杆"的优质消费股
+    - 新版职责单一，负债率交给三层防线：
+      * REQ-174 check_debt_health_tiered：按行业 4 档硬否决（消费 70/制造 85/基建 85）
+      * REQ-191 check_roe_leverage_quality：高 ROE 杠杆化软警告（按档位）
+      * 本函数：只判 ROE 是否够高
+    - 函数名保留向后兼容（live_rules.py 等多处引用）
+    """
     roe_series = get_roe_series(df_annual)
     if roe_series is None or len(roe_series) < 5:
         return False, "ROE数据不足"
     avg_roe = roe_series.mean()
     if avg_roe < config["screener"]["roe_min"]:
         return False, f"ROE均值{avg_roe:.1f}%"
-    debt_info = get_debt_info(df_annual)
-    if debt_info and debt_info.get("debt_ratio"):
-        debt_ratio = debt_info["debt_ratio"]
-        if not np.isnan(debt_ratio) and debt_ratio > config["screener"]["debt_ratio_max"]:
-            return False, f"ROE{avg_roe:.1f}%但负债率{debt_ratio:.1f}%（高杠杆）"
     return True, f"ROE均值{avg_roe:.1f}%"
 
 
@@ -568,13 +575,45 @@ def screen_single_stock(code, config, quotes_df):
         result["mgmt_score"] = mgmt["score"]
         result["mgmt_tier"] = mgmt["tier"]
         result["mgmt_flags"] = mgmt["flags"]
-        if mgmt["score"] < 60:
+        # 边界保护（2026-04-17 修复）：score=None 表示数据不足，跳过分档判断
+        if mgmt["score"] is not None and mgmt["score"] < 60:
             for flag in mgmt["flags"]:
                 result["china_v3_risks"].append(f"管理层：{flag}")
             result["checks"]["v3_mgmt"] = {
                 "passed": mgmt["score"] >= 40,
                 "detail": f"管理层评分 {mgmt['score']:.0f}/100 ({mgmt['tier']})"
             }
+
+        # REQ-186 v2：烟蒂陷阱前移到第零关（2026-04-17 方案 1 强化版）
+        # 设计变更：
+        #   原版（v1）：烟蒂检测在第三关 PE 信号阶段，但 ROE<15% 会被第一关否决
+        #              → 烟蒂的核心场景"PE<10 + ROE 长期<10%"永远走不到检测点
+        #   新版（v2）：前移到第零关末尾做标签，即使后续被否决，标签仍保留
+        #              告诉用户"看似便宜的股是陷阱，被否决是对的"
+        # 性能：只对 10年ROE<10% 的烟蒂候选股拉一次 PE，开销可控
+        from china_adjustments import check_cigar_butt_warning
+        if roe_series is not None and len(roe_series) >= 10:
+            roe_10y_avg = float(roe_series.head(10).mean())
+            if roe_10y_avg < 10:
+                pe_for_cigar = None
+                try:
+                    ttm = get_pe_ttm(code)
+                    if ttm and ttm.get("pe_ttm"):
+                        pe_for_cigar = ttm["pe_ttm"]
+                except Exception:
+                    pass
+                if pe_for_cigar is not None:
+                    is_cigar, cigar_detail = check_cigar_butt_warning(
+                        code, industry, pe_for_cigar, df_annual
+                    )
+                    if is_cigar:
+                        result["china_v3_risks"].append(cigar_detail)
+                        result["checks"]["v3_cigar_butt"] = {
+                            "passed": True, "detail": cigar_detail
+                        }
+                        # 提前记下 PE，第三关如果走到可以复用
+                        if result.get("pe") is None:
+                            result["pe"] = pe_for_cigar
     except Exception as e:
         print(f"  {code} 中国国情版 v3 检查异常: {e}")
 
@@ -651,14 +690,17 @@ def screen_single_stock(code, config, quotes_df):
 
             # REQ-186：烟蒂警告（PE<10 + 10 年 ROE 均值 <10%，排除强周期）
             # 芒格"公道价买伟大企业" > 格雷厄姆"便宜价买平庸企业"
-            try:
-                from china_adjustments import check_cigar_butt_warning
-                is_cigar, cigar_detail = check_cigar_butt_warning(code, industry, pe, df_annual)
-                if is_cigar:
-                    result["china_v3_risks"].append(cigar_detail)
-                    result["checks"]["v3_cigar_butt"] = {"passed": True, "detail": cigar_detail}
-            except Exception as e:
-                print(f"  {code} 烟蒂警告异常: {e}")
+            # 注：v2 版本（2026-04-17）已前移到第零关，本处仅作为兜底
+            # 如第零关已检测过（v3_cigar_butt 已存在），跳过避免重复
+            if "v3_cigar_butt" not in result.get("checks", {}):
+                try:
+                    from china_adjustments import check_cigar_butt_warning
+                    is_cigar, cigar_detail = check_cigar_butt_warning(code, industry, pe, df_annual)
+                    if is_cigar:
+                        result["china_v3_risks"].append(cigar_detail)
+                        result["checks"]["v3_cigar_butt"] = {"passed": True, "detail": cigar_detail}
+                except Exception as e:
+                    print(f"  {code} 烟蒂警告异常: {e}")
 
             # REQ-184：基于 10% required return 倒推最高合理买入价
             # 作为第二估值锚（和行业 PE 区间互补，不替代）
