@@ -959,6 +959,108 @@ def check_drain_business(df_annual, industry):
 
 
 # ============================================================
+# REQ-179：业绩过于平滑检测（反麦道夫模式）（2026-04-16）
+# ============================================================
+# 来源：麦道夫诈骗案（215 个月中 225 个月正收益，年化 10-12% 无波动）
+#
+# 校验后纠正（REQ-VERIFY-001）：
+#   麦道夫是"月度"稳定，不是年度
+#   A 股造假特征是存贷双高/存货异常（已由 REQ-160 覆盖），不是平滑
+#   所以本规则是"辅助警告"，用多条件（不仅看平滑度）避免误伤真正稳定的公司
+#
+# 触发条件（必须全部满足才警告）：
+#   1. 净利润 7 年变异系数 CV<5%（过于平滑）
+#   2. 经营现金流/净利润 <0.8（利润含水 — 真正稳定的公司 OCF 通常接近甚至超过净利）
+#   3. 非金融/非公用事业（这两类行业本来就平滑，不适用）
+
+def check_smoothness_madoff(df_annual, industry):
+    """
+    REQ-179：业绩过于平滑检测（反麦道夫）
+    多条件联合触发，避免误伤稳定蓝筹
+
+    返回：(is_suspicious, detail)
+    """
+    import pandas as pd
+
+    if df_annual is None or df_annual.empty or len(df_annual) < 7:
+        return False, ""
+
+    # 豁免：金融/公用事业/过路费（天然业绩稳定）
+    exempt_keywords = [
+        "银行", "保险", "证券", "券商",
+        "电力", "水电", "公用事业", "燃气",
+        "铁路", "港口", "高速", "铁路公路",
+    ]
+    if any(k in (industry or "") for k in exempt_keywords):
+        return False, ""
+
+    # 条件 1：净利润 7 年变异系数 <5%
+    net_profits = []
+    for _, row in df_annual.head(7).iterrows():
+        # 尝试"净利润同比" or 具体额度
+        v = row.get("归母净利润") or row.get("净利润") or row.get("归属母公司净利润")
+        if v is not None and not pd.isna(v):
+            try:
+                net_profits.append(float(v))
+            except Exception:
+                continue
+    if len(net_profits) < 7:
+        # 退而求其次用净利增长率序列（更稳健的代理）
+        growth_rates = []
+        for _, row in df_annual.head(7).iterrows():
+            g = row.get("净利润同比") or row.get("利润增长率") or row.get("net_profit_growth")
+            if g is not None and not pd.isna(g):
+                try:
+                    growth_rates.append(float(g))
+                except Exception:
+                    continue
+        if len(growth_rates) < 7:
+            return False, ""
+        # 用增长率序列的标准差作为平滑度指标
+        import statistics
+        std = statistics.stdev(growth_rates)
+        if std > 3:  # 增长率标准差 <3pp 视为过于平滑
+            return False, ""
+        smoothness_detail = f"净利润增速 7 年标准差 {std:.2f}pp"
+    else:
+        import statistics
+        mean = statistics.mean(net_profits)
+        if mean <= 0:
+            return False, ""
+        std = statistics.stdev(net_profits)
+        cv = std / abs(mean) * 100
+        if cv >= 5:  # CV >= 5% 就不算过于平滑
+            return False, ""
+        smoothness_detail = f"净利润 7 年变异系数 CV={cv:.1f}%"
+
+    # 条件 2：OCF/净利润 < 0.8（现金含金量低）
+    ocf_ratios = []
+    for _, row in df_annual.head(5).iterrows():
+        eps = row.get("eps") or row.get("每股收益") or row.get("基本每股收益")
+        ocf_ps = row.get("ocf_per_share") or row.get("每股经营现金流")
+        try:
+            eps_f = float(eps) if eps is not None else None
+            ocf_f = float(ocf_ps) if ocf_ps is not None else None
+            if eps_f and ocf_f and eps_f > 0:
+                ocf_ratios.append(ocf_f / eps_f)
+        except Exception:
+            continue
+    if len(ocf_ratios) < 3:
+        return False, ""  # 数据不足不判
+
+    import statistics
+    avg_ratio = statistics.mean(ocf_ratios)
+    if avg_ratio >= 0.8:
+        return False, ""  # 现金流健康，不是麦道夫
+
+    detail = (
+        f"业绩平滑警告：{smoothness_detail} 但 OCF/净利润均值仅 "
+        f"{avg_ratio:.2f}（<0.8，利润含水）→ 反麦道夫信号，需深查"
+    )
+    return True, detail
+
+
+# ============================================================
 # REQ-182：利率环境修正（2026-04-16）
 # ============================================================
 # 校验后完全改逻辑（REQ-VERIFY-001）：

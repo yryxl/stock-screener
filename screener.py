@@ -548,6 +548,15 @@ def screen_single_stock(code, config, quotes_df):
                 result["cashcow_tier"] = cc_tier
                 result["cashcow_detail"] = cc_detail
                 result["checks"]["v3_cashcow"] = {"passed": True, "detail": f"{cc_tier} {cc_detail}"}
+
+        # REQ-179：业绩过于平滑检测（反麦道夫）
+        # 多条件联合：CV<5% + OCF/净利润<0.8 + 非金融/公用事业
+        # 作为辅助警告，不影响通过/否决（主造假检测在 A 规则 + REQ-160）
+        from china_adjustments import check_smoothness_madoff
+        is_smooth_suspicious, smooth_detail = check_smoothness_madoff(df_annual, industry)
+        if is_smooth_suspicious:
+            result["china_v3_risks"].append(smooth_detail)
+            result["checks"]["v3_smoothness"] = {"passed": True, "detail": smooth_detail}
     except Exception as e:
         print(f"  {code} 中国国情版 v3 检查异常: {e}")
 
@@ -652,6 +661,8 @@ def screen_single_stock(code, config, quotes_df):
                         )
             except Exception as e:
                 print(f"  {code} 10% 回报倒推异常: {e}")
+
+            # REQ-182 股息溢价检测在第四关（评分/股息率拿到后）调用
 
             # 行业已在上方查过一次，直接复用
             signal, signal_text = get_pe_signal(pe, industry)
