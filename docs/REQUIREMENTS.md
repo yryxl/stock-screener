@@ -1616,3 +1616,31 @@ git commit + push
 - ✅ 茅台 OPM = 51.1%（销售净利率）
 - ✅ 茅台 FCF 充足
 - ✅ 全部 17 只股票字段填充完整，0 崩溃
+
+---
+
+## 🐛 REQ-FIX-002：印钞机 / 管理层评分 None 边界保护（2026-04-17 ✅ 已修）
+
+**背景**：第五阶段边界测试发现 2 个 None 处理隐患。
+
+### 问题 1：印钞机标签传 None ROE 时被错误标为"卓越印钞机"
+- **根因**：`check_cashcow_label` 的 ROE 门槛检查写法
+  ```python
+  if roe_5y_avg is not None and roe_5y_avg < 20:
+      return None
+  ```
+  当 `roe_5y_avg = None` 时条件不成立，**绕过了门槛检查**，继续往下走，最后只看 CapEx/净利就给标签
+- **修复**（[china_adjustments.py:1631](../china_adjustments.py#L1631)）：
+  ```python
+  if roe_5y_avg is None:
+      return None, "", ""  # 数据缺失直接拒绝判定
+  if roe_5y_avg < 20:
+      return None, "", ""
+  ```
+- **验收**：传 ROE=None 时返回 `(None, "", "")` ✅
+
+### 问题 2：管理层评分 3 个维度全空仍返回 100 分
+- **根因**：`check_management_scorecard` 从 score=100 起步只做减分。如果 3 个维度（质押/商誉/分红）全部拿不到数据，没有任何减分发生，最终输出 100 分（被错误标为"优秀"）
+- **修复**（[china_adjustments.py:1018](../china_adjustments.py#L1018)）：引入 `dimensions_evaluated` 计数器，当 3 维度全为 0 时返回 `score=None, tier="数据不足"`
+- **调用方适配**（[screener.py:578](../screener.py#L578)）：检查 `mgmt["score"] is not None` 后才参与分档判断
+- **验收**：未在生产环境触发（前置 `get_financial_indicator` 已拦截无效代码），仅作为加固保护
