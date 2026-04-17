@@ -922,6 +922,77 @@ with tab2:
         except Exception as _e:
             pass  # 配置检查失败不影响主流程
 
+        # TODO-005 / REQ-165：跨境市场 CAPE 透支警告
+        # 设计依据：Shiller CAPE 是 10 年通胀调整 PE，CAPE > 30 时未来 10 年实际回报通常 < 4%
+        # 重点：纳指当前 CAPE 45（历史次高级别），跨境配置必须了解估值状态
+        try:
+            from cape_monitor import get_all_market_cape_summary, check_cross_border_cape_alerts
+
+            # 4 市场 CAPE 概览
+            market_summaries = get_all_market_cape_summary()
+            if market_summaries:
+                # 持仓 CAPE 警告（如果持仓里有跨境 ETF）
+                _alerts = check_cross_border_cape_alerts(holdings)
+                _has_red_holding = any(a['status'] == 'red' for a in _alerts)
+
+                # 标题行
+                _title_color = '#c62828' if _has_red_holding else '#2e7d32'
+                _title_label = ('🚨 你的跨境持仓有 CAPE 透支警告' if _has_red_holding
+                                else '🌐 全球市场 CAPE 估值概览')
+                st.markdown(
+                    f'<div style="margin-top:14px;padding:8px 14px;background:#f5f5f5;'
+                    f'border-left:4px solid {_title_color};border-radius:4px;font-weight:bold;'
+                    f'font-size:14px;color:{_title_color};">{_title_label}（REQ-165）</div>',
+                    unsafe_allow_html=True
+                )
+
+                # 4 市场 metric（一行 4 列）
+                _cape_cols = st.columns(len(market_summaries))
+                for _i, _s in enumerate(market_summaries):
+                    with _cape_cols[_i]:
+                        _emoji = {'red': '🔴', 'yellow': '🟡', 'green': '🟢'}[_s['status']]
+                        _color = {'red': 'inverse', 'yellow': 'normal', 'green': 'normal'}[_s['status']]
+                        _delta = f"预期 {_s['forecast_return']}%/年" if _s['forecast_return'] is not None else ''
+                        st.metric(
+                            f"{_emoji} {_s['market']}",
+                            f"CAPE {_s['current_cape']:.1f}",
+                            _delta,
+                            delta_color=_color,
+                            help=_s['percentile_position']
+                        )
+
+                # 持仓警告详情
+                if _alerts:
+                    _red_alerts = [a for a in _alerts if a['status'] == 'red']
+                    _yellow_alerts = [a for a in _alerts if a['status'] == 'yellow']
+                    if _red_alerts:
+                        for a in _red_alerts:
+                            st.markdown(
+                                f'<div style="background:#ffebee;padding:10px 14px;border-left:4px solid #c62828;'
+                                f'border-radius:4px;margin-top:6px;font-size:13px;color:#b71c1c;">'
+                                f'<b>{a["etf_code"]} {a["etf_name"]}</b>：{a["message"]}'
+                                f'</div>',
+                                unsafe_allow_html=True
+                            )
+                    if _yellow_alerts:
+                        for a in _yellow_alerts:
+                            st.markdown(
+                                f'<div style="background:#fff3e0;padding:8px 12px;border-left:3px solid #ef6c00;'
+                                f'border-radius:4px;margin-top:6px;font-size:13px;color:#bf360c;">'
+                                f'<b>{a["etf_code"]} {a["etf_name"]}</b>：{a["message"]}'
+                                f'</div>',
+                                unsafe_allow_html=True
+                            )
+
+                st.caption(
+                    f'💡 数据来源 multpl.com（手动更新于 cape_data.json，'
+                    f'建议每月更新一次）。'
+                    f'CAPE > 历史 90% 分位 → 红灯（未来 10 年低回报）；'
+                    f'p70-p90 → 黄灯；≤p70 → 绿灯'
+                )
+        except Exception as _e:
+            pass  # CAPE 警告失败不影响主流程
+
         # 可编辑现金金额
         with st.expander("✏️ 修改可投资现金"):
             _new_cash = st.number_input(

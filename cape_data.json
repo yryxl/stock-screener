@@ -1,0 +1,90 @@
+{
+  "_comment": "REQ-165 / TODO-005 跨境市场 CAPE 数据（手动维护）",
+  "_purpose": "席勒 CAPE = 用过去 10 年通胀调整后的 EPS 算 PE，过滤短期波动。CAPE > 30 时未来 10 年股票实际回报通常 < 4%",
+  "_update_frequency": "每月更新一次（数据源：multpl.com / barclayhedge）",
+  "_version": "1.0",
+  "_updated": "2026-04-17",
+  "_source_attribution": "Shiller 数据 + multpl.com",
+
+  "markets": {
+    "S&P500": {
+      "name": "标普 500（美股大盘）",
+      "current_cape": 38.5,
+      "as_of": "2026-04",
+      "history": {
+        "median": 16.0,
+        "p70": 22.0,
+        "p90": 30.0,
+        "all_time_high": 44.0,
+        "all_time_high_year": 1999,
+        "long_term_avg": 17.0
+      },
+      "shiller_10y_forecast_real_return_pct": 1.5,
+      "_note": "Shiller 用 CAPE 倒推 10 年实际回报。CAPE 40 → 预期实际年化 1-2%"
+    },
+    "NASDAQ100": {
+      "name": "纳斯达克 100（美股科技）",
+      "current_cape": 45.0,
+      "as_of": "2026-04",
+      "history": {
+        "median": 22.0,
+        "p70": 30.0,
+        "p90": 38.0,
+        "all_time_high": 80.0,
+        "all_time_high_year": 2000,
+        "long_term_avg": 25.0
+      },
+      "shiller_10y_forecast_real_return_pct": 0.5,
+      "_note": "纳斯达克 CAPE 长期高于 S&P，因科技股估值溢价"
+    },
+    "HSI": {
+      "name": "恒生指数（港股大盘）",
+      "current_cape": 11.5,
+      "as_of": "2026-04",
+      "history": {
+        "median": 12.0,
+        "p70": 16.0,
+        "p90": 22.0,
+        "all_time_high": 30.0,
+        "all_time_high_year": 2007,
+        "long_term_avg": 13.0
+      },
+      "shiller_10y_forecast_real_return_pct": 7.0,
+      "_note": "港股长期 CAPE 低，价值洼地。但要警惕地缘政治+流动性陷阱"
+    },
+    "DAX": {
+      "name": "德国 DAX 30",
+      "current_cape": 22.0,
+      "as_of": "2026-04",
+      "history": {
+        "median": 18.0,
+        "p70": 22.0,
+        "p90": 28.0,
+        "all_time_high": 35.0,
+        "long_term_avg": 19.0
+      },
+      "shiller_10y_forecast_real_return_pct": 4.5,
+      "_note": "欧股 CAPE 中等，估值合理"
+    }
+  },
+
+  "etf_to_market_map": {
+    "513100": "NASDAQ100",
+    "513500": "S&P500",
+    "159632": "NASDAQ100",
+    "159834": "NASDAQ100",
+    "513030": "DAX",
+    "159920": "HSI",
+    "513660": "HSI",
+    "159740": "HSI",
+    "513900": "HSI",
+    "159850": "HSI"
+  },
+
+  "warning_thresholds": {
+    "_note": "CAPE 落在历史百分位的位置 → 警告等级",
+    "red": "CAPE > p90（历史 90% 分位）→ 透支严重，未来 10 年低回报",
+    "yellow": "p70 < CAPE ≤ p90 → 偏贵，谨慎加仓",
+    "green": "CAPE ≤ p70 → 合理"
+  }
+}
