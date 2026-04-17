@@ -253,15 +253,16 @@ def render_market_temperature_banner():
         )
         st.markdown(croc_html, unsafe_allow_html=True)
 
-        # TODO-001：大底熔断状态展示（2026-04-17）
-        # 用户反馈"前端没看到熔断机制相关内容"，把回测 path_c 策略的两条规则
-        # 显式告诉用户，让他知道极冷温度下系统在做什么
+        # 大底加仓策略响应展示（2026-04-17 命名纠偏）
+        # 用户反馈"前端没看到熔断机制"原本以为做这个，但用户原意是 REQ-151 模型可靠性熔断
+        # 故本 banner 仅展示"市场极冷的策略响应"，命名避开"熔断"二字
+        # 真正的"模型熔断"由 REQ-151 模型可靠性熔断（TODO-001）实现
         # 来源：backtest_autorun.py path_b/path_c（market_temp == -2 触发）
-        meltdown_html = (
+        bottom_strategy_html = (
             '<div style="background:#fff3cd;padding:12px 18px;border-left:5px solid #f57f17;'
             'border-radius:6px;margin-bottom:15px;">'
             '<div style="font-size:17px;font-weight:bold;color:#bf360c;">'
-            '🚨 大底熔断已激活（path_c 策略）</div>'
+            '💪 大底加仓策略已激活（市场极冷响应）</div>'
             '<div style="color:#222;font-size:14px;line-height:1.7;margin-top:6px;">'
             '系统在回测中对极冷温度（沪深300 PE ≤ 历史 15% 分位）执行的两条特殊规则：'
             '<ul style="margin:6px 0 0 0;padding-left:20px;">'
@@ -270,11 +271,15 @@ def render_market_temperature_banner():
             '</ul>'
             '<div style="color:#5d4037;font-size:13px;margin-top:8px;">'
             '💡 实操建议：这是回测策略的自动行为，实际操作仍按"宁可错过不犯错"原则。'
-            '回测验证：path_c 比基线（baseline）+ 28.9pp（25 年累计）'
+            '回测验证：极冷加仓策略比基线（baseline）+ 28.9pp（25 年累计）'
+            '</div>'
+            '<div style="color:#888;font-size:12px;margin-top:6px;font-style:italic;">'
+            '注：这是"市场策略响应"，不是"模型可靠性熔断"。模型可靠性判断见'
+            '"模型健康度"专区（建设中 / REQ-151）'
             '</div>'
             '</div></div>'
         )
-        st.markdown(meltdown_html, unsafe_allow_html=True)
+        st.markdown(bottom_strategy_html, unsafe_allow_html=True)
 
     # REQ-182：利率环境监测（利率冲击 → PE 区间收紧）
     # 巴菲特：利率是万物的引力。利率 12 个月上升 >1.5pp 会系统性压低股票估值
