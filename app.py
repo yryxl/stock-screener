@@ -510,6 +510,52 @@ with tab1:
             data_info += f" | {daily['data_source']}"
         st.caption(data_info)
 
+        # TODO-035 (2026-04-18)：你的可动用资金概览
+        # 删除单股 100 元硬过滤后，需要让用户清楚自己能买多少
+        try:
+            from affordability import calc_available_cash, classify_affordability, compute_swap_recommendation
+            # 拉现金
+            try:
+                cash_path = os.path.join(os.path.dirname(__file__), "user_cash.json")
+                with open(cash_path, encoding="utf-8") as _f:
+                    _cash_data = json.load(_f)
+                _user_cash = float(_cash_data.get("amount", 0))
+            except Exception:
+                _user_cash = 0
+            _holdings_for_aff = st.session_state.get("holdings", [])
+            _holding_sigs_for_aff = daily.get("holding_signals", [])
+            _funds = calc_available_cash(_user_cash, _holdings_for_aff, _holding_sigs_for_aff)
+            # 4 列展示
+            _f1, _f2, _f3, _f4 = st.columns(4)
+            with _f1:
+                st.metric("💵 现金", f"¥{_funds['cash']:,.0f}")
+            with _f2:
+                _sv = _funds['sellable_value']
+                st.metric("📉 持仓中应卖市值", f"¥{_sv:,.0f}",
+                          f"{len(_funds['sellable_holdings'])} 只" if _funds['sellable_holdings'] else "无")
+            with _f3:
+                st.metric("💰 可动用合计", f"¥{_funds['available']:,.0f}",
+                          help="现金 + 持仓中卖出信号股的市值（方案 B）")
+            with _f4:
+                if _funds['sellable_holdings']:
+                    _names = '/'.join(s['name'][:3] for s in _funds['sellable_holdings'][:3])
+                    st.markdown(
+                        f'<div style="background:#fff3e0;padding:6px 10px;border-left:3px solid #ef6c00;'
+                        f'border-radius:4px;font-size:12px;color:#bf360c;">'
+                        f'⚠ 应卖股：{_names}</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.markdown(
+                        f'<div style="background:#e8f5e9;padding:6px 10px;border-left:3px solid #2e7d32;'
+                        f'border-radius:4px;font-size:12px;color:#1b5e20;">'
+                        f'✅ 持仓无卖出信号</div>',
+                        unsafe_allow_html=True
+                    )
+            st.caption("💡 推荐列表中：✅=现金够买，🔄=需换仓，❌=暂买不起")
+        except Exception:
+            _funds = None
+
         # 合并全部信号源（和消息推送完全对齐）
         # 优先级：holding_signals > watchlist_signals(非hold) > ai_recommendations
         # 持仓信号最优先——模型知道你持有，信号更精准
@@ -583,10 +629,47 @@ with tab1:
                             metrics.append(f"股息 {div_y:.1f}%")
                         metrics_str = " | ".join(metrics)
 
-                        col1, col2, col3, col4 = st.columns([3, 1.2, 1.2, 1.5])
+                        col1, col2, col3, col4, col5 = st.columns([3, 1.2, 1.2, 1.5, 1])
                         with col1:
                             st.markdown(f"**{s.get('name', '')}**（{code}）")
                             st.caption(metrics_str)
+                            # TODO-035：可买性 + 换仓建议（仅对 buy_* 信号且非已持有的股）
+                            _sig_for_aff = s.get("signal", "")
+                            _is_buy = _sig_for_aff.startswith("buy_")
+                            _is_held = code in {str(h.get("code", "")).zfill(6)
+                                                for h in (st.session_state.get("holdings", []) or [])}
+                            if _is_buy and not _is_held and _funds:
+                                try:
+                                    _aff = classify_affordability(s, _funds)
+                                    _status = _aff.get('status')
+                                    _msg = _aff.get('message', '')
+                                    if _status == 'affordable':
+                                        st.markdown(f'<span style="color:#2e7d32;font-size:12px;">{_msg}</span>',
+                                                    unsafe_allow_html=True)
+                                    elif _status == 'swap_needed':
+                                        st.markdown(f'<span style="color:#ef6c00;font-size:12px;">{_msg}</span>',
+                                                    unsafe_allow_html=True)
+                                        # 给换仓建议
+                                        _swap = compute_swap_recommendation(
+                                            s, st.session_state.get("holdings", []),
+                                            holding_sigs, _funds)
+                                        _swap_type = _swap.get('swap_type', 'none')
+                                        if _swap_type == 'A':
+                                            with st.expander(f"🔄 A 类换仓建议（持仓有卖出信号）"):
+                                                st.info(_swap['message'])
+                                                st.caption(_swap.get('reserve_advice', ''))
+                                        elif _swap_type == 'B':
+                                            with st.expander(f"🔄 B 类小幅换仓建议（多维度优于）"):
+                                                st.warning(_swap['message'])
+                                                st.error(_swap.get('reserve_advice', ''))
+                                        elif _swap_type == 'C':
+                                            with st.expander(f"💭 不建议换仓"):
+                                                st.caption(_swap['message'])
+                                    elif _status == 'unaffordable':
+                                        st.markdown(f'<span style="color:#c62828;font-size:12px;">{_msg}</span>',
+                                                    unsafe_allow_html=True)
+                                except Exception:
+                                    pass
                         with col2:
                             price = s.get("price", 0)
                             st.metric("股价", f"¥{price:.2f}" if price else "—")

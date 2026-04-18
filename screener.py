@@ -675,9 +675,10 @@ def screen_single_stock(code, config, quotes_df):
             price = pd.to_numeric(row.get("最新价"), errors="coerce")
             result["price"] = price
 
-            max_price = config["screener"]["max_price_per_share"]
-            if not pd.isna(price) and price > max_price:
-                return result
+            # TODO-035 (2026-04-18) 已删除 max_price_per_share 硬过滤
+            # 旧逻辑：股价 >100 元直接 return（拦截茅台/片仔癀等高价好股）
+            # 新逻辑：保留高价股进入推荐，由前端按"可动用资金"分 ✅可买/🔄换仓/❌买不起
+            # 详见 TODO-035 + REQ-PRICE-FILTER-DEPRECATED
 
             # 财务全部通过后，才查PE(TTM)（节省API调用）
             pe = None
@@ -796,12 +797,13 @@ def screen_all_stocks(config):
 
     quotes_df = get_realtime_quotes()
 
-    max_price = config["screener"]["max_price_per_share"]
+    # TODO-035 (2026-04-18) 已删除 max_price_per_share 硬过滤
+    # 保留所有有效价格的股票（仅过滤价格异常 = 0 / NaN）
     if quotes_df is not None and not quotes_df.empty:
         quotes_df["价格_num"] = pd.to_numeric(quotes_df["最新价"], errors="coerce")
-        affordable = quotes_df[(quotes_df["价格_num"] > 0) & (quotes_df["价格_num"] <= max_price)]
-        candidate_codes &= set(affordable["代码"].tolist())
-        print(f"  股价≤{max_price}元: {len(candidate_codes)} 只")
+        valid = quotes_df[quotes_df["价格_num"] > 0]
+        candidate_codes &= set(valid["代码"].tolist())
+        print(f"  价格有效: {len(candidate_codes)} 只（不再按 100 元硬过滤）")
 
     passed = []
     total = len(candidate_codes)
