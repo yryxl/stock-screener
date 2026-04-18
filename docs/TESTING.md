@@ -508,6 +508,7 @@ ETF 5 档行动信号各种边界场景（T-L2-004 到 T-L2-007）
 | 2026-04-17 | BUG-007 | check_consistent_underperform 用"36 份快照"判定（按月度），但实际是周快照（36 周仅 8 个月） | REQ-151 规则 A | `031caa1` | ✅ 已修复（改为按时间跨度+密度检查）|
 | 2026-04-18 | BUG-008 | 端到端测试断言对外部接口数据稳定性容错不够：质押率接口偶发返回空时整个测试 fail | test_reliability_e2e.py | （待提交）| ✅ 已修复（加软断言：≥3 只股"数据不足"时跳过 mgmt 硬断言）|
 | 2026-04-18 | BUG-009 | config.yaml `max_price_per_share` 配置项未清理（screener.py 已不读但配置仍在）| TODO-035 | （待提交）| ✅ 已修复（加注释标记"已废弃，保留以防回滚"）|
+| 2026-04-18 | BUG-010 | app.py:805 持仓页 `daily.get('holding_signals')` 崩溃 AttributeError: 'list' object has no attribute 'get' | load_from_github | （待提交）| ✅ 已修复（GitHub 失败时先 fallback 本地文件，再失败按文件类型返回正确空值 dict 或 list）|
 
 ---
 
@@ -603,6 +604,8 @@ python test_reliability_boundary.py
 | **2026-04-18** | **遗漏排查** | **✅ 6 项跨模块依赖完整 / 4 新模块接口齐全 / 1 处小遗漏（config.yaml）已修** |
 | **2026-04-18 晚** | **巴菲特/芒格理念调研 + 浑水方法论调研** | **✅ 4 项遗漏识别（实地调研/数据交叉/管理层言行/反向思维），新增 TODO-036/037/038/039** |
 | **2026-04-18 晚** | **news_screen skill v2 扩展** | **✅ 6 层搜索（ABC + DEF）+ AI 幻觉防范 5 条硬性要求** |
+| **2026-04-18 晚** | **TODO-036 浑水式数据真实性校验** | **✅ 6 条规则集成，6 只代表股无误报，回归 26/26** |
+| **2026-04-18 晚** | **前端实际运行测试（streamlit + Chrome）** | **✅ 4 tab 全功能验证 + 暴露 BUG-010 已修（load_from_github 类型 fallback）** |
 
 ### 维护说明
 

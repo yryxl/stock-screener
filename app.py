@@ -39,6 +39,16 @@ def github_headers(token):
 
 
 def load_from_github(filename):
+    """加载 JSON 数据：先 GitHub，失败 fallback 本地文件，都失败返回类型正确的空值。
+
+    BUG-010 修复（2026-04-18）：旧版失败时统一返回 [] 但 daily_results.json 等是
+    dict 结构，导致前端 daily.get(...) 崩溃 AttributeError: 'list' object has no
+    attribute 'get'
+    """
+    # 已知是 dict 结构的文件（其他默认 list）
+    DICT_FILES = {"daily_results.json", "user_cash.json", "etf_index_map.json"}
+    default_empty = {} if filename in DICT_FILES else []
+
     try:
         cfg = get_github_config()
         url = f"https://api.github.com/repos/{cfg['repo']}/contents/{filename}"
@@ -47,10 +57,21 @@ def load_from_github(filename):
             data = resp.json()
             content = base64.b64decode(data["content"]).decode("utf-8")
             return json.loads(content), data["sha"]
-        return [], None
     except Exception as e:
-        st.error(f"读取失败: {e}")
-        return [], None
+        # GitHub 失败不立刻 return，先试本地 fallback
+        pass
+
+    # 本地 fallback
+    import os as _os
+    local_path = _os.path.join(_os.path.dirname(__file__), filename)
+    if _os.path.exists(local_path):
+        try:
+            with open(local_path, encoding="utf-8") as _f:
+                return json.load(_f), None
+        except Exception as _e:
+            st.warning(f"{filename} 本地文件读取失败: {_e}")
+
+    return default_empty, None
 
 
 def save_to_github(filename, data, sha):
