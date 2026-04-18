@@ -36,6 +36,15 @@
 - ~~**TODO-005** 跨境 ETF CAPE 透支警告~~ ✅ 2026-04-17 已完成
 - ~~**TODO-015** 目标价 + 大回撤复查~~ ✅ 2026-04-18 已完成
 
+### 🔴 P0 紧急（用户操作类）
+- **TODO-042** 修复 Streamlit 防休眠（curl 不工作，要 Playwright）— 用户 2026-04-18 遇到
+  - 现状：访问前端遇到"Zzzz 睡眠"页
+  - 根因：curl 仅拉静态 HTML 壳，不触发 JavaScript → Streamlit Python 后端不启动
+  - 解决：改 .github/workflows/keep_alive.yml 用 playwright headless chromium
+  - **AI 限制**：token 无 workflow scope，需用户手动在 GitHub 网页编辑
+  - 新内容已准备：本地 `.github/workflows/keep_alive.yml.new`
+  - 操作链接：https://github.com/yryxl/stock-screener/edit/main/.github/workflows/keep_alive.yml
+
 ### 🟢 P2 中优先（5 项）
 - **TODO-003** 模型自升级功能 — 与 REQ-151 协同，但需先有更多数据再评估
 - **TODO-006** ETF 内部集中度按类型分档

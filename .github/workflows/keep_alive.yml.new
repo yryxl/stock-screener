@@ -1,0 +1,64 @@
+name: Streamlit 防休眠（v2 Playwright 真正唤醒）
+
+# 设计变更（2026-04-18）：
+# 旧版用 curl 仅拉静态 HTML 壳子（4271 字节），不执行 JavaScript，
+# Python 后端不会启动 → app 还是睡
+# 新版用 Playwright headless Chromium 真正访问，触发 JavaScript 执行
+# 来源：https://zenn.dev/shogaku/articles/streamlit-keepalive-playwright
+
+on:
+  schedule:
+    # 北京时间 8:00-23:00 每 25 分钟唤醒一次
+    - cron: '*/25 0-15 * * *'   # UTC 0:00-15:00 = 北京 8:00-23:00
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  wake_up:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install chromium
+
+      - name: Wake up Streamlit app (real browser)
+        run: |
+          python <<'PYEOF'
+          from playwright.sync_api import sync_playwright
+          import time
+
+          URL = 'https://yryxlstock.streamlit.app/'
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+              page = browser.new_page()
+              try:
+                  print(f'访问 {URL}')
+                  page.goto(URL, timeout=60000, wait_until='domcontentloaded')
+                  # 检测是否在睡眠页（含 "Yes, get this app back up" 按钮）
+                  try:
+                      wake_btn = page.wait_for_selector('button:has-text("Yes")', timeout=5000)
+                      if wake_btn:
+                          print('检测到睡眠页，点击唤醒按钮...')
+                          wake_btn.click()
+                          time.sleep(20)  # 等 app 启动
+                  except Exception:
+                      print('未检测到睡眠按钮，app 可能已唤醒')
+                  # 等真实内容加载（streamlit 主标题）
+                  try:
+                      page.wait_for_selector('text=芒格选股系统', timeout=30000)
+                      print('✅ Streamlit app 已真正唤醒（看到主标题）')
+                  except Exception:
+                      print('⚠ 30 秒内未检测到主标题，但已触发启动')
+              except Exception as e:
+                  print(f'❌ 唤醒失败: {e}')
+              finally:
+                  browser.close()
+          PYEOF
