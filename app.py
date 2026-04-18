@@ -1122,6 +1122,37 @@ with tab2:
                         f"仓位 {_p:.1f}% ≥ 30%，偏重警戒"
                     )
 
+        # TODO-015 / REQ-188：大回撤复查清单（不是建议卖，是提醒复查基本面）
+        # 设计原则：好公司必经几次 20% 回撤（茅台 2021-2022 跌 50% 后反弹）
+        # 真要卖的判定要结合"基本面是否恶化"
+        try:
+            from position_tracker import get_portfolio_drawdown_alerts
+            _hp_for_dd = {}
+            for sig in (daily or {}).get("holding_signals", []):
+                _c = str(sig.get("code", "")).zfill(6)
+                _p = sig.get("price")
+                if _c and _p:
+                    _hp_for_dd[_c] = _p
+            for sig in (daily or {}).get("etf_signals", []):
+                _c = str(sig.get("code", "")).zfill(6)
+                _p = sig.get("price")
+                if _c and _p:
+                    _hp_for_dd[_c] = _p
+            _dd_alerts = get_portfolio_drawdown_alerts(holdings, _hp_for_dd)
+            if _dd_alerts:
+                st.subheader("🔍 大回撤复查清单（REQ-188）")
+                st.caption(
+                    "回撤 >20% 触发提醒。**不是建议卖**，是提醒复查基本面："
+                    "基本面健康 + 大回撤 = 加仓机会；基本面恶化 + 大回撤 = 真要卖"
+                )
+                for a in _dd_alerts:
+                    if '🚨' in a['message']:
+                        st.error(f"**{a['code']} {a['name']}**：{a['message']}")
+                    else:
+                        st.warning(f"**{a['code']} {a['name']}**：{a['message']}")
+        except Exception:
+            pass  # 大回撤检查失败不影响主流程
+
         # 换仓建议
         swap_sug = daily.get("swap_suggestions", []) if isinstance(daily, dict) else []
         if swap_sug:
@@ -1428,6 +1459,13 @@ with tab2:
             )
         with c4:
             new_cat = st.text_input("行业/类型（可选）", placeholder="ETF基金、白酒、医药等")
+        # REQ-188 / TODO-015：目标价（用户买入时记录的"合理价"，可选）
+        new_target_price = st.number_input(
+            "目标价/合理价（可选，REQ-188 用）",
+            min_value=0.0, value=0.0, step=0.01, format="%.3f",
+            help="买入时认为的合理价。当前价 < 目标价 → 安全边际可加仓；> 目标价 → 已透支安全边际。"
+                 "若不填，可后续编辑补上。可参考模型的 max_buy_price_rr10 字段。"
+        )
         if st.form_submit_button("添加", use_container_width=True, type="primary"):
             if new_code:
                 new_h = {
@@ -1439,6 +1477,9 @@ with tab2:
                 }
                 if new_cat.strip():
                     new_h["category"] = new_cat.strip()
+                # 目标价（>0 才记录，避免 0.0 默认值污染）
+                if new_target_price > 0:
+                    new_h["target_price"] = float(new_target_price)
                 holdings.append(new_h)
                 new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
                 if new_sha:
@@ -1476,6 +1517,13 @@ with tab2:
                     "买入日期", value=_default_date,
                     help="REQ-151 规则 C 用：长期亏损股识别（>3年且累计负收益）"
                 )
+                # REQ-188 / TODO-015：目标价编辑
+                _existing_target = h.get("target_price", 0.0) or 0.0
+                new_target_price_edit = st.number_input(
+                    "目标价/合理价（REQ-188 用）",
+                    min_value=0.0, value=float(_existing_target), step=0.01, format="%.3f",
+                    help="买入时认为的合理价。可参考模型 max_buy_price_rr10 字段。0 表示未设置。"
+                )
                 if st.form_submit_button("更新", use_container_width=True):
                     if es == 0:
                         holdings.pop(idx)
@@ -1483,6 +1531,10 @@ with tab2:
                         holdings[idx]["shares"] = int(es)
                         holdings[idx]["cost"] = float(ec)
                         holdings[idx]["buy_date"] = new_buy_date_edit.strftime("%Y-%m-%d")
+                        if new_target_price_edit > 0:
+                            holdings[idx]["target_price"] = float(new_target_price_edit)
+                        elif "target_price" in holdings[idx]:
+                            holdings[idx].pop("target_price")  # 改为 0 = 删除字段
                     new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
                     if new_sha:
                         st.session_state["holdings_sha"] = new_sha
