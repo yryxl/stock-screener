@@ -390,7 +390,90 @@ def run_full_scan(config):
         "ai_recommendations": ai_recs,
     })
     print(f"  AI推荐: {len(ai_recs)}只")
+
+    # TODO-045（2026-04-18 用户要求）：自动加入关注表
+    # 规则："基本面全过 + 护城河完好 + 价格不合适"的股自动入关注表
+    # 不重复加用户已手动加的；不删旧的（可能临时不达标但下次又过）
+    try:
+        auto_add_to_watchlist(candidates)
+    except Exception as e:
+        print(f"  ⚠ 自动加入关注表失败: {e}")
+
     return ai_recs
+
+
+def auto_add_to_watchlist(candidates, max_new_per_day=10):
+    """
+    TODO-045 自动加入关注表
+
+    规则：
+      - 基本面全过（passed=True）
+      - 价格不合适（signal in 'buy_watch'/'sell_watch'/'hold'，非买入信号）
+      - 质量过关（is_10y_king 或 is_good_quality）
+      - 不重复加用户已有的（含 holdings + 现有 watchlist）
+      - 限制每天最多新增 max_new_per_day 只（按 total_score 排序）
+      - 标记 auto_added=True + auto_added_date
+
+    旧的自动加入项保留（不自动删）：可能下次扫描又达标
+    """
+    if not candidates:
+        return
+
+    holdings = load_json("holdings.json") or []
+    watchlist = load_json("watchlist.json") or []
+
+    # 已存在的代码集合（避免重复）
+    existing_codes = set()
+    for h in holdings:
+        existing_codes.add(str(h.get("code", "")).zfill(6))
+    for w in watchlist:
+        existing_codes.add(str(w.get("code", "")).zfill(6))
+
+    # 筛选符合条件的候选
+    eligible = []
+    for c in candidates:
+        if not c.get("passed"):
+            continue
+        signal = c.get("signal", "")
+        # 仅"等价格"信号才加（已经能买的在 ai_recommendations 里展示）
+        if signal not in ("buy_watch", "sell_watch", "hold", "hold_keep"):
+            continue
+        # 质量过关
+        if not (c.get("is_10y_king") or c.get("is_good_quality")):
+            continue
+        code = str(c.get("code", "")).zfill(6)
+        if code in existing_codes:
+            continue
+        eligible.append(c)
+
+    # 按总分排序，取 top N
+    eligible.sort(key=lambda x: -(x.get("total_score") or 0))
+    new_picks = eligible[:max_new_per_day]
+
+    # 加到 watchlist
+    today = beijing_now().strftime("%Y-%m-%d")
+    for c in new_picks:
+        code = str(c.get("code", "")).zfill(6)
+        signal_text = c.get("signal_text", "")[:30]
+        watchlist.append({
+            "code": code,
+            "name": c.get("name", code),
+            "category": c.get("industry") or c.get("category", ""),
+            "note": f"自动添加 {today}：{signal_text}",
+            "auto_added": True,
+            "auto_added_date": today,
+            "total_score": c.get("total_score"),
+        })
+
+    if new_picks:
+        save_json("watchlist.json", watchlist)
+        print(f"  📌 自动加入关注表: {len(new_picks)} 只（基本面全过+质量过关+价格未到位）")
+        for p in new_picks[:5]:
+            print(f"     - {p.get('name','?')} ({p.get('code','')}) 总分 {p.get('total_score','?')}")
+        if len(new_picks) > 5:
+            print(f"     ... 等共 {len(new_picks)} 只")
+    else:
+        print(f"  📌 自动加入关注表: 0 只（无新候选符合条件）")
 
 
 def _inject_market_temperature():

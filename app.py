@@ -674,7 +674,19 @@ with tab1:
 
                         col1, col2, col3, col4, col5 = st.columns([3, 1.2, 1.2, 1.5, 1])
                         with col1:
-                            st.markdown(f"**{s.get('name', '')}**（{code}）")
+                            # TODO-046：防守/进攻分类标签
+                            try:
+                                from stock_classifier import classify_stock
+                                _cat, _label, _reason = classify_stock(s)
+                                _cat_color = {'defensive': '#2e7d32', 'offensive': '#c62828',
+                                              'neutral': '#666', 'unknown': '#999'}[_cat]
+                                _tag_html = (f'<span style="background:#f5f5f5;padding:2px 6px;'
+                                              f'border-radius:3px;font-size:11px;color:{_cat_color};'
+                                              f'margin-left:6px;" title="{_reason}">{_label}</span>')
+                            except Exception:
+                                _tag_html = ''
+                            st.markdown(f"**{s.get('name', '')}**（{code}）{_tag_html}",
+                                         unsafe_allow_html=True)
                             st.caption(metrics_str)
                             # TODO-035：可买性 + 换仓建议（仅对 buy_* 信号且非已持有的股）
                             _sig_for_aff = s.get("signal", "")
@@ -767,7 +779,19 @@ with tab1:
 
                     col1, col2, col3 = st.columns([3, 1.2, 4])
                     with col1:
-                        st.markdown(f"**{s.get('name', '')}**（{code}）")
+                        # TODO-046：防守/进攻分类标签
+                        try:
+                            from stock_classifier import classify_stock
+                            _cat, _label, _reason = classify_stock(s)
+                            _cat_color = {'defensive': '#2e7d32', 'offensive': '#c62828',
+                                          'neutral': '#666', 'unknown': '#999'}[_cat]
+                            _tag_html = (f'<span style="background:#f5f5f5;padding:2px 6px;'
+                                          f'border-radius:3px;font-size:11px;color:{_cat_color};'
+                                          f'margin-left:6px;" title="{_reason}">{_label}</span>')
+                        except Exception:
+                            _tag_html = ''
+                        st.markdown(f"**{s.get('name', '')}**（{code}）{_tag_html}",
+                                     unsafe_allow_html=True)
                         st.caption(" | ".join(metrics))
                     with col2:
                         price = s.get("price", 0)
@@ -1788,7 +1812,20 @@ with tab3:
 
                 col1, col2, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 3, 0.8])
                 with col1:
-                    st.markdown(f"**{item['name']}**（{code}）")
+                    # TODO-046：防守/进攻分类标签
+                    try:
+                        from stock_classifier import classify_stock
+                        _w_stock = {**item, **data}
+                        _cat, _label, _reason = classify_stock(_w_stock)
+                        _cat_color = {'defensive': '#2e7d32', 'offensive': '#c62828',
+                                      'neutral': '#666', 'unknown': '#999'}[_cat]
+                        _tag_html = (f'<span style="background:#f5f5f5;padding:2px 6px;'
+                                      f'border-radius:3px;font-size:11px;color:{_cat_color};'
+                                      f'margin-left:6px;" title="{_reason}">{_label}</span>')
+                    except Exception:
+                        _tag_html = ''
+                    st.markdown(f"**{item['name']}**（{code}）{_tag_html}",
+                                 unsafe_allow_html=True)
                     # 财务指标摘要
                     _fm = []
                     if pe and pe > 0:
