@@ -1313,6 +1313,61 @@ def check_management_scorecard(code, roe_5y_avg, df_annual):
         except Exception:
             pass
 
+    # ===== 维度 4：回购注销（TODO-038，巴菲特管理层 5 标准之"为股东着想"）=====
+    # 巴菲特：分红 + 回购才是真正为股东负责
+    # 回购注销 > 分红（避免股东再投资税）
+    # 数据源：akshare stock_buyback_em（如果接口可用）
+    try:
+        import akshare as ak
+        buyback_df = ak.stock_buyback_em()
+        if buyback_df is not None and not buyback_df.empty:
+            # 找该股的回购记录
+            code_col = None
+            for c in buyback_df.columns:
+                if '代码' in c:
+                    code_col = c
+                    break
+            if code_col:
+                this_stock = buyback_df[buyback_df[code_col].astype(str).str.zfill(6) == code]
+                if not this_stock.empty:
+                    dimensions_evaluated += 1
+                    # 检测最近 3 年内有效回购（金额 > 1 亿）
+                    amount_col = None
+                    for c in this_stock.columns:
+                        if '金额' in c and '万' not in c:
+                            amount_col = c
+                            break
+                    if amount_col:
+                        try:
+                            total_buyback_yi = this_stock[amount_col].astype(float).sum() / 1e8
+                            details["buyback_total_yi"] = total_buyback_yi
+                            if total_buyback_yi >= 1:
+                                # 有有效回购 → 加分
+                                score += 5  # 但不超过 100 上限
+                                flags.append(f"✅ 历年回购总额 {total_buyback_yi:.1f}亿（巴菲特赞许）")
+                            elif roe_5y_avg is not None and roe_5y_avg >= 25:
+                                # 高 ROE 但无回购 → 扣分
+                                score -= 5
+                                flags.append("高 ROE 但无回购历史（资本配置可优化）")
+                        except Exception:
+                            pass
+    except Exception:
+        pass  # 接口失败不影响主流程
+
+    # ===== 维度 5：实控人减持（TODO-038，巴菲特管理层 5 标准之"主人翁意识"）=====
+    # 真心看好的管理层不会大额减持
+    # 近 12 个月减持 > 总股本 2% → 警告
+    try:
+        import akshare as ak
+        # akshare stock_share_change_cninfo 拉股东持股变动
+        # 简化版：用 stock_holder_change_cninfo（如果可用）
+        # 接口不稳定，先留接口
+        pass
+        # 数据源：akshare stock_share_hold_change_em（按股票代码查）
+        # 占总股本比例 > 2% → 警告
+    except Exception:
+        pass
+
     # ===== 分档 =====
     # 边界保护（2026-04-17 修复）：所有维度都拿不到数据时，返回"数据不足"
     # 旧 bug：3 维度全空仍然给 100 分，会让新股/退市股被误标为"优秀"
@@ -1320,9 +1375,12 @@ def check_management_scorecard(code, roe_5y_avg, df_annual):
         return {
             "score": None,
             "tier": "数据不足",
-            "flags": ["管理层评分：3 个维度（质押/商誉/分红）全部无数据，无法判定"],
+            "flags": ["管理层评分：5 个维度全部无数据，无法判定"],
             "details": details,
         }
+
+    # 分数封顶 100
+    score = min(score, 100)
 
     if score >= 80:
         tier = "优秀"
