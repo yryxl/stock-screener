@@ -1037,6 +1037,8 @@ with tab2:
                         "💡 判定逻辑：高置信度白名单优先 → 板块前缀粗判 → 不确定的归未知。"
                         "宁可错过不犯错，避免误判。"
                     )
+        except Exception:
+            pass  # 国企判定失败不影响主流程（修复 BUG-013：原 try 缺 except）
 
         # TODO-046（2026-04-18）：持仓防守/进攻占比（按市值算）
         # 设计依据：让用户清楚自己持仓的"风险偏好"画像
@@ -1124,9 +1126,7 @@ with tab2:
                         "进攻 = 追求成长（科技/医药/新能源/行业 ETF）"
                     )
         except Exception:
-            pass  # 分类失败不影响主流程
-        except Exception as _e:
-            pass  # 国企判定失败不影响主流程
+            pass  # 防守/进攻分类失败不影响主流程
 
         # TODO-033 / REQ-150：资产配置健康度（6 类目标 vs 实际偏差）
         # 设计依据：docs/ALLOCATION_STRATEGY.md（40/20/20/10/5/5 目标）
