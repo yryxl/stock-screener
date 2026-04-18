@@ -614,6 +614,21 @@ def screen_single_stock(code, config, quotes_df):
                         # 提前记下 PE，第三关如果走到可以复用
                         if result.get("pe") is None:
                             result["pe"] = pe_for_cigar
+
+        # TODO-036：浑水式数据真实性多维度校验（2026-04-18）
+        # 6 条交叉规则识别康得新/康美/瑞幸式造假
+        # 触发都写入 china_v3_risks，不硬否决（让用户判断）
+        try:
+            from data_authenticity import check_authenticity_all
+            auth_alerts = check_authenticity_all(code, industry, df_annual)
+            for a in auth_alerts:
+                emoji = '🚨' if a['severity'] == 'critical' else '⚠'
+                result["china_v3_risks"].append(f'{emoji} 数据真实性: {a["detail"]}')
+                result["checks"][f'v3_authenticity_{a["rule"]}'] = {
+                    "passed": True, "detail": a["detail"]
+                }
+        except Exception as e:
+            print(f"  {code} 数据真实性校验异常: {e}")
     except Exception as e:
         print(f"  {code} 中国国情版 v3 检查异常: {e}")
 
