@@ -509,7 +509,8 @@ ETF 5 档行动信号各种边界场景（T-L2-004 到 T-L2-007）
 | 2026-04-18 | BUG-008 | 端到端测试断言对外部接口数据稳定性容错不够：质押率接口偶发返回空时整个测试 fail | test_reliability_e2e.py | （待提交）| ✅ 已修复（加软断言：≥3 只股"数据不足"时跳过 mgmt 硬断言）|
 | 2026-04-18 | BUG-009 | config.yaml `max_price_per_share` 配置项未清理（screener.py 已不读但配置仍在）| TODO-035 | （待提交）| ✅ 已修复（加注释标记"已废弃，保留以防回滚"）|
 | 2026-04-18 | BUG-010 | app.py:805 持仓页 `daily.get('holding_signals')` 崩溃 AttributeError: 'list' object has no attribute 'get' | load_from_github | （待提交）| ✅ 已修复（GitHub 失败时先 fallback 本地文件，再失败按文件类型返回正确空值 dict 或 list）|
-| 2026-04-18 | BUG-011 | 健康度灯"📋 查看详细健康度报告 →"链接指向 docs/模型健康度监控.html，streamlit 不是静态服务器导致空白页 | render_model_health_banner | （待提交）| ✅ 已修复（去掉外链，改用 streamlit expander 折叠展开 9 项指标）|
+| 2026-04-18 | BUG-011 | 健康度灯"📋 查看详细健康度报告 →"链接指向 docs/模型健康度监控.html，streamlit 不是静态服务器导致空白页 | render_model_health_banner | `082b8e3` | ✅ 已修复（去掉外链，改用 streamlit expander 折叠展开 9 项指标）|
+| 2026-04-18 | BUG-012 | calc_recent_bugs_count 硬编码 return 1，今天累计修了 10+ bug 都没反映 | model_health_monitor | （待提交）| ✅ 已修复（实时统计 TESTING.md BUG 表，含识别"已修复/已纠偏"等多种已闭环状态）|
 
 ---
 

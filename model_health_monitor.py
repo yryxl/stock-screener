@@ -372,10 +372,30 @@ def calc_max_drawdown_current(holdings_file="holdings.json"):
 
 
 def calc_recent_bugs_count():
-    """数一下最近修过的 Bug 数（健康度反向指标）"""
-    # 读 TESTING.md 的 Bug 追踪部分
-    # 简化处理：当前已知 BUG-001
-    return 1
+    """读 TESTING.md 的 Bug 追踪表，返回 (未修复数, 已修复数, 总数)
+
+    BUG-012 修复（2026-04-18）：旧版硬编码 return 1，今天累计修了 10+ 个 bug 都没反映
+    新版按 TESTING.md 实际 BUG 表统计：未修复 / 已修复 / 总数
+    """
+    docs_path = os.path.join(SCRIPT_DIR, 'docs', 'TESTING.md')
+    if not os.path.exists(docs_path):
+        return {'unfixed': 0, 'fixed': 0, 'total': 0}
+
+    try:
+        with open(docs_path, encoding='utf-8') as f:
+            content = f.read()
+        # 找 BUG 追踪表行（| 2026-XX-XX | BUG-XXX | ... | 状态 |）
+        import re
+        bug_lines = re.findall(r'^\| 20\d{2}-\d{2}-\d{2} \| BUG-\d+ \|.*$', content, re.MULTILINE)
+        total = len(bug_lines)
+        # 已修复识别：✅ 后跟"已修复 / 已纠偏 / 已解决 / 已处理"等
+        # 黄灯 🟡 不算修复
+        fixed = sum(1 for line in bug_lines
+                    if '✅' in line and not '🟡' in line)
+        unfixed = total - fixed
+        return {'unfixed': unfixed, 'fixed': fixed, 'total': total}
+    except Exception:
+        return {'unfixed': 0, 'fixed': 0, 'total': 0}
 
 
 # ============================================================
@@ -703,14 +723,30 @@ def get_health_report():
             "值": "数据不足", "说明": "需要历史快照 + 沪深300 价格", "状态": "⚪ 未知",
         }
 
-    # 6. 最近发现的 Bug
-    bugs = calc_recent_bugs_count()
-    report["指标"]["已知 Bug 数"] = {
-        "值": f"{bugs} 个",
-        "说明": "参见 TESTING.md 的 Bug 追踪",
-        "阈值": "≤ 3 个且全部为'已修复'状态",
-        "状态": "🟢 健康" if bugs <= 3 else "🟡 需关注",
-    }
+    # 6. 最近发现的 Bug（BUG-012 修复 2026-04-18：实时统计 TESTING.md）
+    bug_stats = calc_recent_bugs_count()
+    if isinstance(bug_stats, dict):
+        unfixed = bug_stats.get('unfixed', 0)
+        fixed = bug_stats.get('fixed', 0)
+        total = bug_stats.get('total', 0)
+        # 健康度判定：未修复才算问题，已修复都算正常
+        if unfixed == 0:
+            status = "🟢 健康"
+        elif unfixed <= 2:
+            status = "🟡 需关注"
+        else:
+            status = "🔴 警示"
+        report["指标"]["已知 Bug 数"] = {
+            "值": f"未修复 {unfixed} / 已修复 {fixed} / 总数 {total}",
+            "说明": "参见 TESTING.md 的 Bug 追踪表",
+            "阈值": "未修复 = 0 绿灯，≤2 黄灯，>2 红灯",
+            "状态": status,
+        }
+    else:
+        # 老格式兼容
+        report["指标"]["已知 Bug 数"] = {
+            "值": f"{bug_stats} 个", "说明": "参见 TESTING.md", "状态": "⚪ 未知"
+        }
 
     # 7. REQ-151 规则 B：黑天鹅事件检测
     swan = check_black_swan_window()
