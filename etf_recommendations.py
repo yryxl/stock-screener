@@ -174,44 +174,105 @@ def get_recommendations_for_class(asset_class, deviation_pp=None):
 
 def _calc_etf_rating(etf):
     """
-    给单只 ETF 综合评级（基于 CAPE + 集中度）
+    给单只 ETF 综合评级（基于"估值时机 + 集中度"）
+
+    用户原则（2026-04-18）："宽基是好的，但在错误的价格买入就是错误的"
+    所以 A 股 ETF 必须综合 PE 分位 + 集中度，不能只看集中度
+
+    评级逻辑：
+      估值（决定买入时机）：
+        🔴 PE 分位 ≥85% / CAPE >历史 90% 分位 → 极热泡沫，不推
+        🟡 PE 分位 70-85% / CAPE 70-90% → 偏热谨慎
+        🟢 PE 分位 ≤70% / CAPE ≤70% → 估值合理或便宜
+      集中度（决定结构风险）：
+        🔴 fake_broad（如纳指七巨头）→ 即使估值低也警告
+        🟢 真宽基/策略/设计本意 → 不影响评级
+      综合：取最严重的（任一项🔴 → 总🔴）
 
     返回：(rating, reason)
-      rating: 'green' / 'yellow' / 'red' / 'unknown'
     """
     code = etf.get('code', '')
     index_key = etf.get('index_key')
 
-    # 1. 跨境 ETF 看 CAPE
+    valuation_rating = 'unknown'
+    valuation_reason = ''
+    concentration_rating = 'unknown'
+    concentration_reason = ''
+
+    # 1. 估值（跨境用 CAPE，A 股用 PE 分位）
     if index_key in ('NASDAQ100', 'S&P500', 'HSI', 'DAX'):
         try:
             from cape_monitor import get_market_cape_status
             cape = get_market_cape_status(index_key)
             if cape:
-                return cape['status'], (
-                    f"CAPE {cape['current_cape']:.1f}, 预期回报 {cape['forecast_return']}%"
-                )
+                valuation_rating = cape['status']
+                valuation_reason = f"CAPE {cape['current_cape']:.1f}, 预期回报 {cape['forecast_return']}%"
+        except Exception:
+            pass
+    else:
+        # A 股 ETF 用 PE 分位（数据来自 etf_monitor 的历史采集）
+        try:
+            from etf_monitor import load_etf_index_map, load_index_history, compute_etf_temperature
+            etf_map = load_etf_index_map()
+            etf_info = etf_map.get(str(code).zfill(6))
+            if etf_info:
+                idx_code = etf_info.get('index')
+                store = load_index_history(idx_code)
+                if store:
+                    temp = compute_etf_temperature(store)
+                    pct = temp.get('percentile')
+                    if pct is not None:
+                        if pct >= 85:
+                            valuation_rating = 'red'
+                            valuation_reason = f"⚠ PE 分位 {pct:.0f}%（极热泡沫，错误价格）"
+                        elif pct >= 70:
+                            valuation_rating = 'yellow'
+                            valuation_reason = f"PE 分位 {pct:.0f}%（偏热，谨慎少买）"
+                        elif pct <= 30:
+                            valuation_rating = 'green'
+                            valuation_reason = f"✅ PE 分位 {pct:.0f}%（估值便宜，好时机）"
+                        else:
+                            valuation_rating = 'green'
+                            valuation_reason = f"PE 分位 {pct:.0f}%（合理区间）"
         except Exception:
             pass
 
-    # 2. A 股 ETF 看集中度（红就警告）
+    # 2. 集中度（结构风险）
     try:
         from etf_concentration import check_etf_concentration
         conc = check_etf_concentration(code)
         if conc:
             sev = conc.get('severity', 'neutral')
             if sev == 'red':
-                return 'red', f"前 10 大权重 {conc['top10_weight_pct']}%（伪宽基）"
+                concentration_rating = 'red'
+                concentration_reason = f"前 10 大 {conc['top10_weight_pct']}%（伪宽基）"
             elif sev == 'green':
-                return 'green', f"集中度健康（前 10 大 {conc['top10_weight_pct']}%）"
+                concentration_rating = 'green'
+                concentration_reason = f"前 10 大 {conc['top10_weight_pct']}%（结构健康）"
             elif sev == 'yellow':
-                return 'yellow', f"集中度偏高（前 10 大 {conc['top10_weight_pct']}%）"
+                concentration_rating = 'yellow'
+                concentration_reason = f"前 10 大 {conc['top10_weight_pct']}%（集中度偏高）"
             else:
-                return 'unknown', '策略/设计本意，按其原则评判'
+                concentration_rating = 'green'  # 策略/设计本意按健康
+                concentration_reason = '策略 ETF，按设计'
     except Exception:
         pass
 
-    return 'unknown', '无评级数据'
+    # 3. 综合评级（取最严重）
+    sev_order = {'red': 3, 'yellow': 2, 'green': 1, 'unknown': 0}
+    final_sev = max(sev_order.get(valuation_rating, 0),
+                     sev_order.get(concentration_rating, 0))
+    final_rating = next((k for k, v in sev_order.items() if v == final_sev), 'unknown')
+
+    # 组合理由
+    parts = []
+    if valuation_reason:
+        parts.append(f"估值: {valuation_reason}")
+    if concentration_reason:
+        parts.append(f"结构: {concentration_reason}")
+    final_reason = ' | '.join(parts) if parts else '无评级数据'
+
+    return final_rating, final_reason
 
 
 def get_recommendations_from_allocation(allocation_breakdown):
