@@ -1354,19 +1354,61 @@ def check_management_scorecard(code, roe_5y_avg, df_annual):
     except Exception:
         pass  # 接口失败不影响主流程
 
-    # ===== 维度 5：实控人减持（TODO-038，巴菲特管理层 5 标准之"主人翁意识"）=====
+    # ===== 维度 5：实控人减持（TODO-013 V2 / TODO-038）=====
     # 真心看好的管理层不会大额减持
-    # 近 12 个月减持 > 总股本 2% → 警告
+    # 近 12 个月减持比例：> 2% 警告 / > 5% 严重警告
+    # 数据源：akshare stock_shareholder_change_ths（同花顺接口，按股票代码查）
     try:
         import akshare as ak
-        # akshare stock_share_change_cninfo 拉股东持股变动
-        # 简化版：用 stock_holder_change_cninfo（如果可用）
-        # 接口不稳定，先留接口
-        pass
-        # 数据源：akshare stock_share_hold_change_em（按股票代码查）
-        # 占总股本比例 > 2% → 警告
+        from datetime import datetime as _dt, timedelta
+        df_share = ak.stock_shareholder_change_ths(symbol=code)
+        if df_share is not None and not df_share.empty:
+            dimensions_evaluated += 1
+            # 过滤近 12 个月的减持记录
+            now = _dt.now()
+            cutoff = now - timedelta(days=365)
+            total_reduce = 0  # 累计减持数（股）
+            for _, row in df_share.iterrows():
+                date_str = str(row.get("公告日期", ""))
+                try:
+                    pub_date = _dt.strptime(date_str, "%Y-%m-%d")
+                except Exception:
+                    continue
+                if pub_date < cutoff:
+                    continue
+                amt_str = str(row.get("变动数量", ""))
+                if "减持" not in amt_str:
+                    continue
+                # 解析"减持4.16万"等格式
+                try:
+                    num_str = amt_str.replace("减持", "")
+                    if "万" in num_str:
+                        num = float(num_str.replace("万", "")) * 10000
+                    elif "亿" in num_str:
+                        num = float(num_str.replace("亿", "")) * 100000000
+                    else:
+                        num = float(num_str)
+                    total_reduce += num
+                except Exception:
+                    continue
+            # 估算总股本：用最新一行的"剩余股份总数"+ 累计变动近似
+            # 简化判定：减持数额绝对值
+            if total_reduce > 0:
+                details["recent_12m_reduce_shares"] = total_reduce
+                # 阈值（按总股本估算无法精确，用绝对数量初判）：
+                # > 1 亿股 → 严重；> 2000 万股 → 中度
+                if total_reduce > 1e8:
+                    score -= 20
+                    flags.append(
+                        f"⚠ 近 12 月大股东减持 {total_reduce/1e8:.1f}亿股 → 管理层套现严重"
+                    )
+                elif total_reduce > 2e7:
+                    score -= 10
+                    flags.append(
+                        f"近 12 月大股东减持 {total_reduce/1e7:.0f}千万股 → 注意"
+                    )
     except Exception:
-        pass
+        pass  # 接口失败不影响主流程
 
     # ===== 分档 =====
     # 边界保护（2026-04-17 修复）：所有维度都拿不到数据时，返回"数据不足"
