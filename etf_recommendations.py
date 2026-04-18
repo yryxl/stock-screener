@@ -22,68 +22,111 @@ TODO-040 ETF 推荐功能（2026-04-18）
 
 
 # ============================================================
-# 推荐池：每个资产类别的代表性 ETF
+# 推荐池（v2 重构 2026-04-18）：用户明确"防守为主、吃复利、求稳"
+# 设计原则：
+#   1. 大公司靠谱（华夏/华泰/易方达/嘉实/南方/华安/博时等头部）
+#   2. 手续费低（管理费率 ≤ 0.5%/年优先）
+#   3. 表现平稳（规模 ≥ 50 亿，长期跟踪误差小）
+#   4. 风险偏大的不放（行业 ETF / 创业板 / 科创板 / 高 CAPE 跨境）
+#   5. 货币/国债 ETF 重点扩展（用户用于放机动资金）
 # ============================================================
 RECOMMENDATION_POOL = {
     "buffett_value": {
         "label": "🎯 巴菲特式价值股",
         "etfs": [],
-        "advice": "建议买个股而不是 ETF。看 Tab1 模型推荐里 ✅ 现金够买的股。"
-                  "或买行业 ETF（512170 中证医疗 / 159928 中证主要消费 等）"
+        "advice": "用户原则：同样风险更愿意投个股。看 Tab1 模型推荐里 ✅ 现金够买的股。"
     },
     "index_enhance": {
-        "label": "📊 指数增强",
+        "label": "📊 宽基稳健 ETF",
         "etfs": [
-            {"code": "510330", "name": "沪深300 ETF", "index_key": "000300",
-             "preferred": True, "reason": "费率低、流动性好、跟踪误差小"},
-            {"code": "510500", "name": "中证500 ETF", "index_key": "000905",
-             "preferred": True, "reason": "中盘成长，与沪深300 互补"},
-            {"code": "512100", "name": "中证1000 ETF", "index_key": "000852",
-             "preferred": False, "reason": "小盘股代表，波动较大"},
-        ]
+            # 沪深 300（同指数 3 只，分散黑天鹅）
+            {"code": "510330", "name": "沪深300 ETF（华夏）", "index_key": "000300",
+             "preferred": True, "reason": "规模最大 1500 亿+，费率 0.5%，流动性最佳"},
+            {"code": "510300", "name": "沪深300 ETF（华泰柏瑞）", "index_key": "000300",
+             "preferred": True, "reason": "国内首只沪深300 ETF，老牌靠谱，费率 0.5%"},
+            {"code": "159919", "name": "沪深300 ETF（嘉实）", "index_key": "000300",
+             "preferred": False, "reason": "深市流动性好，跟同指数差异 <0.1%"},
+            # 中证 500（同指数 2 只，但中盘波动大于沪深300，标 ⚠）
+            {"code": "510500", "name": "中证500 ETF（南方）", "index_key": "000905",
+             "preferred": False, "reason": "⚠ 中盘 ETF 波动大于沪深300，比例不要超过 30%"},
+            {"code": "159922", "name": "中证500 ETF（嘉实）", "index_key": "000905",
+             "preferred": False, "reason": "⚠ 中盘 ETF（同 510500）"},
+        ],
+        "advice": "防守首选沪深 300，3 只同指数 ETF 任选。中证 500 偏成长，比例控制在 30% 以内"
     },
     "cross_border": {
-        "label": "🌍 跨境资产",
+        "label": "🌍 跨境资产（仅推估值合理的）",
         "etfs": [
-            {"code": "159920", "name": "恒生 ETF", "index_key": "HSI",
-             "preferred": True, "reason": "港股 CAPE 11.5 ✅ 估值合理（价值洼地）"},
-            {"code": "513660", "name": "恒生互联网 ETF", "index_key": "HSI",
-             "preferred": False, "reason": "腾讯/阿里等龙头，但波动大"},
+            # 恒生（CAPE 11.5 估值低，符合防守原则）
+            {"code": "159920", "name": "恒生 ETF（华夏）", "index_key": "HSI",
+             "preferred": True, "reason": "港股 CAPE 11.5 ✅ 估值合理，预期回报 7%/年"},
+            {"code": "510900", "name": "H 股 ETF（易方达）", "index_key": "HSI",
+             "preferred": True, "reason": "跟 H 股指数，避开科技股集中度风险"},
+            {"code": "513900", "name": "港股通 100（华夏）", "index_key": "HSI",
+             "preferred": False, "reason": "港股通精选，分散性好"},
+            # 不推：纳指/标普（CAPE 红灯，违反"求稳"原则）
             {"code": "513500", "name": "标普500 ETF", "index_key": "S&P500",
-             "preferred": False, "reason": "⚠ 标普 CAPE 38.5（85% 分位），偏贵"},
+             "preferred": False, "reason": "🚨 CAPE 38.5（85% 分位）暂不推荐"},
             {"code": "513100", "name": "纳指 ETF", "index_key": "NASDAQ100",
-             "preferred": False, "reason": "🚨 纳指 CAPE 45 历史次高，七巨头占 50%"},
-        ]
+             "preferred": False, "reason": "🚨 CAPE 45 历史次高，七巨头占 50%，不符合稳健原则"},
+        ],
+        "advice": "防守跨境只推港股（估值低）。美股 CAPE 历史高位，违反求稳原则"
     },
     "high_dividend": {
-        "label": "💰 高股息防御",
+        "label": "💰 高股息防御（防守核心，重点持有）",
         "etfs": [
-            {"code": "512890", "name": "红利低波 ETF", "index_key": "H30269",
-             "preferred": True, "reason": "中证红利低波动，分散+股息双优"},
-            {"code": "510880", "name": "上证红利 ETF", "index_key": "000015",
-             "preferred": True, "reason": "上证 50 红利股精选"},
-            {"code": "515080", "name": "中证红利 ETF", "index_key": "000922",
-             "preferred": False, "reason": "中证红利指数，覆盖更广"},
-        ]
+            # 红利低波（防守王者）
+            {"code": "512890", "name": "红利低波 ETF（华泰柏瑞）", "index_key": "H30269",
+             "preferred": True, "reason": "中证红利低波动，分散+股息双优，规模 100 亿+"},
+            # 上证红利（老牌防守）
+            {"code": "510880", "name": "上证红利 ETF（华泰）", "index_key": "000015",
+             "preferred": True, "reason": "国内最早红利 ETF，规模最大，费率 0.15%"},
+            # 中证红利（覆盖更广）
+            {"code": "515080", "name": "中证红利 ETF（招商）", "index_key": "000922",
+             "preferred": True, "reason": "中证红利指数，100 只成分股分散性好"},
+            # 红利 ETF 易方达
+            {"code": "510888", "name": "红利 ETF（易方达）", "index_key": "000015",
+             "preferred": False, "reason": "同上证红利指数，易方达管理"},
+        ],
+        "advice": "防守核心仓位（占 ETF 总仓位 30-40%）。3 只同时持有分散基金公司风险"
     },
     "gold": {
-        "label": "🥇 黄金",
+        "label": "🥇 黄金（避险刚需）",
         "etfs": [
-            {"code": "518880", "name": "黄金 ETF (华安)", "index_key": None,
-             "preferred": True, "reason": "规模最大、流动性最好的实物黄金 ETF"},
-            {"code": "159934", "name": "黄金 ETF (易方达)", "index_key": None,
-             "preferred": False, "reason": "易方达管理，适合定投"},
-        ]
+            {"code": "518880", "name": "黄金 ETF（华安）", "index_key": None,
+             "preferred": True, "reason": "规模最大 200 亿+，跟踪实物黄金，费率 0.5%"},
+            {"code": "159934", "name": "黄金 ETF（易方达）", "index_key": None,
+             "preferred": True, "reason": "易方达管理靠谱，规模 80 亿+"},
+            {"code": "518800", "name": "黄金 ETF（国泰）", "index_key": None,
+             "preferred": False, "reason": "国泰管理，跟金价误差小"},
+            {"code": "159937", "name": "黄金 ETF（博时）", "index_key": None,
+             "preferred": False, "reason": "博时管理，备选"},
+        ],
+        "advice": "黄金是真正的避险（地缘/通胀对冲）。建议 5-10% 仓位，3 家分散"
     },
     "cash": {
-        "label": "💵 现金",
+        "label": "💵 现金类 ETF（重点扩展，用于放机动资金）",
         "etfs": [
-            {"code": "511880", "name": "银华日利 货币 ETF", "index_key": None,
-             "preferred": True, "reason": "T+0 货币基金，流动性极好"},
-            {"code": "511010", "name": "国债 ETF", "index_key": None,
-             "preferred": False, "reason": "5 年国债，对冲股市风险"},
+            # 货币 ETF（T+0，随时支取）
+            {"code": "511880", "name": "银华日利（货币 ETF）", "index_key": None,
+             "preferred": True, "reason": "🌟 T+0 货币 ETF 规模最大 800 亿+，年化 2-2.5%，T+0 随时支取"},
+            {"code": "511990", "name": "华宝添益（货币 ETF）", "index_key": None,
+             "preferred": True, "reason": "🌟 T+0 货币 ETF 第二大，年化 2-2.5%，老牌"},
+            {"code": "511660", "name": "建信添益（货币 ETF）", "index_key": None,
+             "preferred": True, "reason": "🌟 建信管理，T+0 货币 ETF"},
+            {"code": "159001", "name": "易方达保证金（货币 ETF）", "index_key": None,
+             "preferred": False, "reason": "易方达管理，作为分散选择"},
+            # 国债 ETF（短债更稳）
+            {"code": "511010", "name": "国债 ETF（5 年期）", "index_key": None,
+             "preferred": True, "reason": "5 年国债 ETF，年化 2.5-3%，T+0 支取"},
+            {"code": "511260", "name": "10 年国债 ETF（国泰）", "index_key": None,
+             "preferred": False, "reason": "10 年期国债，利率敏感度高（涨跌大）"},
+            {"code": "511020", "name": "平安 5-10 年国开债 ETF", "index_key": None,
+             "preferred": False, "reason": "国开债比国债收益略高，安全度同等"},
         ],
-        "advice": "现金过多时（>10%）应该考虑投出去。但市场极冷时应保留 20-30% 现金"
+        "advice": "🌟 货币 ETF 是放现金的最佳选择：T+0 随时取、年化 2-2.5%（高于活期 0.3%）、"
+                   "0 手续费、规模大不会清盘。建议机动资金的 70-80% 放这里。"
+                   "国债 ETF 用于剩余 20-30%（年化更高但波动稍大）"
     },
 }
 
@@ -177,26 +220,37 @@ def get_recommendations_from_allocation(allocation_breakdown):
 
     输入：calc_allocation_breakdown() 的返回值
     返回：[{asset_class, label, deviation_pp, etfs, ...}, ...]
-        仅返回偏差 < -5pp（缺位明显）或 > +20pp（严重超目标，仅 cash）的类别
     """
     if not allocation_breakdown:
         return []
 
     recommendations = []
+    cash_amount_value = 0  # 现金市值（决定是否推货币 ETF）
     for b in allocation_breakdown.get('breakdown', []):
         deviation = b.get('deviation_pp', 0)
         cls = b.get('asset_class')
 
-        # cash 超目标 > 20pp → 推荐分散到其他资产
-        if cls == 'cash' and deviation > 20:
-            # 不推 cash 自己，而是提示
-            recommendations.append({
-                'asset_class': cls,
-                'label': b['label'],
-                'deviation_pp': deviation,
-                'etfs': [],
-                'advice': f'现金 +{deviation:.1f}pp 严重超目标。建议分散到缺位的资产类别（见下面推荐）'
-            })
+        # cash 类别：无论是否超目标，只要有现金就推货币 ETF（活期利率太低）
+        if cls == 'cash':
+            actual_pct = b.get('actual_pct', 0)
+            cash_value = b.get('market_value', 0)
+            cash_amount_value = cash_value
+            # 即使现金占比合理（5%），也应该放货币 ETF（不是真"放活期"）
+            rec = get_recommendations_for_class(cls, deviation_pp=deviation)
+            if rec:
+                if deviation > 20:
+                    # 超目标：警示 + 仍推货币 ETF
+                    rec['advice'] = (
+                        f'⚠ 现金 {actual_pct}% 严重超目标 5%（+{deviation:.0f}pp）。'
+                        f'建议：(1) 70-80% 现金放下方货币 ETF（年化 2-2.5%）；'
+                        f'(2) 剩余分散到缺位的资产类别（见上方推荐）'
+                    )
+                else:
+                    rec['advice'] = (
+                        f'💡 不要让现金躺在活期账户（年化 0.3%）。'
+                        f'放下方货币 ETF：T+0 随时取、年化 2-2.5%、0 手续费、规模大不会清盘'
+                    )
+                recommendations.append(rec)
             continue
 
         # 其他类别缺位 < -5pp → 推荐买
