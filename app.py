@@ -795,16 +795,44 @@ with tab1:
                 })
             # 判断资金规模（<100 万算小资金）
             _is_small_capital = _total_mv < 1_000_000
+            # TODO-043（2026-04-18）：ETF 集中度按类型分档
+            try:
+                from etf_concentration import check_etf_concentration as _conc_check
+                _has_etf_check2 = True
+            except Exception:
+                _has_etf_check2 = False
             _warnings_live = []
             for _it in _items_mv:
                 _pct = _it["value"] / _total_mv * 100 if _total_mv > 0 else 0
-                _is_king = _it["is_king"]
-                if _is_king and _is_small_capital:
-                    _warn, _danger, _tier = 35, 45, "十年王者+小资金"
-                elif _is_king:
-                    _warn, _danger, _tier = 25, 35, "十年王者+大资金"
+                _code_for_etf = str(_it["code"]).zfill(6)
+                _is_etf = _code_for_etf.startswith(('5', '1'))
+
+                if _is_etf and _has_etf_check2:
+                    # ETF 按集中度分档
+                    try:
+                        _conc = _conc_check(_code_for_etf)
+                        _verdict = _conc.get('verdict', '') if _conc else ''
+                        if _verdict == 'true_broad':
+                            _warn, _danger, _tier = 40, 60, "真宽基 ETF"
+                        elif _verdict == 'strategy_etf':
+                            _warn, _danger, _tier = 30, 45, "策略 ETF"
+                        elif _verdict == 'by_design_concentrated':
+                            _warn, _danger, _tier = 30, 45, "设计本意集中型 ETF"
+                        elif _verdict in ('fake_broad', 'concentrated'):
+                            _warn, _danger, _tier = 25, 35, "名义宽基 ETF"
+                        else:
+                            _warn, _danger, _tier = 25, 35, "行业 ETF"
+                    except Exception:
+                        _warn, _danger, _tier = 25, 35, "ETF 默认档"
                 else:
-                    _warn, _danger, _tier = 20, 30, "普通标的"
+                    # 个股按原 3 档
+                    _is_king = _it["is_king"]
+                    if _is_king and _is_small_capital:
+                        _warn, _danger, _tier = 35, 45, "十年王者+小资金"
+                    elif _is_king:
+                        _warn, _danger, _tier = 25, 35, "十年王者+大资金"
+                    else:
+                        _warn, _danger, _tier = 20, 30, "普通标的"
                 if _pct >= _danger:
                     _warnings_live.append({
                         "code": _it["code"], "name": _it["name"],
