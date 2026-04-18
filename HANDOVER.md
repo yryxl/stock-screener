@@ -188,6 +188,31 @@ Personal Access Token 没有 `workflow` scope，无法通过 git push 修改 `.g
 
 ---
 
+## 八点五、AI Skill（独立备份目录）
+
+**重要**：项目用了一个 Claude Code skill（news_screen — AI 舆情筛股 v2），
+为了便于换电脑/换账号/换 AI 时迁移，**额外维护了一份独立备份**：
+
+```
+G:/Claude Code/ask/选股skill/
+├── HANDOVER.md              ← 接手指南（新 AI 必读）
+├── README.md                ← skill 详细说明 + 同步规则
+└── news_screen/SKILL.md     ← 6 层搜索 + 5 防幻觉
+```
+
+**修改 skill 必须双向同步**：
+- 项目内：`stock_screener/.claude/skills/news_screen/SKILL.md`（Claude Code 实际加载）
+- 外部备份：`G:/Claude Code/ask/选股skill/news_screen/SKILL.md`
+
+**触发话术**（在 Claude Code 里说类似话即触发）：
+- "帮我用 AI 筛 600519、000858"
+- "AI 浑水式查 X 数据真实性"
+- "X 公司管理层怎么样"
+
+详见 `选股skill/HANDOVER.md` 完整接手指南。
+
+---
+
 ## 九、Claude 记忆系统
 
 记忆文件在 `C:\Users\Administrator\.claude\projects\G--Claude-Code-ask\memory\`：
