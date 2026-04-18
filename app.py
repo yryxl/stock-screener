@@ -1857,10 +1857,32 @@ with tab2:
 # ============================================
 with tab3:
     st.header("⭐ 重点关注表")
-    st.caption("你精选的好公司，每日自动更新PE和信号状态")
+    st.caption("你精选的好公司 + 每日扫描自动加入（TODO-045 基本面全过+价格未到位）")
 
     watchlist = st.session_state.get("watchlist", [])
     daily = st.session_state.get("daily", {})
+
+    # TODO-045 显式触发：让用户能主动跑一次 + 立刻看到自动加入效果
+    _w_col1, _w_col2, _w_col3 = st.columns([1, 1, 3])
+    with _w_col1:
+        if st.button("🔄 触发全市场扫描", help="跑全市场扫描，会自动加入'基本面全过+价格未到位'的股到关注表"):
+            try:
+                cfg = get_github_config()
+                url = f"https://api.github.com/repos/{cfg['repo']}/actions/workflows/daily_screen.yml/dispatches"
+                resp = requests.post(url, json={"ref": "main", "inputs": {"mode": "all"}},
+                                     headers=github_headers(cfg["token"]), timeout=10)
+                if resp.status_code == 204:
+                    st.success("✅ 已触发全市场扫描！约 10-30 分钟完成。完成后刷新本页可看到自动新增的关注股")
+                    st.rerun()
+                else:
+                    st.error(f"触发失败: {resp.status_code}")
+            except Exception as e:
+                st.error(f"触发失败: {e}")
+    with _w_col2:
+        # 显示自动加入的统计
+        _auto_count = sum(1 for w in watchlist if w.get("auto_added"))
+        _manual_count = len(watchlist) - _auto_count
+        st.caption(f"📋 共 {len(watchlist)} 只 | 手动 {_manual_count} + 自动 {_auto_count}")
 
     watchlist_data = {}
     for s in daily.get("watchlist_signals", []):
@@ -1912,7 +1934,16 @@ with tab3:
                                       f'margin-left:6px;" title="{_reason}">{_label}</span>')
                     except Exception:
                         _tag_html = ''
-                    st.markdown(f"**{item['name']}**（{code}）{_tag_html}",
+                    # TODO-045：自动加入标签（区分手动 vs 自动）
+                    if item.get("auto_added"):
+                        _auto_date = item.get("auto_added_date", "")
+                        _auto_tag = (f'<span style="background:#e3f2fd;padding:2px 6px;'
+                                      f'border-radius:3px;font-size:11px;color:#1565c0;'
+                                      f'margin-left:4px;" title="模型自动加入 {_auto_date}">'
+                                      f'🤖 自动</span>')
+                    else:
+                        _auto_tag = ''
+                    st.markdown(f"**{item['name']}**（{code}）{_tag_html}{_auto_tag}",
                                  unsafe_allow_html=True)
                     # 财务指标摘要
                     _fm = []
