@@ -1037,6 +1037,94 @@ with tab2:
                         "💡 判定逻辑：高置信度白名单优先 → 板块前缀粗判 → 不确定的归未知。"
                         "宁可错过不犯错，避免误判。"
                     )
+
+        # TODO-046（2026-04-18）：持仓防守/进攻占比（按市值算）
+        # 设计依据：让用户清楚自己持仓的"风险偏好"画像
+        # 防守 >70% 稳健 / 进攻 >70% 激进 / 50-50 平衡
+        try:
+            from stock_classifier import classify_stock
+            # 用 holding_signals + holdings 合并字段（信号里有 dividend_yield/roe 等）
+            _sig_for_classify = {str(s.get('code', '')).zfill(6): s
+                                 for s in (daily.get('holding_signals', []) or [])}
+            _etf_for_classify = {str(s.get('code', '')).zfill(6): s
+                                 for s in (daily.get('etf_signals', []) or [])}
+            # 按市值分类统计
+            _cat_value = {'defensive': 0.0, 'offensive': 0.0, 'neutral': 0.0, 'unknown': 0.0}
+            _cat_items = {'defensive': [], 'offensive': [], 'neutral': [], 'unknown': []}
+            _total_pos_value = 0.0
+            for h in holdings:
+                _c = str(h.get('code', '')).zfill(6)
+                _sig = _sig_for_classify.get(_c) or _etf_for_classify.get(_c) or {}
+                _price = _sig.get('price') or h.get('cost', 0)
+                _value = _price * h.get('shares', 0)
+                _total_pos_value += _value
+                _merged = {**h, **_sig, 'code': _c}
+                _cat, _label, _reason = classify_stock(_merged)
+                _cat_value[_cat] += _value
+                _cat_items[_cat].append({'code': _c, 'name': h.get('name', _c),
+                                          'value': _value, 'label': _label, 'reason': _reason})
+
+            if _total_pos_value > 0:
+                _def_pct = _cat_value['defensive'] / _total_pos_value * 100
+                _off_pct = _cat_value['offensive'] / _total_pos_value * 100
+                _neu_pct = _cat_value['neutral'] / _total_pos_value * 100
+                _unk_pct = _cat_value['unknown'] / _total_pos_value * 100
+
+                st.markdown(
+                    '<div style="margin-top:12px;padding:6px 12px;background:#f5f5f5;'
+                    'border-left:3px solid #455a64;border-radius:4px;font-weight:bold;'
+                    'font-size:14px;color:#263238;">⚔🛡 持仓风险画像（防守/进攻占比，按市值）</div>',
+                    unsafe_allow_html=True
+                )
+                _r1, _r2, _r3, _r4 = st.columns(4)
+                with _r1:
+                    st.metric("🛡 防守占比", f"{_def_pct:.1f}%",
+                              f"{len(_cat_items['defensive'])} 只 · ¥{_cat_value['defensive']:,.0f}",
+                              help="行业稳定/高股息/宽基ETF/红利等，长期持有吃息")
+                with _r2:
+                    st.metric("⚔ 进攻占比", f"{_off_pct:.1f}%",
+                              f"{len(_cat_items['offensive'])} 只 · ¥{_cat_value['offensive']:,.0f}",
+                              help="高 ROE+高 PE/科技股/行业 ETF，追求成长但波动大")
+                with _r3:
+                    st.metric("⚪ 中性占比", f"{_neu_pct:.1f}%",
+                              f"{len(_cat_items['neutral'])} 只 · ¥{_cat_value['neutral']:,.0f}")
+                with _r4:
+                    # 综合评估
+                    if _off_pct > 70:
+                        _judge_html = ('<div style="background:#ffebee;padding:8px 12px;border-left:3px solid #c62828;'
+                                       'border-radius:4px;font-size:13px;color:#b71c1c;">'
+                                       '🚨 进攻 >70%<br>过于激进，注意风险</div>')
+                    elif _def_pct > 70:
+                        _judge_html = ('<div style="background:#e8f5e9;padding:8px 12px;border-left:3px solid #2e7d32;'
+                                       'border-radius:4px;font-size:13px;color:#1b5e20;">'
+                                       '✅ 防守 >70%<br>稳健保守</div>')
+                    elif _def_pct >= 40 and _off_pct >= 30:
+                        _judge_html = ('<div style="background:#e3f2fd;padding:8px 12px;border-left:3px solid #1976d2;'
+                                       'border-radius:4px;font-size:13px;color:#0d47a1;">'
+                                       '⚪ 攻守平衡<br>风险适中</div>')
+                    else:
+                        _judge_html = ('<div style="background:#fff3e0;padding:8px 12px;border-left:3px solid #ef6c00;'
+                                       'border-radius:4px;font-size:13px;color:#bf360c;">'
+                                       '⚪ 偏防守为主<br>正常稳健</div>')
+                    st.markdown(_judge_html, unsafe_allow_html=True)
+
+                # 明细折叠
+                with st.expander("📋 防守/进攻明细（每只持仓属于哪类）"):
+                    for _cat_key in ['defensive', 'offensive', 'neutral', 'unknown']:
+                        items = _cat_items[_cat_key]
+                        if items:
+                            cat_label = {'defensive': '🛡 防守型', 'offensive': '⚔ 进攻型',
+                                          'neutral': '⚪ 中性', 'unknown': '❓ 未知'}[_cat_key]
+                            st.markdown(f"**{cat_label}**（{len(items)} 只 · ¥{_cat_value[_cat_key]:,.0f}）")
+                            for _it in items:
+                                st.markdown(f"- {_it['code']} **{_it['name']}** "
+                                             f"¥{_it['value']:,.0f} — _{_it['reason']}_")
+                    st.caption(
+                        "💡 防守 = 长期持有吃息（行业稳定/高股息/宽基ETF）；"
+                        "进攻 = 追求成长（科技/医药/新能源/行业 ETF）"
+                    )
+        except Exception:
+            pass  # 分类失败不影响主流程
         except Exception as _e:
             pass  # 国企判定失败不影响主流程
 
