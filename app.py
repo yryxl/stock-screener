@@ -1273,17 +1273,25 @@ with tab2:
                                     ("strategy_etf", _buckets_live["strategy_etf"]["items"]),
                                     ("sector_etf", _buckets_live["sector_etf"]["items"]),
                                     ("single_stock", _buckets_live["single_stock"]["items"])]:
+            # TODO-043：按品种分档警告阈值（替代旧的一刀切 30/40）
+            _thresholds = {
+                "broad_etf": (40, 60, "真宽基 ETF"),  # 自带 300/500 只股分散
+                "strategy_etf": (30, 45, "策略 ETF"),  # 红利/低波等
+                "sector_etf": (25, 35, "行业 ETF"),    # 单一行业风险
+                "single_stock": (20, 30, "个股"),      # 个股最严
+            }
+            _warn, _danger, _label = _thresholds.get(_code_key, (30, 40, "持仓"))
             for _it in b_list:
                 _p = _it["value"] / _total_live * 100 if _total_live > 0 else 0
-                if _p >= 40:
+                if _p >= _danger:
                     st.error(
                         f"⚠️ **{_it['name']}（{_it['code']}）** "
-                        f"仓位 {_p:.1f}% ≥ 40%，严重偏重！建议分散"
+                        f"仓位 {_p:.1f}% ≥ {_danger}%（{_label}危险线），严重偏重！建议分散"
                     )
-                elif _p >= 30:
+                elif _p >= _warn:
                     st.warning(
                         f"⚠️ **{_it['name']}（{_it['code']}）** "
-                        f"仓位 {_p:.1f}% ≥ 30%，偏重警戒"
+                        f"仓位 {_p:.1f}% ≥ {_warn}%（{_label}警告线），偏重警戒"
                     )
 
         # TODO-015 / REQ-188：大回撤复查清单（不是建议卖，是提醒复查基本面）

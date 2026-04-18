@@ -1560,23 +1560,50 @@ def check_position_sizes(holdings, signals_map=None, total_capital=None):
 
     signals_map = signals_map or {}
 
+    # TODO-043（2026-04-18）：ETF 集中度按类型分档，避免宽基误报
+    try:
+        from etf_concentration import check_etf_concentration
+        _has_etf_check = True
+    except Exception:
+        _has_etf_check = False
+
     for h in holdings:
         code = str(h.get("code", ""))
         code_6 = code.zfill(6)
         cost = h.get("shares", 0) * h.get("cost", 0)
         pct = (cost / total_cost) * 100
 
-        # 拿质量标签
-        sig = signals_map.get(code) or signals_map.get(code_6) or {}
-        is_king = sig.get("is_10y_king", False)
+        # TODO-043：判断是不是 ETF（5/1 开头）
+        is_etf = code_6.startswith(('5', '1'))
 
-        # 选阈值档位
-        if is_king and is_small_capital:
-            warn_line, danger_line, tier_label = 35, 45, "十年王者+小资金"
-        elif is_king:
-            warn_line, danger_line, tier_label = 25, 35, "十年王者+大资金"
+        if is_etf and _has_etf_check:
+            # ETF 按集中度数据分档
+            try:
+                conc = check_etf_concentration(code_6)
+                verdict = conc.get('verdict', '') if conc else ''
+                if verdict == 'true_broad':
+                    warn_line, danger_line, tier_label = 40, 60, "真宽基 ETF"
+                elif verdict == 'strategy_etf':
+                    warn_line, danger_line, tier_label = 30, 45, "策略 ETF"
+                elif verdict == 'by_design_concentrated':
+                    warn_line, danger_line, tier_label = 30, 45, "设计本意集中型 ETF"
+                elif verdict in ('fake_broad', 'concentrated'):
+                    warn_line, danger_line, tier_label = 25, 35, "名义宽基 ETF（实际集中）"
+                else:
+                    warn_line, danger_line, tier_label = 25, 35, "行业 ETF"
+            except Exception:
+                warn_line, danger_line, tier_label = 25, 35, "ETF 默认档"
         else:
-            warn_line, danger_line, tier_label = 20, 30, "普通标的"
+            # 个股按原有 3 档（普通 / 王者小 / 王者大）
+            sig = signals_map.get(code) or signals_map.get(code_6) or {}
+            is_king = sig.get("is_10y_king", False)
+
+            if is_king and is_small_capital:
+                warn_line, danger_line, tier_label = 35, 45, "十年王者+小资金"
+            elif is_king:
+                warn_line, danger_line, tier_label = 25, 35, "十年王者+大资金"
+            else:
+                warn_line, danger_line, tier_label = 20, 30, "普通标的"
 
         if pct >= danger_line:
             warnings.append({
