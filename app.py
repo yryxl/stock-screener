@@ -1773,6 +1773,44 @@ with tab4:
             "ETF 可以零风险持有。"
         )
 
+        # TODO-041：宽基集中度真实性识别（2026-04-18 用户提）
+        # 用户原话："虽然买的是宽基，但其实只有其中几支股票是盈利的"
+        # 真实数据：纳指 100 七巨头占 50%，沪深 300 仅 22%
+        try:
+            from etf_concentration import check_holdings_etf_concentration
+            holdings_for_conc = st.session_state.get("holdings", [])
+            conc_results = check_holdings_etf_concentration(holdings_for_conc)
+            if conc_results:
+                st.subheader("🔍 持仓 ETF 集中度真实性（REQ-CONCENTRATION-001）")
+                st.caption(
+                    "判定标准：前 10 大权重 <35% 真宽基 / 35-50% 偏集中 / >50% 名义宽基实际主题。"
+                    "策略 ETF（红利等）和成分股<100只的指数（上证50/恒生）按设计本意不算异常"
+                )
+                for r in conc_results:
+                    color_map = {
+                        'green': ('#e8f5e9', '#2e7d32', '#1b5e20'),
+                        'yellow': ('#fff3e0', '#ef6c00', '#bf360c'),
+                        'red': ('#ffebee', '#c62828', '#b71c1c'),
+                        'neutral': ('#f5f5f5', '#9e9e9e', '#666'),
+                    }
+                    bg, bd, txt = color_map.get(r['severity'], color_map['neutral'])
+                    extra = f"<div style='color:#b71c1c;font-size:13px;margin-top:6px;'>⚠ {r['warning']}</div>" if r.get('warning') else ""
+                    st.markdown(
+                        f'<div style="background:{bg};padding:10px 14px;border-left:4px solid {bd};'
+                        f'border-radius:6px;margin-bottom:8px;">'
+                        f'<div style="font-weight:bold;color:{txt};">{r["etf_code"]} {r["etf_name"]} → {r["name"]}</div>'
+                        f'<div style="font-size:13px;color:#444;margin-top:3px;">'
+                        f'前 10 大权重 <b>{r["top10_weight_pct"]}%</b> | {r["label"]}'
+                        f'</div>{extra}</div>',
+                        unsafe_allow_html=True
+                    )
+                st.caption(
+                    f"💡 数据手动维护（建议每季度更新一次 etf_concentration_data.json）。"
+                    f"数据源：中证指数官网 / 基金季报"
+                )
+        except Exception as _e:
+            pass  # 集中度检查失败不影响主流程
+
         # 按温度档位分组展示
         by_level = {2: [], 1: [], 0: [], -1: [], -2: [], None: []}
         for r in etf_signals:

@@ -1,0 +1,120 @@
+{
+  "_comment": "TODO-041 / REQ-CONCENTRATION-001 ETF 前 10 大持仓集中度（2026-04-18）",
+  "_purpose": "判断宽基 ETF 是否名副其实（前 10 大权重 <35% 才是真宽基）",
+  "_user_concern": "纳指七巨头占 50% 不是真宽基，盈利依赖少数几家公司",
+  "_update_frequency": "每季度更新一次（数据源：中证指数官网 / 基金季报 / 投资者交流网站）",
+  "_version": "1.0",
+  "_updated": "2026-04-18",
+
+  "indices": {
+    "000300": {
+      "name": "沪深 300",
+      "total_stocks": 300,
+      "top10_weight_pct": 22.0,
+      "top1_stock": "贵州茅台",
+      "top1_weight_pct": 6.0,
+      "as_of": "2026-04",
+      "verdict": "true_broad",
+      "label": "✅ 真宽基（300 只成分股，前 10 大仅 22%）"
+    },
+    "000016": {
+      "name": "上证 50",
+      "total_stocks": 50,
+      "top10_weight_pct": 60.0,
+      "top1_stock": "贵州茅台",
+      "top1_weight_pct": 12.0,
+      "as_of": "2026-04",
+      "verdict": "by_design_concentrated",
+      "label": "⚠ 成份股仅 50 只，集中度高属设计本意（不是宽基）"
+    },
+    "000905": {
+      "name": "中证 500",
+      "total_stocks": 500,
+      "top10_weight_pct": 8.0,
+      "as_of": "2026-04",
+      "verdict": "true_broad",
+      "label": "✅ 真宽基（500 只成分股，前 10 大仅 8%）"
+    },
+    "000852": {
+      "name": "中证 1000",
+      "total_stocks": 1000,
+      "top10_weight_pct": 4.0,
+      "as_of": "2026-04",
+      "verdict": "true_broad",
+      "label": "✅ 真宽基（1000 只，极度分散）"
+    },
+    "000010": {
+      "name": "上证 180",
+      "total_stocks": 180,
+      "top10_weight_pct": 28.0,
+      "as_of": "2026-04",
+      "verdict": "true_broad",
+      "label": "✅ 真宽基"
+    },
+    "H30269": {
+      "name": "中证红利低波动",
+      "total_stocks": 50,
+      "top10_weight_pct": 35.0,
+      "as_of": "2026-04",
+      "verdict": "strategy_etf",
+      "label": "💎 策略 ETF（不按宽基标准评判，按红利分散性看是健康的）"
+    },
+    "000015": {
+      "name": "上证红利",
+      "total_stocks": 50,
+      "top10_weight_pct": 30.0,
+      "as_of": "2026-04",
+      "verdict": "strategy_etf",
+      "label": "💎 策略 ETF"
+    },
+    "000922": {
+      "name": "中证红利",
+      "total_stocks": 100,
+      "top10_weight_pct": 25.0,
+      "as_of": "2026-04",
+      "verdict": "strategy_etf",
+      "label": "💎 策略 ETF"
+    },
+    "NASDAQ100": {
+      "name": "纳斯达克 100",
+      "total_stocks": 100,
+      "top10_weight_pct": 50.0,
+      "top1_stock": "苹果 / 微软 / 英伟达 等七巨头",
+      "top1_weight_pct": 9.0,
+      "as_of": "2026-04",
+      "verdict": "fake_broad",
+      "label": "🚨 名义宽基实际是七巨头 ETF",
+      "warning": "近 50% 权重在 7 家公司，盈利依赖七巨头表现。如果七巨头集体回调，'宽基' 也保不住你"
+    },
+    "S&P500": {
+      "name": "标普 500",
+      "total_stocks": 500,
+      "top10_weight_pct": 32.0,
+      "as_of": "2026-04",
+      "verdict": "concentrated",
+      "label": "⚠ 宽基偏集中（七巨头权重已达 32%，比历史均值高）"
+    },
+    "HSI": {
+      "name": "恒生指数",
+      "total_stocks": 80,
+      "top10_weight_pct": 55.0,
+      "top1_stock": "腾讯/汇丰/友邦/阿里 等",
+      "as_of": "2026-04",
+      "verdict": "by_design_concentrated",
+      "label": "⚠ 港股大盘指数，前 10 大占 55% 属设计本意"
+    }
+  },
+
+  "thresholds": {
+    "_note": "判定标准（仅对'宽基'类 ETF 有效，策略/行业 ETF 不适用）",
+    "true_broad": "前 10 大 < 35%",
+    "concentrated": "35-50%",
+    "fake_broad": "> 50%（名义宽基实际是少数股票 ETF）"
+  },
+
+  "exceptions": {
+    "by_design_concentrated": "成份股数量天然决定集中度（如上证 50 / 恒生指数）",
+    "strategy_etf": "策略性 ETF（红利/低波/价值/成长），按策略目的评判而非宽基标准",
+    "sector_etf": "行业 ETF（医药/科技/军工），本质就是主题集中"
+  }
+}
