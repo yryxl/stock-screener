@@ -1023,6 +1023,44 @@ with tab2:
                         "💡 自动按持仓代码+名称+行业字段归类。"
                         "未识别的 ETF 暂归价值股池；未识别的个股按行业关键词判（银行/电力等→高股息）"
                     )
+
+                # TODO-040 ETF 推荐功能（2026-04-18 用户提"有反馈无推荐"）
+                # 根据配置偏差，自动推荐补缺 ETF（综合 CAPE + 集中度评级）
+                try:
+                    from etf_recommendations import get_recommendations_from_allocation
+                    _recs = get_recommendations_from_allocation(allocation)
+                    if _recs:
+                        st.subheader("📊 推荐补缺 ETF（REQ-ALLOCATION-RECOMMEND）")
+                        st.caption(
+                            "根据配置偏差自动推荐。综合 CAPE + 集中度评级："
+                            "🟢 现在就买 / 🟡 谨慎少买 / 🔴 暂时不买（即使缺位）"
+                        )
+                        for _r in _recs:
+                            with st.expander(f"{_r['label']} (偏差 {_r['deviation_pp']:+.1f}pp)", expanded=False):
+                                if _r.get('advice') and not _r.get('etfs'):
+                                    st.info(_r['advice'])
+                                else:
+                                    if _r.get('advice'):
+                                        st.caption(_r['advice'])
+                                    for _etf in _r['etfs'][:4]:  # 最多 4 只
+                                        _emoji = {'green': '🟢', 'yellow': '🟡', 'red': '🔴', 'unknown': '⚪'}[_etf['rating']]
+                                        _star = '⭐ ' if _etf.get('preferred') else ''
+                                        _box_color = {'green': '#e8f5e9', 'yellow': '#fff3e0',
+                                                       'red': '#ffebee', 'unknown': '#f5f5f5'}[_etf['rating']]
+                                        _border_color = {'green': '#2e7d32', 'yellow': '#ef6c00',
+                                                          'red': '#c62828', 'unknown': '#9e9e9e'}[_etf['rating']]
+                                        st.markdown(
+                                            f'<div style="background:{_box_color};padding:10px 14px;'
+                                            f'border-left:3px solid {_border_color};border-radius:4px;'
+                                            f'margin-bottom:6px;font-size:13px;">'
+                                            f'<b>{_emoji} {_star}{_etf["code"]} {_etf["name"]}</b><br>'
+                                            f'<span style="color:#666;">📊 {_etf["rating_reason"]}</span><br>'
+                                            f'<span style="color:#444;">💡 {_etf["reason"]}</span>'
+                                            f'</div>',
+                                            unsafe_allow_html=True
+                                        )
+                except Exception:
+                    pass  # 推荐失败不影响主流程
         except Exception as _e:
             pass  # 配置检查失败不影响主流程
 
