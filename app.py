@@ -263,22 +263,44 @@ def render_model_health_banner():
             f'告警项：{" / ".join(all_alerts[:5])}</div>'
         )
 
-    # 健康度详情链接
-    detail_link = (
-        '<div style="margin-top:6px;font-size:12px;">'
-        '<a href="docs/模型健康度监控.html" target="_blank" style="color:#1976d2;">'
-        '📋 查看详细健康度报告 →</a></div>'
-    )
-
+    # BUG-011 修复（2026-04-18）：旧版用 <a href="docs/模型健康度监控.html"> 外链
+    # 但 streamlit 不是静态文件服务器，cloud 上访问会空白
+    # 改为 streamlit 原生 expander 折叠展开 9 项指标
     banner = (
         f'<div style="background:{bg};padding:12px 18px;border-left:6px solid {bd};'
-        f'border-radius:6px;margin-bottom:15px;">'
+        f'border-radius:6px;margin-bottom:8px;">'
         f'<div style="font-size:16px;font-weight:bold;color:{txt};">{title}</div>'
         f'<div style="color:#444;font-size:13px;margin-top:4px;">{advice}</div>'
-        f'{swan_html}{alerts_html}{detail_link}'
+        f'{swan_html}{alerts_html}'
         f'</div>'
     )
     st.markdown(banner, unsafe_allow_html=True)
+
+    # 详细 9 项指标用 expander 展开（不依赖外部 HTML 文件）
+    with st.expander("📋 查看 9 项健康度指标详情", expanded=False):
+        for name, data in indicators.items():
+            status = data.get('状态', '')
+            value = data.get('值', '')
+            desc = data.get('说明', '')
+            threshold = data.get('阈值', '')
+            # 颜色
+            if '🔴' in status:
+                _bg, _bd = '#ffebee', '#c62828'
+            elif '🟡' in status:
+                _bg, _bd = '#fff3e0', '#ef6c00'
+            elif '🟢' in status:
+                _bg, _bd = '#e8f5e9', '#2e7d32'
+            else:
+                _bg, _bd = '#f5f5f5', '#9e9e9e'
+            st.markdown(
+                f'<div style="background:{_bg};padding:8px 12px;border-left:3px solid {_bd};'
+                f'border-radius:4px;margin-bottom:6px;font-size:13px;">'
+                f'<b>{status} {name}</b>: <code>{value}</code><br>'
+                f'<span style="color:#666;">{desc}</span><br>'
+                f'<span style="color:#888;font-size:12px;">阈值: {threshold}</span>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
 
 
 render_model_health_banner()

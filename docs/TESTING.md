@@ -509,6 +509,7 @@ ETF 5 档行动信号各种边界场景（T-L2-004 到 T-L2-007）
 | 2026-04-18 | BUG-008 | 端到端测试断言对外部接口数据稳定性容错不够：质押率接口偶发返回空时整个测试 fail | test_reliability_e2e.py | （待提交）| ✅ 已修复（加软断言：≥3 只股"数据不足"时跳过 mgmt 硬断言）|
 | 2026-04-18 | BUG-009 | config.yaml `max_price_per_share` 配置项未清理（screener.py 已不读但配置仍在）| TODO-035 | （待提交）| ✅ 已修复（加注释标记"已废弃，保留以防回滚"）|
 | 2026-04-18 | BUG-010 | app.py:805 持仓页 `daily.get('holding_signals')` 崩溃 AttributeError: 'list' object has no attribute 'get' | load_from_github | （待提交）| ✅ 已修复（GitHub 失败时先 fallback 本地文件，再失败按文件类型返回正确空值 dict 或 list）|
+| 2026-04-18 | BUG-011 | 健康度灯"📋 查看详细健康度报告 →"链接指向 docs/模型健康度监控.html，streamlit 不是静态服务器导致空白页 | render_model_health_banner | （待提交）| ✅ 已修复（去掉外链，改用 streamlit expander 折叠展开 9 项指标）|
 
 ---
 
@@ -609,6 +610,7 @@ python test_reliability_boundary.py
 | **2026-04-18 深夜** | **TODO-038 管理层 5 维（含回购数据）** | **✅ 4 维代码 + 5 维 skill 协同，回归 26/26** |
 | **2026-04-18 深夜** | **TODO-041 ETF 集中度真实性识别** | **✅ 11 个指数集中度数据 + 自测全过（沪深300 真宽基/纳指 100 七巨头警告）** |
 | **2026-04-18 深夜** | **TODO-040 ETF 推荐功能** | **✅ 6 类资产推荐池（含 CAPE+集中度综合评级）+ 持仓页集成** |
+| **2026-04-18 深夜** | **TODO-042 Streamlit 防休眠 v2** | **✅ 用户手动改 workflow 用 Playwright，验证 app 正常进入主页** |
 
 ### 维护说明
 
