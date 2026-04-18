@@ -599,6 +599,40 @@ with tab1:
         except Exception:
             _funds = None
 
+        # TODO-040 v2：在 Tab1 也展示 ETF 推荐（不只在 Tab2 持仓页）
+        # 用户原话：方便统一查看"现在该买什么 ETF"
+        try:
+            from etf_recommendations import get_recommendations_from_allocation
+            from allocation_check import calc_allocation_breakdown
+            _holdings_t1 = st.session_state.get("holdings", []) or []
+            _user_cash_t1 = _funds.get('cash', 0) if _funds else 0
+            _alloc_t1 = calc_allocation_breakdown(_holdings_t1, _user_cash_t1)
+            _etf_recs = get_recommendations_from_allocation(_alloc_t1)
+            if _etf_recs:
+                with st.expander("📊 ETF 推荐（基于你的资产配置缺位 + CAPE/集中度评级）", expanded=False):
+                    st.caption(
+                        "🟢 现在就买 / 🟡 谨慎少买 / 🔴 暂时不买 / ⚪ 无评级（货币/国债类）。"
+                        "⭐ 标记 = 优先选这只。详细配置健康度看 Tab2 持仓页"
+                    )
+                    for _r in _etf_recs:
+                        st.markdown(f"**{_r['label']}** （偏差 {_r['deviation_pp']:+.1f}pp）")
+                        if _r.get('advice') and not _r.get('etfs'):
+                            st.info(_r['advice'])
+                        else:
+                            if _r.get('advice'):
+                                st.caption(_r['advice'])
+                            for _etf in _r['etfs'][:4]:
+                                _emoji = {'green': '🟢', 'yellow': '🟡', 'red': '🔴',
+                                           'unknown': '⚪'}[_etf['rating']]
+                                _star = '⭐ ' if _etf.get('preferred') else ''
+                                st.markdown(
+                                    f"- {_emoji} {_star}**{_etf['code']} {_etf['name']}**"
+                                    f"  _{_etf['reason']}_"
+                                )
+                        st.markdown("---")
+        except Exception:
+            pass  # ETF 推荐失败不影响主流程
+
         # 合并全部信号源（和消息推送完全对齐）
         # 优先级：holding_signals > watchlist_signals(非hold) > ai_recommendations
         # 持仓信号最优先——模型知道你持有，信号更精准
