@@ -1156,8 +1156,8 @@ with tab2:
                                        '⚪ 偏防守为主<br>正常稳健</div>')
                     st.markdown(_judge_html, unsafe_allow_html=True)
 
-                # 明细折叠
-                with st.expander("📋 防守/进攻明细（每只持仓属于哪类）"):
+                # 明细折叠（H1：每行加"📍 定位"按钮跳到该股的持仓详情行）
+                with st.expander("📋 防守/进攻明细（每只持仓属于哪类·点 📍 跳到该股操作区）"):
                     for _cat_key in ['defensive', 'offensive', 'neutral', 'unknown']:
                         items = _cat_items[_cat_key]
                         if items:
@@ -1165,12 +1165,24 @@ with tab2:
                                           'neutral': '⚪ 中性', 'unknown': '❓ 未知'}[_cat_key]
                             st.markdown(f"**{cat_label}**（{len(items)} 只 · ¥{_cat_value[_cat_key]:,.0f}）")
                             for _it in items:
-                                st.markdown(f"- {_it['code']} **{_it['name']}** "
-                                             f"¥{_it['value']:,.0f} — _{_it['reason']}_")
+                                _row_c1, _row_c2 = st.columns([10, 1])
+                                with _row_c1:
+                                    st.markdown(f"- {_it['code']} **{_it['name']}** "
+                                                 f"¥{_it['value']:,.0f} — _{_it['reason']}_")
+                                with _row_c2:
+                                    if st.button("📍", key=f"focus_{_cat_key}_{_it['code']}",
+                                                  help=f"跳到 {_it['name']} 的持仓详情"):
+                                        st.session_state["focus_code"] = _it['code']
+                                        st.toast(f"已定位 {_it['name']}，下方持仓行已展开 📜 交易明细", icon="📍")
+                                        st.rerun()
                     st.caption(
                         "💡 防守 = 长期持有吃息（行业稳定/高股息/宽基ETF）；"
                         "进攻 = 追求成长（科技/医药/新能源/行业 ETF）"
                     )
+                    if st.session_state.get("focus_code"):
+                        if st.button("✖ 清除定位", key="clear_focus"):
+                            st.session_state["focus_code"] = None
+                            st.rerun()
         except Exception:
             pass  # 防守/进攻分类失败不影响主流程
 
@@ -1586,12 +1598,26 @@ with tab2:
                 except Exception:
                     _has_alert, _alert_count = False, 0
 
+                # H1：focus_code 高亮（防守/进攻明细点📍跳过来）
+                _is_focused = st.session_state.get("focus_code") == code
+                if _is_focused:
+                    st.markdown(
+                        f'<div id="focus_anchor_{code}" style="background:#fff8e1;'
+                        f'padding:6px 10px;border-left:4px solid #f57c00;'
+                        f'border-radius:4px;margin-bottom:6px;font-size:13px;color:#bf360c;">'
+                        f'👉 <b>已定位 {h.get("name", code)}</b>（来自上方防守/进攻明细的 📍 按钮）'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+
                 col1, col2, col3, col4, col5, col6, col7 = st.columns([2, 1.2, 1.2, 1.2, 2.5, 0.6, 0.6])
                 with col1:
-                    # 股票名 + 可能的提醒铃铛
+                    # 股票名 + 可能的提醒铃铛 + focus 高亮
                     _name_display = h.get('name', '未知')
                     if _has_alert:
                         _name_display = f"🔔 {_name_display}"
+                    if _is_focused:
+                        _name_display = f"👉 {_name_display}"
                     st.markdown(f"**{_name_display}**")
                     caption = f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.0f}"
                     if is_etf and index_name:
@@ -1779,10 +1805,11 @@ with tab2:
                                 st.rerun()
                             st.markdown("---")
 
-                # ============ H5：交易明细 expander（每只持仓独立）============
+                # ============ H5：交易明细 expander（每只持仓独立；H1 focus_code 时自动展开）============
                 try:
                     import transaction_log as _tlog
-                    with st.expander(f"📜 {h.get('name', code)} 交易明细 / 记录新交易"):
+                    with st.expander(f"📜 {h.get('name', code)} 交易明细 / 记录新交易",
+                                       expanded=_is_focused):
                         _hist = _tlog.get_history(code)
                         _curr_price = sig_data.get("price") or h.get("cost", 0)
                         _summary = _tlog.get_summary(code, current_price=_curr_price)
