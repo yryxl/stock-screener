@@ -708,6 +708,10 @@ python test_reliability_boundary.py
 | **2026-04-19** | **H1 防守/进攻明细可点📍跳定位** | **✅ 点 📍 → focus_code → 持仓行 👉 高亮 + 📜 交易明细自动展开** |
 | **2026-04-19** | **B1 backtest_engine 核心评分函数单测** | **✅ test_backtest_engine.py 45/45：温度计/绝对阈值/十年王者 4 必要条件/回购评分 4 档/历史 ROE 均值** |
 | **2026-04-19** | **B2 护城河松动转迁判定** | **✅ 提取 check_moat_recovery() 纯函数，12 项边界覆盖（时间不够/数据不足/中间断/阈值/年数自定义/None 过滤）** |
+| **2026-04-19** | **H3 换仓建议数值化（swap_analysis.py）** | **✅ 6 项指标（PE 估值差/ROE 差/股息差/预期年化收益差/回收期/4 档推荐）+ Tab2 换仓卡片按推荐档位用不同 box** |
+| **2026-04-19** | **H2 6 类配置一键查推荐 ETF** | **✅ 偏差 >3pp 卡片下加 🔍 按钮 → 自动展开匹配 asset_class 的 ETF 推荐 expander** |
+| **2026-04-19** | **B5 PE/温度跳变判定（提取 2 函数）** | **✅ should_skip_pe_sells_for_cold_market + should_apply_hot_market_reduction，4 mode × 5 temp = 24 项断言全过** |
+| **2026-04-19** | **B3+B4 virtual_buy/sell 主流程 + 复购测试** | **✅ test_backtest_trades.py 63/63：建仓/加仓/部分卖/全卖/资金不足/100 股约束/松动禁止/复购允许/跨月复购/松动登记后禁止** |
 
 ### 维护说明
 

@@ -528,15 +528,18 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
         sids_to_sell = []
 
         # 路径 B / C 大底加仓 + 暂停卖出：market_temp == -2 时跳过所有卖出
+        # B5 提取：判定逻辑改用 backtest_engine.should_skip_pe_sells_for_cold_market
+        from backtest_engine import (should_skip_pe_sells_for_cold_market,
+                                       should_apply_hot_market_reduction)
         # 巴菲特原话："Be greedy when others are fearful."
         # 在历史最低 15% 分位区间，任何卖出都是错的
-        skip_all_sells_for_path_b = (
-            STRATEGY_MODE in ("path_b", "path_c") and market_temp == -2
+        skip_all_sells_for_path_b = should_skip_pe_sells_for_cold_market(
+            STRATEGY_MODE, market_temp
         )
 
         # 市场极热系统性减仓（每持仓每年一次）
         # 路径 A / C 取消此规则：让模型在牛市能跟得上沪深 300
-        if market_temp == 2 and STRATEGY_MODE not in ("path_a", "path_c"):
+        if should_apply_hot_market_reduction(STRATEGY_MODE, market_temp):
             for sid, h in list(holdings.items()):
                 if h.get("sys_reduce_year") == year:
                     continue  # 今年已经减过了

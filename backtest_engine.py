@@ -785,6 +785,30 @@ def get_cash_flow_warnings(sid, year, month):
     return warnings
 
 
+def should_skip_pe_sells_for_cold_market(strategy_mode, market_temp):
+    """B5：极冷市场是否跳过 PE 类卖出（路径 B / C 在大底时暂停 PE 卖出）
+
+    Args:
+      strategy_mode: 'path_a' / 'path_b' / 'path_c' / 其它
+      market_temp: -2~2（-2 极冷，2 极热）
+
+    Returns: bool（True = 跳过 sell_heavy/medium/light/watch，但保留必须卖如退市）
+    """
+    return strategy_mode in ("path_b", "path_c") and market_temp == -2
+
+
+def should_apply_hot_market_reduction(strategy_mode, market_temp):
+    """B5：极热市场是否触发"系统性减仓 25%"（path_a 和 path_c 取消此动作）
+
+    Args:
+      strategy_mode: 'path_a' / 'path_b' / 'path_c' / 其它
+      market_temp: -2~2
+
+    Returns: bool（True = 极热时主动减仓 25% / False = 不减）
+    """
+    return market_temp == 2 and strategy_mode not in ("path_a", "path_c")
+
+
 def check_moat_recovery(broken_year, current_year, post_break_roes,
                          recovery_years=10, threshold=15):
     """
