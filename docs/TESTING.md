@@ -547,6 +547,8 @@ ETF 5 档行动信号各种边界场景（T-L2-004 到 T-L2-007）
 | 2026-04-18 | BUG-013 | TODO-046 try 块插入位置错误，破坏国企 try-except 配对，app.py 整个崩 | render_holdings_management | `c928f0d` | ✅ 已修复。**解决方法**：紧急回滚——在 TODO-046 try 之前补上国企 try 对应的 except，删除孤立的重复 except，恢复正确的 try-except 配对结构 |
 | 2026-04-18 | BUG-014 | 三房巷管理层断言失败：接口偶发返回 100 分（接口数据稳定性问题） | test_reliability_regression | `5f9d53b` | ✅ 已修复。**解决方法**：测试断言改宽松——`assert score is None or score >= 0`（function 能跑就算过），接口偶发数据视为合理。**根因属"已知接口稳定性问题"** |
 | 2026-04-18 | BUG-015 | 海德股份端到端断言再次失败：同类接口数据稳定性问题（同 BUG-008/014） | test_reliability_e2e | （待提交）| ✅ 已修复。**解决方法**：彻底放宽 mgmt 断言为软提示而非硬失败，三次同类问题决定永不阻塞测试。**长期方案见"已知接口稳定性问题汇总"段** |
+| 2026-04-19 | BUG-016 | TODO-047 实施后 watchlist_toohard.json / blacklist.json 文件不存在（用户在文件系统找不到，HANDOVER.md 列了 4 个文件但实际只有 2 个） | watchlist_manager | （待提交）| ✅ 已修复。**解决方法**：watchlist_manager 模块导入时自动跑 `_init_files_at_module_load()`，确保 4 表文件都存在（即使为空 list） |
+| 2026-04-19 | BUG-017 | 主 Tab3 名称仍是旧版"⭐ 重点关注表"，与 header"⭐ 关注表（4 层流转）"不一致 | app.py:476 | （待提交）| ✅ 已修复。**解决方法**：把 `st.tabs([..., "⭐ 重点关注表", ...])` 改成 `"⭐ 关注表（4 层）"`，与 Tab3 内容统一 |
 
 ---
 
@@ -696,6 +698,8 @@ python test_reliability_boundary.py
 | **2026-04-18 凌晨** | **TODO-046 防守/进攻分类** | **✅ stock_classifier.py + 推荐/持仓/关注 3 tab 标签 + 持仓占比** |
 | **2026-04-18 凌晨** | **TODO-013 V2 管理层减持检测** | **✅ 同花顺接口拉减持记录，近 12 月>2000 万股扣分** |
 | **2026-04-19** | **TODO-047 关注表 4 表分流** | **✅ watchlist_manager.py + 4 表 JSON（model/toohard/my/blacklist）+ Tab3 重写为 4 子区 + 用户操作按钮（太难/好/坏/分析中/取消）+ 黑名单自动 1 年到期 + 旧 watchlist.json 11 只股迁移到 my 表** |
+| **2026-04-19** | **TODO-047 全方位回归测试**（5 层 107 项断言）| **✅ Layer1 单元 16 案例 / Layer2 数据迁移 / Layer3 前端结构 / Layer4 main.py 集成 / Layer5 验收 7 条 全部通过；test_todo_047.py 入库** |
+| **2026-04-19** | **TODO-047 Playwright e2e 真实点按钮** | **✅ 16/16 全过：浏览器实际操作【太难/好/坏/分析中/取消】5 个按钮，验证 4 表流转链路、置顶标识、黑名单到期日。test_todo_047_e2e.py 入库** |
 
 ### 维护说明
 
@@ -750,6 +754,43 @@ for k in keywords:
 - **规则 A 真实回算**：等历史快照积累到 3 年（约 156 份周快照）
 - **规则 C 长亏识别**：用户给现有持仓补 buy_date 字段后立即生效
 - **3 月买入准确率 / 沪深 300 超额收益**：等历史快照≥ 3 个月
+
+---
+
+## 🌳 TODO-047 关注表 4 表分流 — 测试方法（2026-04-19 新增）
+
+### 测试矩阵
+
+| 层 | 文件 | 内容 | 通过率 |
+|---|---|---|---|
+| Layer 1 单元 | `test_todo_047.py` | watchlist_manager 16 案例（add/mark/remove/cleanup/防重/zfill）| 60+ 断言 |
+| Layer 2 数据迁移 | 同上 | 11 只手动股迁移完整性、字段、代码 6 位 | 22 断言 |
+| Layer 3 前端结构 | 同上 | app.py 编译 + 4 子区 + 5 操作按钮 + 分析中置顶 + AST 验证 | 18 断言 |
+| Layer 4 集成 | 同上 | main.py auto_add_to_watchlist 4 种候选 + 重跑防重 + 已在 my 防回灌 | 7 断言 |
+| Layer 5 验收 | 同上 | 7 条验收标准（4 文件 + 5 函数 + 4 子区 + 按钮 + 自动清理 + 置顶 + 兼容）| 14 断言 |
+| **e2e 真实点击** | `test_todo_047_e2e.py` | Playwright 浏览器实际操作 5 个按钮 + 4 表流转链路 | 16/16 全过 |
+
+### 快速自检命令
+
+```bash
+# 后端全量回归（约 5 秒）
+python test_todo_047.py
+
+# 前端 e2e 真实浏览器（需先启动 streamlit 在 8502 端口）
+streamlit run app.py --server.port 8502 --server.headless true &
+python test_todo_047_e2e.py
+```
+
+### 数据隔离保护
+
+测试会临时覆盖真实 4 表数据，但脚本启动时备份所有文件，结束时恢复。
+**注意**：如果脚本中途崩溃，需要手工从 backup 恢复。
+
+### 接手者警告
+
+- 不要把 4 表逻辑下沉到 streamlit session_state — `_save` 必须立即落盘，否则刷新就丢
+- 黑名单 1 年到期是软规则，靠 `cleanup_expired_blacklist()` 每日扫描时清理 — 不要从 model 表去主动恢复（会双重计数）
+- e2e 用 `[role='tab'].filter(has_text="🤔 太难表").last` 区分主 Tab 和子 tab — emoji 前缀是关键
 
 ---
 

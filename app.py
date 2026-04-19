@@ -473,7 +473,7 @@ with _rc2:
         load_all_data(force=True)
         st.rerun()
 
-tab1, tab2, tab3, tab4 = st.tabs(["🎯 模型推荐", "📋 持仓管理", "⭐ 重点关注表", "🧊 ETF 监测"])
+tab1, tab2, tab3, tab4 = st.tabs(["🎯 模型推荐", "📋 持仓管理", "⭐ 关注表（4 层）", "🧊 ETF 监测"])
 
 # ============================================
 # Tab1: 模型推荐（只来自全市场扫描）

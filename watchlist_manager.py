@@ -32,9 +32,39 @@ WATCHLIST_FILES = {
 }
 
 
+# 启动时确保 4 个文件都存在（在 _ensure_files 定义之后调用）
+def _init_files_at_module_load():
+    """模块导入时自动跑一次，保证 4 个文件存在。"""
+    for fname in WATCHLIST_FILES.values():
+        path = os.path.join(SCRIPT_DIR, fname)
+        if not os.path.exists(path):
+            try:
+                with open(path, 'w', encoding='utf-8') as f:
+                    json.dump([], f)
+            except Exception:
+                pass
+
+
+_init_files_at_module_load()
+
+
 # ============================================================
 # 基础读写
 # ============================================================
+
+def _ensure_files():
+    """启动时确保 4 个表文件都存在（即使为空）。
+    避免接手者在文件系统看不到 toohard/blacklist 误判数据丢失。
+    """
+    for fname in WATCHLIST_FILES.values():
+        path = os.path.join(SCRIPT_DIR, fname)
+        if not os.path.exists(path):
+            try:
+                with open(path, 'w', encoding='utf-8') as f:
+                    json.dump([], f)
+            except Exception:
+                pass
+
 
 def _load(table_name):
     """读某个表（4 个表之一）"""
