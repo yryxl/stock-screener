@@ -1,0 +1,246 @@
+{
+  "config": {
+    "start": "2010-01",
+    "end": "2025-12",
+    "initial_capital": 100000
+  },
+  "thresholds": {
+    "GOOD_COMPANY_ROE_THRESHOLD": {
+      "base": 15.0,
+      "low": 12.0,
+      "high": 18.0,
+      "desc": "好公司 ROE 门槛（5y 历史均值）"
+    },
+    "SUPER_GOOD_ROE_THRESHOLD": {
+      "base": 25.0,
+      "low": 20.0,
+      "high": 30.0,
+      "desc": "超级好公司 ROE 门槛"
+    },
+    "SUPER_GOOD_GM_THRESHOLD": {
+      "base": 40.0,
+      "low": 32.0,
+      "high": 48.0,
+      "desc": "超级好公司毛利率门槛"
+    },
+    "INDIVIDUAL_PE_HARD_VETO_MULTIPLIER": {
+      "base": 1.2,
+      "low": 0.96,
+      "high": 1.44,
+      "desc": "个股 PE 硬否决倍数（× 行业 fair_high）"
+    },
+    "BUDGET_HEAVY": {
+      "base": 0.4,
+      "low": 0.32,
+      "high": 0.48,
+      "desc": "重仓买入预算占比"
+    }
+  },
+  "results": {
+    "GOOD_COMPANY_ROE_THRESHOLD": {
+      "base": {
+        "threshold": "GOOD_COMPANY_ROE_THRESHOLD",
+        "value": 15.0,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 10.0
+      },
+      "low": {
+        "threshold": "GOOD_COMPANY_ROE_THRESHOLD",
+        "value": 12.0,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 9.9
+      },
+      "high": {
+        "threshold": "GOOD_COMPANY_ROE_THRESHOLD",
+        "value": 18.0,
+        "final_total": 246147.0,
+        "final_pnl": 146.0,
+        "annual_return_pct": 5.82,
+        "trade_count": 529,
+        "swap_right": 18,
+        "swap_wrong": 25,
+        "total_dividends": 52185.0,
+        "total_fees": 2050.0,
+        "elapsed_sec": 10.2
+      }
+    },
+    "SUPER_GOOD_ROE_THRESHOLD": {
+      "base": {
+        "threshold": "SUPER_GOOD_ROE_THRESHOLD",
+        "value": 25.0,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 10.2
+      },
+      "low": {
+        "threshold": "SUPER_GOOD_ROE_THRESHOLD",
+        "value": 20.0,
+        "final_total": 242833.0,
+        "final_pnl": 143.0,
+        "annual_return_pct": 5.73,
+        "trade_count": 541,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 50935.0,
+        "total_fees": 1985.0,
+        "elapsed_sec": 10.1
+      },
+      "high": {
+        "threshold": "SUPER_GOOD_ROE_THRESHOLD",
+        "value": 30.0,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 9.8
+      }
+    },
+    "SUPER_GOOD_GM_THRESHOLD": {
+      "base": {
+        "threshold": "SUPER_GOOD_GM_THRESHOLD",
+        "value": 40.0,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 9.8
+      },
+      "low": {
+        "threshold": "SUPER_GOOD_GM_THRESHOLD",
+        "value": 32.0,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 9.9
+      },
+      "high": {
+        "threshold": "SUPER_GOOD_GM_THRESHOLD",
+        "value": 48.0,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 9.9
+      }
+    },
+    "INDIVIDUAL_PE_HARD_VETO_MULTIPLIER": {
+      "base": {
+        "threshold": "INDIVIDUAL_PE_HARD_VETO_MULTIPLIER",
+        "value": 1.2,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 9.8
+      },
+      "low": {
+        "threshold": "INDIVIDUAL_PE_HARD_VETO_MULTIPLIER",
+        "value": 0.96,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 9.9
+      },
+      "high": {
+        "threshold": "INDIVIDUAL_PE_HARD_VETO_MULTIPLIER",
+        "value": 1.44,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 9.8
+      }
+    },
+    "BUDGET_HEAVY": {
+      "base": {
+        "threshold": "BUDGET_HEAVY",
+        "value": 0.4,
+        "final_total": 247498.0,
+        "final_pnl": 147.0,
+        "annual_return_pct": 5.86,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 52078.0,
+        "total_fees": 2015.0,
+        "elapsed_sec": 9.9
+      },
+      "low": {
+        "threshold": "BUDGET_HEAVY",
+        "value": 0.32,
+        "final_total": 237404.0,
+        "final_pnl": 137.0,
+        "annual_return_pct": 5.58,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 47206.0,
+        "total_fees": 1879.0,
+        "elapsed_sec": 10.1
+      },
+      "high": {
+        "threshold": "BUDGET_HEAVY",
+        "value": 0.48,
+        "final_total": 266246.0,
+        "final_pnl": 166.0,
+        "annual_return_pct": 6.35,
+        "trade_count": 526,
+        "swap_right": 16,
+        "swap_wrong": 21,
+        "total_dividends": 57689.0,
+        "total_fees": 2163.0,
+        "elapsed_sec": 10.0
+      }
+    }
+  }
+}

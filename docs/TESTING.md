@@ -712,6 +712,9 @@ python test_reliability_boundary.py
 | **2026-04-19** | **H2 6 类配置一键查推荐 ETF** | **✅ 偏差 >3pp 卡片下加 🔍 按钮 → 自动展开匹配 asset_class 的 ETF 推荐 expander** |
 | **2026-04-19** | **B5 PE/温度跳变判定（提取 2 函数）** | **✅ should_skip_pe_sells_for_cold_market + should_apply_hot_market_reduction，4 mode × 5 temp = 24 项断言全过** |
 | **2026-04-19** | **B3+B4 virtual_buy/sell 主流程 + 复购测试** | **✅ test_backtest_trades.py 63/63：建仓/加仓/部分卖/全卖/资金不足/100 股约束/松动禁止/复购允许/跨月复购/松动登记后禁止** |
+| **2026-04-19** | **参数敏感性分析（防过拟合）** | **✅ sensitivity_analysis.py：5 阈值 × ±20% = 15 次回测 5 分钟跑完。结论 4 🟢稳定 + 1 🟡 中等，0 敏感** |
+| **2026-04-19** | **Walk-Forward 验证（防过拟合）** | **✅ walk_forward_analysis.py：5 段 × 3 年（2010-2024）独立回测。4/5 段跑赢沪深 300，平均 alpha +2.71pp，🟢 多数段跑赢评级** |
+| **2026-04-19** | **参数稳定性综合报告** | **✅ docs/parameter_stability_report_2026-04-19.md：对照视频"AI 自动炒股纯属图一乐" 7 个问题做全面验证，证实模型避开 6/7 个 + 第 7 个（过拟合）已用 sensitivity+walk-forward 双重验证** |
 
 ### 维护说明
 

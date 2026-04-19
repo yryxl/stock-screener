@@ -1,0 +1,151 @@
+{
+  "windows": [
+    {
+      "name": "2010-2012",
+      "start": [
+        2010,
+        1
+      ],
+      "end": [
+        2012,
+        12
+      ],
+      "hs300_annual_pct": -10.0
+    },
+    {
+      "name": "2013-2015",
+      "start": [
+        2013,
+        1
+      ],
+      "end": [
+        2015,
+        12
+      ],
+      "hs300_annual_pct": 14.0
+    },
+    {
+      "name": "2016-2018",
+      "start": [
+        2016,
+        1
+      ],
+      "end": [
+        2018,
+        12
+      ],
+      "hs300_annual_pct": -7.0
+    },
+    {
+      "name": "2019-2021",
+      "start": [
+        2019,
+        1
+      ],
+      "end": [
+        2021,
+        12
+      ],
+      "hs300_annual_pct": 18.0
+    },
+    {
+      "name": "2022-2024",
+      "start": [
+        2022,
+        1
+      ],
+      "end": [
+        2024,
+        12
+      ],
+      "hs300_annual_pct": -11.0
+    }
+  ],
+  "results": [
+    {
+      "window": "2010-2012",
+      "years": 3.0,
+      "final_total": 89020.0,
+      "final_pnl": -11.0,
+      "pnl_pct": -10.98,
+      "annual_return_pct": -3.8,
+      "hs300_annual_pct": -10.0,
+      "alpha_pp": 6.2,
+      "trade_count": 90,
+      "swap_right": 7,
+      "swap_wrong": 6,
+      "swap_flat": 21,
+      "total_dividends": 2579.0,
+      "total_fees": 612.0,
+      "elapsed_sec": 1.5
+    },
+    {
+      "window": "2013-2015",
+      "years": 3.0,
+      "final_total": 100257.0,
+      "final_pnl": 0.0,
+      "pnl_pct": 0.26,
+      "annual_return_pct": 0.09,
+      "hs300_annual_pct": 14.0,
+      "alpha_pp": -13.91,
+      "trade_count": 98,
+      "swap_right": 1,
+      "swap_wrong": 2,
+      "swap_flat": 3,
+      "total_dividends": 7291.0,
+      "total_fees": 190.0,
+      "elapsed_sec": 1.8
+    },
+    {
+      "window": "2016-2018",
+      "years": 3.0,
+      "final_total": 122751.0,
+      "final_pnl": 23.0,
+      "pnl_pct": 22.75,
+      "annual_return_pct": 7.07,
+      "hs300_annual_pct": -7.0,
+      "alpha_pp": 14.07,
+      "trade_count": 125,
+      "swap_right": 14,
+      "swap_wrong": 8,
+      "swap_flat": 27,
+      "total_dividends": 6516.0,
+      "total_fees": 675.0,
+      "elapsed_sec": 2.3
+    },
+    {
+      "window": "2019-2021",
+      "years": 3.0,
+      "final_total": 169030.0,
+      "final_pnl": 69.0,
+      "pnl_pct": 69.03,
+      "annual_return_pct": 19.12,
+      "hs300_annual_pct": 18.0,
+      "alpha_pp": 1.12,
+      "trade_count": 101,
+      "swap_right": 7,
+      "swap_wrong": 6,
+      "swap_flat": 14,
+      "total_dividends": 5020.0,
+      "total_fees": 556.0,
+      "elapsed_sec": 2.2
+    },
+    {
+      "window": "2022-2024",
+      "years": 3.0,
+      "final_total": 85908.0,
+      "final_pnl": -14.0,
+      "pnl_pct": -14.09,
+      "annual_return_pct": -4.94,
+      "hs300_annual_pct": -11.0,
+      "alpha_pp": 6.06,
+      "trade_count": 198,
+      "swap_right": 26,
+      "swap_wrong": 29,
+      "swap_flat": 41,
+      "total_dividends": 7342.0,
+      "total_fees": 826.0,
+      "elapsed_sec": 2.5
+    }
+  ]
+}

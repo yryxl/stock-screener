@@ -380,7 +380,8 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
                  initial_random_n_stocks=0,
                  initial_random_seed=42,
                  initial_random_cash_pct=0.20,
-                 initial_stock_ids=None):
+                 initial_stock_ids=None,
+                 end_year=2025, end_month=12):
     """
     严格按选股模型执行，返回统计结果
 
@@ -476,7 +477,7 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
                 )
 
     year, month = start_year, start_month
-    while year < 2025 or (year == 2025 and month <= 12):
+    while year < end_year or (year == end_year and month <= end_month):
         signals = get_month_signals(year, month, anon_map=anon_map, industry_map={}, subset_ids=subset_ids)
         if not signals:
             if month >= 12:
@@ -883,7 +884,7 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
             month += 1
 
     # ============ 最终结算 ============
-    final_signals = get_month_signals(2025, 12, anon_map=anon_map, industry_map={})
+    final_signals = get_month_signals(end_year, end_month, anon_map=anon_map, industry_map={})
     final_portfolio = 0
     holding_summary = []
     for sid, h in holdings.items():
@@ -896,7 +897,7 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
                 break
         value = h["shares"] * price
         pnl = (price / h["cost"] - 1) * 100
-        hold_m = months_between(h["buy_year"], h["buy_month"], 2025, 12)
+        hold_m = months_between(h["buy_year"], h["buy_month"], end_year, end_month)
         final_portfolio += value
         holding_summary.append({
             "anon": h["anon"], "shares": h["shares"],
