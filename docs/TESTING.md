@@ -700,6 +700,9 @@ python test_reliability_boundary.py
 | **2026-04-19** | **TODO-047 关注表 4 表分流** | **✅ watchlist_manager.py + 4 表 JSON（model/toohard/my/blacklist）+ Tab3 重写为 4 子区 + 用户操作按钮（太难/好/坏/分析中/取消）+ 黑名单自动 1 年到期 + 旧 watchlist.json 11 只股迁移到 my 表** |
 | **2026-04-19** | **TODO-047 全方位回归测试**（5 层 107 项断言）| **✅ Layer1 单元 16 案例 / Layer2 数据迁移 / Layer3 前端结构 / Layer4 main.py 集成 / Layer5 验收 7 条 全部通过；test_todo_047.py 入库** |
 | **2026-04-19** | **TODO-047 Playwright e2e 真实点按钮** | **✅ 16/16 全过：浏览器实际操作【太难/好/坏/分析中/取消】5 个按钮，验证 4 表流转链路、置顶标识、黑名单到期日。test_todo_047_e2e.py 入库** |
+| **2026-04-19** | **TODO-034 规则瘦身审计 第一阶段** | **✅ 输出 docs/rules_audit_report_2026-04-19.md，5 类共 20 候选 + 3 项冲突供用户逐条审议** |
+| **2026-04-19** | **TODO-034 规则瘦身审计 第二阶段** | **✅ 用户批准 A/C/E 全部 + B 全部 + D1：归档 7 + 废弃标 4 + 三类裁决 + 三组合并总览 + REQ-035 文档同步 8 维。0 行 Python 代码改动，仅 REQUIREMENTS.md 文档级合并** |
+| **2026-04-19** | **TODO-034 偏离校验** | **✅ 13 个核心函数全在 + 杠杆三层调用顺序正确（646→652→665）+ REQ-035 优先 REQ-011 顺序正确（main.py 153 优先 181）+ 后端回归 107/107** |
 
 ### 维护说明
 
@@ -754,6 +757,50 @@ for k in keywords:
 - **规则 A 真实回算**：等历史快照积累到 3 年（约 156 份周快照）
 - **规则 C 长亏识别**：用户给现有持仓补 buy_date 字段后立即生效
 - **3 月买入准确率 / 沪深 300 超额收益**：等历史快照≥ 3 个月
+
+---
+
+## 🪒 TODO-034 规则瘦身审计 — 偏离校验方法（2026-04-19 新增）
+
+### 背景
+
+文档级规则合并/重组后，必须**确认规则语义没有被改动**。
+TODO-034 第二阶段只动 docs/REQUIREMENTS.md，但仍要校验：
+- 关键函数都没被误删
+- 调用顺序（如杠杆三层防线 646→652→665）没变
+- 优先级关系（如 REQ-035 优先 REQ-011）没变
+
+### 偏离校验脚本（一次性）
+
+```bash
+python -c "
+import screener, live_rules, china_adjustments
+fns = [
+    ('screener', 'check_fundamental_health'),
+    ('screener', 'check_watchlist_financial_health'),
+    ('screener', 'check_consumer_leader_cash_flow_warning'),
+    ('screener', 'check_debt_health_tiered'),
+    ('screener', 'check_roe_no_leverage'),
+    ('screener', 'check_roe_leverage_quality'),
+    ('live_rules', 'check_moat_live'),
+    ('china_adjustments', 'check_financial_fraud_risk'),
+    ('china_adjustments', 'check_drain_business'),
+    ('china_adjustments', 'check_smoothness_madoff'),
+    ('china_adjustments', 'check_cigar_butt_warning'),
+    ('china_adjustments', 'check_pledge_risk'),
+    ('china_adjustments', 'check_northbound_flow'),
+]
+miss = [f'{m}.{n}' for m, n in fns if not hasattr({'screener': screener, 'live_rules': live_rules, 'china_adjustments': china_adjustments}[m], n)]
+assert not miss, f'缺失: {miss}'
+print(f'OK: {len(fns)} 函数全在')
+"
+```
+
+### 接手者警告
+
+- **绝不要把"文档合并"误读为"规则合并"** —— B1/B2/B3 只是把分散在多处的规则文档**抽出总览表**，规则代码 0 改动
+- **审议时优先看总览段** —— 由总览段定位到各子规则详情，再决定是否要改某条
+- **任何代码改动必须重新跑 13 个核心函数完整性 + 调用顺序校验**
 
 ---
 
