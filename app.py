@@ -1186,6 +1186,62 @@ with tab2:
         except Exception:
             pass  # 防守/进攻分类失败不影响主流程
 
+        # 2026-04-19：模型归因摘要（决定哪些持仓计入模型成绩）
+        try:
+            from holdings_attribution import (
+                summarize_attribution, ATTRIBUTION_LABELS, MODEL_LIVE_DATE
+            )
+            _attr_sum = summarize_attribution(holdings)
+            if _attr_sum and _attr_sum['total'] > 0:
+                st.markdown(
+                    '<div style="margin-top:12px;padding:6px 12px;background:#f5f5f5;'
+                    'border-left:3px solid #6a1b9a;border-radius:4px;font-weight:bold;'
+                    'font-size:14px;color:#4a148c;">🏷️ 模型归因摘要（决定哪些持仓计入模型成绩）</div>',
+                    unsafe_allow_html=True
+                )
+                _ac1, _ac2, _ac3, _ac4 = st.columns(4)
+                with _ac1:
+                    st.metric(
+                        "🤖 模型推荐",
+                        f"{_attr_sum['model']} 只",
+                        f"{_attr_sum['model_pct']}% 计入成绩",
+                        help="模型上线后依据 buy 信号买入。计入'模型胜率/最大回撤/长亏识别'"
+                    )
+                with _ac2:
+                    st.metric(
+                        "📜 上线前持有",
+                        f"{_attr_sum['pre_model']} 只",
+                        "不计入" if _attr_sum['pre_model'] else "—",
+                        help=f"模型上线日（{MODEL_LIVE_DATE}）前持有，与模型决策无关，不算入模型成绩"
+                    )
+                with _ac3:
+                    st.metric(
+                        "✋ 自主决定",
+                        f"{_attr_sum['manual']} 只",
+                        "不计入" if _attr_sum['manual'] else "—",
+                        help="模型上线后用户自主买入，未走模型推荐 → 不算模型成绩"
+                    )
+                with _ac4:
+                    if _attr_sum['model'] == 0:
+                        _judge = ('<div style="background:#fff3e0;padding:8px 12px;border-left:3px solid #ef6c00;'
+                                  'border-radius:4px;font-size:13px;color:#bf360c;">'
+                                  '⚠ 0 只模型推荐<br>模型成绩暂无样本</div>')
+                    elif _attr_sum['model_pct'] >= 50:
+                        _judge = ('<div style="background:#e8f5e9;padding:8px 12px;border-left:3px solid #2e7d32;'
+                                  'border-radius:4px;font-size:13px;color:#1b5e20;">'
+                                  '✅ 模型推荐≥50%<br>成绩样本充足</div>')
+                    else:
+                        _judge = ('<div style="background:#e3f2fd;padding:8px 12px;border-left:3px solid #1976d2;'
+                                  'border-radius:4px;font-size:13px;color:#0d47a1;">'
+                                  '⚪ 部分有效样本<br>仅基于标记部分</div>')
+                    st.markdown(_judge, unsafe_allow_html=True)
+                st.caption(
+                    f"💡 在每只持仓的 📝 备注面板里有 🏷️ 模型归因 tab 可以修改归因。"
+                    f"模型上线日：{MODEL_LIVE_DATE}（参数稳定性验证完成日）。"
+                )
+        except Exception:
+            pass  # 归因模块加载失败不影响主流程
+
         # TODO-033 / REQ-150：资产配置健康度（6 类目标 vs 实际偏差）
         # 设计依据：docs/ALLOCATION_STRATEGY.md（40/20/20/10/5/5 目标）
         # 让用户一眼看到"配置健康度"，不用拿计算器算
@@ -1715,13 +1771,24 @@ with tab2:
 
                 col1, col2, col3, col4, col5, col6, col7 = st.columns([2, 1.2, 1.2, 1.2, 2.5, 0.6, 0.6])
                 with col1:
-                    # 股票名 + 可能的提醒铃铛 + focus 高亮
+                    # 股票名 + 可能的提醒铃铛 + focus 高亮 + 归因标签
                     _name_display = h.get('name', '未知')
                     if _has_alert:
                         _name_display = f"🔔 {_name_display}"
                     if _is_focused:
                         _name_display = f"👉 {_name_display}"
-                    st.markdown(f"**{_name_display}**")
+                    # 2026-04-19 归因标签：模型成绩只算 🤖
+                    try:
+                        from holdings_attribution import get_attribution, ATTRIBUTION_LABELS
+                        _attr = get_attribution(h)
+                        _attr_emoji = {'model': '🤖', 'pre_model': '📜', 'manual': '✋'}[_attr]
+                        _attr_help = ATTRIBUTION_LABELS[_attr] + '（点 📝 修改归因）'
+                    except Exception:
+                        _attr_emoji = ''
+                        _attr_help = ''
+                    if _attr_emoji:
+                        _name_display = f"{_attr_emoji} {_name_display}"
+                    st.markdown(f"**{_name_display}**", help=_attr_help)
                     caption = f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.0f}"
                     if is_etf and index_name:
                         caption += f" | 跟踪 {index_name}"
@@ -1814,7 +1881,58 @@ with tab2:
                             st.markdown(f"### 📝 {h.get('name', '')} 持有契约 & 提醒")
 
                             # Tab 1: 备注  Tab 2: 提醒
-                            _tab_n1, _tab_n2 = st.tabs(["📜 持有契约", "🔔 定时提醒"])
+                            _tab_n1, _tab_n2, _tab_n3 = st.tabs([
+                                "📜 持有契约", "🔔 定时提醒", "🏷️ 模型归因"
+                            ])
+
+                            with _tab_n3:
+                                # 2026-04-19 用户提出：模型归因（决定是否计入模型成绩）
+                                try:
+                                    from holdings_attribution import (
+                                        get_attribution, ATTRIBUTION_LABELS
+                                    )
+                                    _cur_attr = get_attribution(h)
+                                    st.markdown(
+                                        "**这只股的来源**：决定它是否计入模型成绩。\n\n"
+                                        "- 🤖 **模型推荐**：模型上线后依据 buy 信号买的 → 计入模型成绩\n"
+                                        "- 📜 **上线前持有**：模型上线前已经有 → 不算模型的功劳/责任\n"
+                                        "- ✋ **自主决定**：自己看好买的，没走模型推荐 → 不算模型成绩"
+                                    )
+                                    _attr_options = ['model', 'pre_model', 'manual']
+                                    _attr_idx = _attr_options.index(_cur_attr) if _cur_attr in _attr_options else 1
+                                    _new_attr = st.selectbox(
+                                        "选择归因",
+                                        options=_attr_options,
+                                        index=_attr_idx,
+                                        format_func=lambda x: ATTRIBUTION_LABELS[x],
+                                        key=f"attr_select_{code}",
+                                    )
+                                    _attr_note = st.text_input(
+                                        "归因备注（可选）",
+                                        value=h.get('attribution_note', ''),
+                                        key=f"attr_note_{code}",
+                                        placeholder="如：2026 年 5 月模型推荐 buy_heavy 时买入"
+                                    )
+                                    if st.button("💾 保存归因", key=f"save_attr_{code}"):
+                                        h['attribution'] = _new_attr
+                                        if _attr_note:
+                                            h['attribution_note'] = _attr_note
+                                        else:
+                                            h.pop('attribution_note', None)
+                                        # 持久化
+                                        try:
+                                            import json as _j
+                                            with open(os.path.join(os.path.dirname(__file__), "holdings.json"), 'w', encoding='utf-8') as _f:
+                                                _j.dump(holdings, _f, ensure_ascii=False, indent=2)
+                                            new_sha = save_to_github("holdings.json", holdings, st.session_state.get("holdings_sha"))
+                                            if new_sha:
+                                                st.session_state["holdings_sha"] = new_sha
+                                            st.success(f"归因已改为：{ATTRIBUTION_LABELS[_new_attr]}")
+                                            st.rerun()
+                                        except Exception as _e:
+                                            st.error(f"保存失败：{_e}")
+                                except Exception as _e:
+                                    st.warning(f"归因模块加载失败：{_e}")
 
                             with _tab_n1:
                                 _text = st.text_area(
@@ -2098,6 +2216,20 @@ with tab2:
             help="买入时认为的合理价。当前价 < 目标价 → 安全边际可加仓；> 目标价 → 已透支安全边际。"
                  "若不填，可后续编辑补上。可参考模型的 max_buy_price_rr10 字段。"
         )
+        # 2026-04-19：模型归因（决定是否计入模型成绩）
+        try:
+            from holdings_attribution import ATTRIBUTION_LABELS
+            new_attribution = st.selectbox(
+                "🏷️ 模型归因（决定是否计入模型成绩）",
+                options=['model', 'pre_model', 'manual'],
+                index=1,  # 默认 pre_model 保守
+                format_func=lambda x: ATTRIBUTION_LABELS[x],
+                help="🤖 模型推荐 = 跟着 buy 信号买的（计入模型成绩）"
+                     "📜 上线前持有 = 模型上线前已经有（不计入）"
+                     "✋ 自主决定 = 没走模型推荐（不计入）。模型上线日 2026-04-15"
+            )
+        except Exception:
+            new_attribution = 'pre_model'
         if st.form_submit_button("添加", use_container_width=True, type="primary"):
             if new_code:
                 new_h = {
@@ -2106,6 +2238,7 @@ with tab2:
                     "shares": int(new_shares),
                     "cost": float(new_cost),
                     "buy_date": new_buy_date.strftime("%Y-%m-%d"),
+                    "attribution": new_attribution,  # 2026-04-19 归因字段
                 }
                 if new_cat.strip():
                     new_h["category"] = new_cat.strip()

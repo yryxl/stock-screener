@@ -309,11 +309,31 @@ def calc_holding_win_rate(holdings_file="holdings.json"):
     """
     持仓胜率：当前持仓里多少只是盈利的。
 
+    2026-04-19 用户提出归因要求：
+    只算 attribution='model' 的持仓，避免把"模型上线前持有的股票"算入模型成绩。
+
     不是真的"胜率"（需要完整交易历史），是当前浮盈比例。
     """
-    holdings = _load_json(holdings_file)
-    if not holdings:
+    all_holdings = _load_json(holdings_file)
+    if not all_holdings:
         return None
+
+    # 归因过滤：只算模型推荐的持仓
+    try:
+        from holdings_attribution import filter_model_only, summarize_attribution
+        holdings = filter_model_only(all_holdings)
+        attribution_summary = summarize_attribution(all_holdings)
+    except Exception:
+        holdings = all_holdings
+        attribution_summary = None
+
+    if not holdings:
+        # 当前没有任何"模型推荐"的持仓 → 无法评估模型胜率
+        return {
+            "wins": 0, "losses": 0, "total": 0, "rate": None,
+            "note": "0 只模型推荐持仓（用户未标 attribution=model）",
+            "attribution_summary": attribution_summary,
+        }
 
     daily = _load_json("daily_results.json") or {}
     holding_signals = {s.get("code"): s for s in daily.get("holding_signals", [])}
@@ -338,17 +358,34 @@ def calc_holding_win_rate(holdings_file="holdings.json"):
         return None
     return {
         "wins": wins, "losses": losses, "total": total,
-        "rate": round(wins / total * 100, 1)
+        "rate": round(wins / total * 100, 1),
+        "attribution_summary": attribution_summary,
+        "note": (f"基于 {total} 只 attribution=model 的持仓计算"
+                 + (f"（共 {attribution_summary['total']} 只持仓里"
+                    f" {attribution_summary['unattributed_count']} 只未计入）"
+                    if attribution_summary else ''))
     }
 
 
 def calc_max_drawdown_current(holdings_file="holdings.json"):
     """
-    当前持仓最大回撤：所有持仓里亏得最惨的一只。
+    当前持仓最大回撤：所有 attribution=model 持仓里亏得最惨的一只。
+
+    2026-04-19 用户要求：归因过滤后才算（避免 pre_model 的股污染模型评估）
     """
-    holdings = _load_json(holdings_file)
-    if not holdings:
+    all_holdings = _load_json(holdings_file)
+    if not all_holdings:
         return None
+
+    try:
+        from holdings_attribution import filter_model_only
+        holdings = filter_model_only(all_holdings)
+    except Exception:
+        holdings = all_holdings
+
+    if not holdings:
+        return {"worst_stock": None, "drawdown_pct": 0,
+                "note": "0 只 attribution=model 持仓"}
 
     daily = _load_json("daily_results.json") or {}
     holding_signals = {s.get("code"): s for s in daily.get("holding_signals", [])}
@@ -460,15 +497,24 @@ def check_long_held_losers(holdings_file="holdings.json"):
     """
     REQ-151 规则 C：识别"持有 > 3 年且累计收益为负"的股票
 
+    2026-04-19 用户要求归因过滤：只看 attribution=model 持仓
+    （否则云南白药这种"模型上线前买的"会无辜中枪）
+
     返回：[
       {'code': xxx, 'name': xxx, 'years_held': X.X, 'pnl_pct': -XX.X},
       ...
     ]
     返回空列表 = 无符合条件的股票
     """
-    holdings = _load_json(holdings_file)
-    if not holdings:
+    all_holdings = _load_json(holdings_file)
+    if not all_holdings:
         return []
+
+    try:
+        from holdings_attribution import filter_model_only
+        holdings = filter_model_only(all_holdings)
+    except Exception:
+        holdings = all_holdings
 
     daily = _load_json("daily_results.json") or {}
     holding_signals = {s.get("code"): s for s in daily.get("holding_signals", [])}

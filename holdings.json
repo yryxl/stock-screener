@@ -3,25 +3,29 @@
     "code": "510330",
     "name": "沪深300etf",
     "shares": 700,
-    "cost": 4.915
+    "cost": 4.915,
+    "attribution": "pre_model"
   },
   {
     "code": "512890",
     "name": "红利低波etf华泰",
     "shares": 3300,
-    "cost": 1.191
+    "cost": 1.191,
+    "attribution": "pre_model"
   },
   {
     "code": "000538",
     "name": "云南白药",
     "shares": 100,
     "cost": 56.4,
-    "category": "医药"
+    "category": "医药",
+    "attribution": "pre_model"
   },
   {
     "code": "510500",
     "name": "中证500etf南方",
     "shares": 100,
-    "cost": 8.502
+    "cost": 8.502,
+    "attribution": "pre_model"
   }
 ]

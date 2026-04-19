@@ -715,6 +715,7 @@ python test_reliability_boundary.py
 | **2026-04-19** | **参数敏感性分析（防过拟合）** | **✅ sensitivity_analysis.py：5 阈值 × ±20% = 15 次回测 5 分钟跑完。结论 4 🟢稳定 + 1 🟡 中等，0 敏感** |
 | **2026-04-19** | **Walk-Forward 验证（防过拟合）** | **✅ walk_forward_analysis.py：5 段 × 3 年（2010-2024）独立回测。4/5 段跑赢沪深 300，平均 alpha +2.71pp，🟢 多数段跑赢评级** |
 | **2026-04-19** | **参数稳定性综合报告** | **✅ docs/parameter_stability_report_2026-04-19.md：对照视频"AI 自动炒股纯属图一乐" 7 个问题做全面验证，证实模型避开 6/7 个 + 第 7 个（过拟合）已用 sensitivity+walk-forward 双重验证** |
+| **2026-04-19** | **REQ-193 持仓模型归因（防污染模型成绩）** | **✅ holdings_attribution.py + 4 持仓默认 pre_model + model_health_monitor 3 函数改为 filter_model_only / 添加持仓表单加归因下拉 / Tab2 顶部归因摘要 / 持仓行 emoji（🤖/📜/✋） / test_holdings_attribution.py 37/37 全过** |
 
 ### 维护说明
 
