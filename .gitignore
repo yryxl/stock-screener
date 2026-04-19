@@ -8,3 +8,24 @@ cache/
 
 # 中证官网 XLS 手工下载的临时目录（导入后就没用了）
 backtest_data/etf_valuation_import/
+
+# e2e 测试截图（每次跑都重新生成，不入库）
+e2e_screenshot_*.png
+
+# 临时调研脚本（一次性使用，跑完即删；如发现需要保留请逐项 git add）
+debug_*.py
+scan_buffett_pool*.py
+enrich_buffett_pool.py
+enrich_pb_from_bvps.py
+enrich_profit_cashflow_trends.py
+generate_buffett_docs*.py
+
+# 临时调研产出
+buffett_pool*.json
+backtest_compare_3modes.json
+backtest_random_init.json
+backtest_random_init.progress
+backtest_init_quality.progress
+
+# 注：stock_industry_cache.json 已被仓库 tracked，
+# 若要停止追踪需 `git rm --cached stock_industry_cache.json` 后再加进来
