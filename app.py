@@ -1219,7 +1219,7 @@ with tab2:
                     unsafe_allow_html=True
                 )
 
-                # 6 类资产 metric（2 行 × 3 列）
+                # 6 类资产 metric（2 行 × 3 列）+ H2 一键查推荐 ETF 按钮
                 _row1 = st.columns(3)
                 _row2 = st.columns(3)
                 _cols = list(_row1) + list(_row2)
@@ -1229,6 +1229,18 @@ with tab2:
                         _delta = f"目标 {_b['target_pct']}% (偏差 {_b['deviation_pp']:+.1f}pp)"
                         st.metric(_b['label'], f"{_b['actual_pct']}%", _delta,
                                   delta_color=_color)
+                        # H2：偏差 > 3pp（绝对值）或 status=red/yellow 才显示 🔍 按钮
+                        _need_help = (abs(_b.get('deviation_pp', 0)) > 3
+                                      or _b.get('status') in ('red', 'yellow'))
+                        if _need_help:
+                            _ac = _b.get('asset_class', f'idx_{_i}')
+                            if st.button(f"🔍 查推荐 ETF",
+                                          key=f"etf_help_{_ac}_{_i}",
+                                          help=f"展开下方对应的 ETF 推荐",
+                                          use_container_width=True):
+                                st.session_state['expand_etf_for'] = _ac
+                                st.toast(f"已展开 {_b['label']} 的 ETF 推荐", icon="🔍")
+                                st.rerun()
 
                 # 可展开明细
                 with st.expander("📋 资产配置明细（每只持仓属于哪类）"):
@@ -1255,8 +1267,12 @@ with tab2:
                             "根据配置偏差自动推荐。综合 CAPE + 集中度评级："
                             "🟢 现在就买 / 🟡 谨慎少买 / 🔴 暂时不买（即使缺位）"
                         )
+                        # H2：根据 expand_etf_for 自动展开匹配的推荐
+                        _focus_ac = st.session_state.get('expand_etf_for')
                         for _r in _recs:
-                            with st.expander(f"{_r['label']} (偏差 {_r['deviation_pp']:+.1f}pp)", expanded=False):
+                            _is_expanded = (_r.get('asset_class') == _focus_ac)
+                            with st.expander(f"{_r['label']} (偏差 {_r['deviation_pp']:+.1f}pp)",
+                                              expanded=_is_expanded):
                                 if _r.get('advice') and not _r.get('etfs'):
                                     st.info(_r['advice'])
                                 else:
@@ -1523,18 +1539,105 @@ with tab2:
         except Exception:
             pass  # 大回撤检查失败不影响主流程
 
-        # 换仓建议
+        # 换仓建议（H3 增强：加预期收益差/回收期/分级推荐）
         swap_sug = daily.get("swap_suggestions", []) if isinstance(daily, dict) else []
         if swap_sug:
             st.subheader("💡 换仓建议（机会成本）")
-            st.caption("持仓中有卖出信号的股票 vs 关注表中有买入信号的股票")
+            st.caption(
+                "持仓中卖出信号 vs 关注表买入信号 + 数值化收益差。"
+                "**保守原则**：弱推荐/避免类不要换，只换强信号"
+            )
+
+            # 拉 sell/buy 股的 PE/ROE/股息数据，给 swap_analysis 用
+            _all_sigs = {}
+            for s in (daily.get('holding_signals', []) or []):
+                _all_sigs[str(s.get('code', '')).zfill(6)] = s
+            for s in (daily.get('watchlist_signals', []) or []):
+                _all_sigs[str(s.get('code', '')).zfill(6)] = s
+
+            try:
+                from swap_analysis import estimate_swap_metrics
+                _swap_ok = True
+            except Exception as _e:
+                _swap_ok = False
+                st.warning(f"swap_analysis 加载失败：{_e}")
+
             for s in swap_sug:
-                st.info(
-                    f"建议卖出 **{s.get('sell_name','')}** {s.get('sell_ratio','')} "
-                    f"→ 买入 **{s.get('buy_name','')}**\n\n"
+                _sell_code = str(s.get('sell_code', '')).zfill(6)
+                _buy_code = str(s.get('buy_code', '')).zfill(6)
+                _sell_data = _all_sigs.get(_sell_code, {})
+                _buy_data = _all_sigs.get(_buy_code, {})
+
+                # 数值化分析
+                _metrics = None
+                if _swap_ok and _sell_data and _buy_data:
+                    try:
+                        _metrics = estimate_swap_metrics(_sell_data, _buy_data)
+                    except Exception:
+                        _metrics = None
+
+                # 选 box 类型（按推荐档位）
+                _rec = (_metrics or {}).get('recommendation', 'unknown')
+                _box_emoji = {
+                    'strong': '🔥', 'medium': '✅', 'weak': '⚠️', 'avoid': '🚫', 'unknown': '💡'
+                }.get(_rec, '💡')
+                _rec_label = {
+                    'strong': '强推荐换仓', 'medium': '建议换仓', 'weak': '可选换仓（优势不大）',
+                    'avoid': '不建议换仓', 'unknown': '数据不足'
+                }.get(_rec, '')
+
+                # 主体卡片
+                _md = []
+                _md.append(f"### {_box_emoji} {_rec_label}")
+                _md.append(
+                    f"**卖出 {s.get('sell_name','')}** {s.get('sell_ratio','')} "
+                    f"→ **买入 {s.get('buy_name','')}**"
+                )
+                _md.append(
                     f"卖出原因：{SIGNAL_LABELS.get(s.get('sell_signal',''), '')} | "
                     f"买入原因：{SIGNAL_LABELS.get(s.get('buy_signal',''), '')}"
                 )
+
+                # 数值化指标
+                if _metrics:
+                    _expret = _metrics.get('expected_annual_return_diff_pct')
+                    _payback = _metrics.get('payback_years')
+                    _payback_str = (
+                        '< 1 月' if _payback is not None and _payback < 0.083
+                        else f'{_payback:.1f} 年' if _payback is not None
+                        else 'N/A'
+                    )
+                    _ind = []
+                    if _expret is not None:
+                        _ind.append(f"📈 预期年化收益差 **{_expret:+.1f}%**")
+                    if _payback is not None:
+                        _ind.append(f"⏱ 回收期 ≈ **{_payback_str}**")
+                    if _metrics.get('roe_diff_pp') is not None:
+                        _ind.append(f"💰 ROE 差 **{_metrics['roe_diff_pp']:+.0f}pp**")
+                    if _metrics.get('div_diff_pct'):
+                        _ind.append(f"💵 股息差 **{_metrics['div_diff_pct']:+.1f}pp**")
+                    if _ind:
+                        _md.append(' · '.join(_ind))
+                    if _metrics.get('reasons'):
+                        for _r in _metrics['reasons']:
+                            _md.append(f"- {_r}")
+                    _md.append(
+                        f"<sub>💡 假设：换仓总成本 ~{_metrics.get('swap_cost_pct', 0.15)}%（含税费滑点），"
+                        f"PE 估值 1 年回归 30%。回收期 = 成本 / 年化收益差。</sub>"
+                    )
+
+                # 选展示 box
+                _content = "\n\n".join(_md)
+                if _rec == 'strong':
+                    st.success(_content)
+                elif _rec == 'medium':
+                    st.info(_content)
+                elif _rec == 'weak':
+                    st.warning(_content)
+                elif _rec == 'avoid':
+                    st.error(_content)
+                else:
+                    st.info(_content)
 
         for cat, items in category_holdings.items():
             # 分类小计（用市值算，保持和顶部卡片的分母一致）
