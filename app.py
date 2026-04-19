@@ -1779,6 +1779,150 @@ with tab2:
                                 st.rerun()
                             st.markdown("---")
 
+                # ============ H5：交易明细 expander（每只持仓独立）============
+                try:
+                    import transaction_log as _tlog
+                    with st.expander(f"📜 {h.get('name', code)} 交易明细 / 记录新交易"):
+                        _hist = _tlog.get_history(code)
+                        _curr_price = sig_data.get("price") or h.get("cost", 0)
+                        _summary = _tlog.get_summary(code, current_price=_curr_price)
+
+                        # 顶部汇总
+                        if _summary:
+                            _s1, _s2, _s3, _s4 = st.columns(4)
+                            with _s1:
+                                st.metric("交易记录中持有", f"{_summary['shares_held']} 股",
+                                          help="基于交易明细推算的当前持有数量（与 holdings.json 可能不同）")
+                            with _s2:
+                                _avg = _summary['avg_cost']
+                                st.metric("交易记录均价", f"¥{_avg:.2f}" if _avg else "—",
+                                          help="按交易明细累计的加权平均成本（含手续费摊薄）")
+                            with _s3:
+                                _rp = _summary['realized_pnl']
+                                _color = "normal" if _rp >= 0 else "inverse"
+                                st.metric("已实现盈亏", f"¥{_rp:+,.0f}", delta_color=_color)
+                            with _s4:
+                                _up = _summary['unrealized_pnl']
+                                if _up is not None:
+                                    _ucolor = "normal" if _up >= 0 else "inverse"
+                                    st.metric(f"浮盈（@¥{_curr_price:.2f}）", f"¥{_up:+,.0f}",
+                                              delta_color=_ucolor)
+                            _txt = (f"首次买入 {_summary['first_buy_date']} · "
+                                    f"持有 {_summary['days_held']} 天 · "
+                                    f"累计 {_summary['transaction_count']} 笔交易 · "
+                                    f"投入 ¥{_summary['total_invested']:,.0f} · "
+                                    f"收回 ¥{_summary['total_received']:,.0f}")
+                            st.caption(_txt)
+
+                            # H5-4：与 holdings.json 对账（不强制同步，只提示）
+                            _holdings_shares = h.get('shares', 0)
+                            _holdings_cost = h.get('cost', 0)
+                            _diff_shares = _summary['shares_held'] - _holdings_shares
+                            _cost_diff_pct = 0
+                            if _summary['avg_cost'] and _holdings_cost:
+                                _cost_diff_pct = abs(_summary['avg_cost'] - _holdings_cost) / _holdings_cost * 100
+                            if _diff_shares != 0 or _cost_diff_pct > 10:
+                                _msg = []
+                                if _diff_shares != 0:
+                                    _msg.append(f"持仓数量：交易记录 {_summary['shares_held']} 股 vs 持仓表 {_holdings_shares} 股（差 {_diff_shares:+d}）")
+                                if _cost_diff_pct > 10:
+                                    _msg.append(f"成本均价：交易记录 ¥{_summary['avg_cost']:.2f} vs 持仓表 ¥{_holdings_cost:.2f}（差 {_cost_diff_pct:.1f}%）")
+                                st.warning(
+                                    "⚠️ 交易记录与持仓表不一致：\n\n- " + "\n- ".join(_msg) +
+                                    "\n\n💡 这通常是历史交易没全部录入。两层独立，互不强制同步。"
+                                    "如需以交易记录为准，请手工修改持仓表（用上方'修改持仓'表单）。"
+                                )
+
+                        # 历史记录列表
+                        if _hist:
+                            st.markdown("**交易历史（最新在前）**")
+                            for _idx, _r in enumerate(_hist):
+                                _act_label = _tlog.ACTIONS.get(_r['action'], _r['action'])
+                                _amount = abs(_r.get('cash_change', 0))
+                                _is_buy = _r['action'] in ('buy', 'buy_add', 'dividend')
+                                _color = "#c62828" if _is_buy else "#2e7d32"
+                                _arrow = "−" if _is_buy else "+"
+                                _note = _r.get('note', '')
+                                st.markdown(
+                                    f"<div style='padding:6px 10px;background:#fafafa;"
+                                    f"border-left:3px solid {_color};margin-bottom:4px;border-radius:3px;font-size:13px;'>"
+                                    f"<b>{_r['date']}</b> · {_act_label} · "
+                                    f"{_r['shares']} 股 @ ¥{_r['price']:.2f} · "
+                                    f"<span style='color:{_color};'>{_arrow}¥{_amount:,.0f}</span>"
+                                    f"{' · ' + _note if _note else ''}"
+                                    f"</div>",
+                                    unsafe_allow_html=True
+                                )
+                        else:
+                            st.info("尚无交易记录。在下方表单记一笔，AI 后续可基于历史做分析。")
+
+                        # 录入新交易
+                        st.markdown("**➕ 记录新交易**")
+                        with st.form(f"tx_form_{code}", clear_on_submit=True):
+                            _f1, _f2, _f3, _f4 = st.columns(4)
+                            with _f1:
+                                _act = st.selectbox(
+                                    "操作类型",
+                                    options=list(_tlog.ACTIONS.keys()),
+                                    format_func=lambda x: _tlog.ACTIONS[x],
+                                    key=f"tx_act_{code}",
+                                )
+                            with _f2:
+                                _date = st.date_input("交易日", key=f"tx_date_{code}")
+                            with _f3:
+                                _price_in = st.number_input("成交单价", min_value=0.0,
+                                                              value=float(_curr_price or 0),
+                                                              step=0.01, format="%.2f",
+                                                              key=f"tx_price_{code}")
+                            with _f4:
+                                _shares_in = st.number_input("数量（股）", min_value=1,
+                                                               value=100, step=100,
+                                                               key=f"tx_shares_{code}")
+                            _f5, _f6 = st.columns([1, 3])
+                            with _f5:
+                                _fee_in = st.number_input("手续费", min_value=0.0,
+                                                            value=0.0, step=1.0,
+                                                            key=f"tx_fee_{code}")
+                            with _f6:
+                                _note_in = st.text_input("备注（可选）", key=f"tx_note_{code}",
+                                                          placeholder="如：达到买入目标价 / 触发止盈 / 分红再投")
+                            if st.form_submit_button("✅ 记录这笔交易"):
+                                ok, msg = _tlog.log_transaction(
+                                    code, h.get('name', code), _act,
+                                    _price_in, _shares_in,
+                                    date=_date.strftime('%Y-%m-%d'),
+                                    fee=_fee_in, note=_note_in
+                                )
+                                if ok:
+                                    st.success(msg)
+                                    st.rerun()
+                                else:
+                                    st.error(msg)
+
+                        # 删除某条（误录修正）
+                        if _hist:
+                            st.caption("💡 误录可在下方按 添加时间 删除某条")
+                            _del_idx = st.selectbox(
+                                "选择要删除的记录",
+                                options=list(range(len(_hist))),
+                                format_func=lambda i: f"{_hist[i]['date']} {_tlog.ACTIONS.get(_hist[i]['action'], '')} {_hist[i]['shares']}股@¥{_hist[i]['price']:.2f}",
+                                key=f"tx_del_sel_{code}",
+                            )
+                            if st.button("🗑️ 删除选中的记录", key=f"tx_del_btn_{code}"):
+                                # 找原始 _load() 里的索引（_hist 是按 date 倒序，要找回原始位置）
+                                _all = _tlog._load()
+                                _target = _hist[_del_idx]
+                                for _i, _rr in enumerate(_all):
+                                    if (_rr.get('added_at') == _target.get('added_at')
+                                          and _rr.get('code') == _target.get('code')):
+                                        ok, msg = _tlog.delete_transaction(_i)
+                                        if ok:
+                                            st.success(msg)
+                                            st.rerun()
+                                        break
+                except Exception as _e:
+                    st.warning(f"交易明细加载失败：{_e}")
+
                 # 🚨 "必须卖"警告（基本面恶化触发，即使割肉也要卖）
                 if must_sell:
                     st.error(
