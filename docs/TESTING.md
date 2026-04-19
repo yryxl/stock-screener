@@ -695,6 +695,7 @@ python test_reliability_boundary.py
 | **2026-04-18 凌晨** | **TODO-045 自动加入关注表** | **✅ main.py auto_add_to_watchlist，每日扫描后自动加** |
 | **2026-04-18 凌晨** | **TODO-046 防守/进攻分类** | **✅ stock_classifier.py + 推荐/持仓/关注 3 tab 标签 + 持仓占比** |
 | **2026-04-18 凌晨** | **TODO-013 V2 管理层减持检测** | **✅ 同花顺接口拉减持记录，近 12 月>2000 万股扣分** |
+| **2026-04-19** | **TODO-047 关注表 4 表分流** | **✅ watchlist_manager.py + 4 表 JSON（model/toohard/my/blacklist）+ Tab3 重写为 4 子区 + 用户操作按钮（太难/好/坏/分析中/取消）+ 黑名单自动 1 年到期 + 旧 watchlist.json 11 只股迁移到 my 表** |
 
 ### 维护说明
 

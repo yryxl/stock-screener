@@ -1887,37 +1887,48 @@ with tab2:
                         st.rerun()
 
 # ============================================
-# Tab3: 重点关注表（含信号状态）
+# Tab3: 关注表三层分流（TODO-047 重构 2026-04-18）
+# 4 子区：📊 模型推荐 / 🤔 太难表 / ⭐ 我的关注 / 🚫 黑名单
 # ============================================
 with tab3:
-    st.header("⭐ 重点关注表")
-    st.caption("你精选的好公司 + 每日扫描自动加入（TODO-045 基本面全过+价格未到位）")
+    st.header("⭐ 关注表（4 层流转）")
+    st.caption("模型推荐 → [太难] → 太难表 → [好/坏/分析中] → 我的关注 / 黑名单 / 置顶分析")
 
-    watchlist = st.session_state.get("watchlist", [])
     daily = st.session_state.get("daily", {})
 
-    # TODO-045 显式触发：让用户能主动跑一次 + 立刻看到自动加入效果
+    # 触发按钮
     _w_col1, _w_col2, _w_col3 = st.columns([1, 1, 3])
     with _w_col1:
-        if st.button("🔄 触发全市场扫描", help="跑全市场扫描，会自动加入'基本面全过+价格未到位'的股到关注表"):
+        if st.button("🔄 触发全市场扫描", key="t3_trigger",
+                     help="跑全市场扫描，自动加入'基本面好但价格不到位'的股到模型推荐表"):
             try:
                 cfg = get_github_config()
                 url = f"https://api.github.com/repos/{cfg['repo']}/actions/workflows/daily_screen.yml/dispatches"
                 resp = requests.post(url, json={"ref": "main", "inputs": {"mode": "all"}},
                                      headers=github_headers(cfg["token"]), timeout=10)
                 if resp.status_code == 204:
-                    st.success("✅ 已触发全市场扫描！约 10-30 分钟完成。完成后刷新本页可看到自动新增的关注股")
+                    st.success("✅ 已触发！约 10-30 分钟完成")
                     st.rerun()
                 else:
                     st.error(f"触发失败: {resp.status_code}")
             except Exception as e:
                 st.error(f"触发失败: {e}")
-    with _w_col2:
-        # 显示自动加入的统计
-        _auto_count = sum(1 for w in watchlist if w.get("auto_added"))
-        _manual_count = len(watchlist) - _auto_count
-        st.caption(f"📋 共 {len(watchlist)} 只 | 手动 {_manual_count} + 自动 {_auto_count}")
 
+    # 加载 4 个表（用 watchlist_manager）
+    try:
+        from watchlist_manager import _load, mark_too_hard, mark_good, mark_bad, mark_analyzing, remove_from_my
+        _wl_model = _load('model')
+        _wl_toohard = _load('toohard')
+        _wl_my = _load('my')
+        _wl_blacklist = _load('blacklist')
+    except Exception as _e:
+        st.error(f"关注表加载失败: {_e}")
+        _wl_model = _wl_toohard = _wl_my = _wl_blacklist = []
+
+    with _w_col2:
+        st.caption(f"📊 模型 {len(_wl_model)} | 🤔 太难 {len(_wl_toohard)} | ⭐ 我的 {len(_wl_my)} | 🚫 黑名单 {len(_wl_blacklist)}")
+
+    # 关注表数据（信号、PE 等）
     watchlist_data = {}
     for s in daily.get("watchlist_signals", []):
         watchlist_data[s.get("code", "")] = s
@@ -1928,112 +1939,159 @@ with tab3:
             data_info += f" | {daily['data_source']}"
         st.caption(data_info)
 
-    if not watchlist:
-        st.info("暂无关注股票")
-    else:
-        categories = {}
-        for item in watchlist:
-            cat = item.get("industry_auto", "") or item.get("category", "其他")
-            if cat not in categories:
-                categories[cat] = []
-            categories[cat].append(item)
+    # 4 个子标签
+    _t3_subtabs = st.tabs([
+        f"📊 模型推荐 ({len(_wl_model)})",
+        f"🤔 太难表 ({len(_wl_toohard)})",
+        f"⭐ 我的关注 ({len(_wl_my)})",
+        f"🚫 黑名单 ({len(_wl_blacklist)})",
+    ])
 
-        for cat, items in categories.items():
-            st.subheader(format_industry_tag(cat))
-            for item in items:
-                code = item["code"]
-                global_idx = watchlist.index(item)
-                data = watchlist_data.get(code, {})
+    def _render_stock_row(item, subtable_key, idx):
+        """渲染一行股票 + 操作按钮"""
+        code = str(item.get("code", "")).zfill(6)
+        data = watchlist_data.get(code, {})
+        pe = data.get("pe", 0)
+        div_yield = data.get("dividend_yield", 0)
+        signal = data.get("signal", "")
+        signal_text = data.get("signal_text", "")
+        signal_label = SIGNAL_LABELS.get(signal, "—")
+        total_score = data.get("total_score", 0)
 
-                pe = data.get("pe", 0)
-                price = data.get("price", 0)
-                signal = data.get("signal", "")
-                signal_text = data.get("signal_text", "")
-                signal_label = SIGNAL_LABELS.get(signal, "—")
-                total_score = data.get("total_score", 0)
-                div_yield = data.get("dividend_yield", 0)
-                dims = data.get("dimensions", {})
-
-                col1, col2, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 3, 0.8])
-                with col1:
-                    # TODO-046：防守/进攻分类标签
-                    try:
-                        from stock_classifier import classify_stock
-                        _w_stock = {**item, **data}
-                        _cat, _label, _reason = classify_stock(_w_stock)
-                        _cat_color = {'defensive': '#2e7d32', 'offensive': '#c62828',
-                                      'neutral': '#666', 'unknown': '#999'}[_cat]
-                        _tag_html = (f'<span style="background:#f5f5f5;padding:2px 6px;'
-                                      f'border-radius:3px;font-size:11px;color:{_cat_color};'
-                                      f'margin-left:6px;" title="{_reason}">{_label}</span>')
-                    except Exception:
-                        _tag_html = ''
-                    # TODO-045：自动加入标签（区分手动 vs 自动）
-                    if item.get("auto_added"):
-                        _auto_date = item.get("auto_added_date", "")
-                        _auto_tag = (f'<span style="background:#e3f2fd;padding:2px 6px;'
-                                      f'border-radius:3px;font-size:11px;color:#1565c0;'
-                                      f'margin-left:4px;" title="模型自动加入 {_auto_date}">'
-                                      f'🤖 自动</span>')
+        col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 2.5, 1.5])
+        with col1:
+            # 防守/进攻标签
+            try:
+                from stock_classifier import classify_stock
+                _cs = {**item, **data}
+                _cat, _label, _r = classify_stock(_cs)
+                _cc = {'defensive': '#2e7d32', 'offensive': '#c62828',
+                       'neutral': '#666', 'unknown': '#999'}[_cat]
+                _tag = (f'<span style="background:#f5f5f5;padding:2px 6px;border-radius:3px;'
+                        f'font-size:11px;color:{_cc};margin-left:6px;">{_label}</span>')
+            except Exception:
+                _tag = ''
+            # 太难表的 analyzing 状态置顶标识
+            _status_tag = ''
+            if subtable_key == 'toohard' and item.get('analysis_status') == 'analyzing':
+                _status_tag = '<span style="background:#fff3cd;padding:2px 6px;border-radius:3px;font-size:11px;color:#bf360c;margin-left:4px;">🔬 分析中</span>'
+            st.markdown(f"**{item.get('name', code)}**（{code}）{_tag}{_status_tag}",
+                         unsafe_allow_html=True)
+            st.caption(item.get("note", "") or item.get("category", ""))
+        with col2:
+            st.metric("PE", f"{pe:.1f}" if pe and pe > 0 else "—")
+        with col3:
+            st.metric("股息", f"{div_yield:.1f}%" if div_yield > 0 else "—")
+        with col4:
+            st.markdown(signal_label)
+            if signal_text:
+                st.caption(signal_text[:60])
+        with col5:
+            # 按子表显示不同按钮
+            if subtable_key == 'model':
+                if st.button("🤔 太难", key=f"toohard_{code}_{idx}",
+                              help="移到太难表，慢慢分析"):
+                    ok, msg = mark_too_hard(code)
+                    if ok:
+                        st.success(msg)
+                        st.rerun()
                     else:
-                        _auto_tag = ''
-                    st.markdown(f"**{item['name']}**（{code}）{_tag_html}{_auto_tag}",
-                                 unsafe_allow_html=True)
-                    # 财务指标摘要
-                    _fm = []
-                    if pe and pe > 0:
-                        _fm.append(f"市盈率 {pe:.1f}")
-                    _roe = data.get("roe")
-                    if _roe is not None:
-                        _fm.append(f"净收益率 {_roe}%")
-                    _gm = data.get("gross_margin")
-                    if _gm is not None:
-                        _fm.append(f"毛利 {_gm}%")
-                    _dr = data.get("debt_ratio")
-                    if _dr is not None:
-                        _fm.append(f"负债 {_dr}%")
-                    if div_yield and div_yield > 0:
-                        _fm.append(f"股息 {div_yield:.1f}%")
-                    st.caption(" | ".join(_fm) if _fm else item.get("note", ""))
-                with col2:
-                    st.metric("PE(TTM)", f"{pe:.1f}" if pe and pe > 0 else "—")
-                with col3:
-                    st.metric("股息率", f"{div_yield:.1f}%" if div_yield > 0 else "—")
-                with col4:
-                    st.metric("评分", f"{total_score}/50" if total_score > 0 else "—")
-                with col5:
-                    st.markdown(f"{signal_label}")
-                    if signal_text:
-                        st.caption(signal_text[:80])
-                    # 展开显示各维度得分
-                    if dims:
-                        dim_str = " | ".join(f"{k}:{v['score']}" for k, v in dims.items())
-                        st.caption(f"📊 {dim_str}")
-                with col5:
-                    if st.button("🗑️", key=f"del_w_{global_idx}"):
-                        watchlist.pop(global_idx)
-                        new_sha = save_to_github("watchlist.json", watchlist, st.session_state["watchlist_sha"])
-                        if new_sha:
-                            st.session_state["watchlist_sha"] = new_sha
+                        st.error(msg)
+            elif subtable_key == 'toohard':
+                _b1, _b2, _b3 = st.columns(3)
+                with _b1:
+                    if st.button("✅好", key=f"good_{code}_{idx}", help="移到我的关注"):
+                        ok, msg = mark_good(code)
+                        if ok:
+                            st.success(msg)
                             st.rerun()
-            st.divider()
+                with _b2:
+                    if st.button("❌坏", key=f"bad_{code}_{idx}", help="移到黑名单 1 年"):
+                        ok, msg = mark_bad(code)
+                        if ok:
+                            st.success(msg)
+                            st.rerun()
+                with _b3:
+                    if st.button("🔬中", key=f"ana_{code}_{idx}", help="标记分析中（置顶）"):
+                        ok, msg = mark_analyzing(code)
+                        if ok:
+                            st.success(msg)
+                            st.rerun()
+            elif subtable_key == 'my':
+                if st.button("🗑️ 取消", key=f"unmy_{code}_{idx}",
+                              help="从我的关注表移除"):
+                    ok, msg = remove_from_my(code)
+                    if ok:
+                        st.success(msg)
+                        st.rerun()
+            # blacklist 不给操作按钮（等到期自动恢复）
+            elif subtable_key == 'blacklist':
+                _until = item.get('blacklist_until', '?')
+                st.caption(f"到 {_until} 解除")
 
-    st.subheader("➕ 添加关注")
-    with st.form("add_watch", clear_on_submit=True):
-        c1, c2 = st.columns(2)
-        with c1:
-            wcode = st.text_input("股票代码", placeholder="600519", key="w_code")
-            wname = st.text_input("名称", placeholder="贵州茅台", key="w_name")
-        with c2:
-            wnote = st.text_input("备注", placeholder="品牌+地理垄断", key="w_note")
-        if st.form_submit_button("添加到关注表", use_container_width=True, type="primary"):
-            if wcode:
-                watchlist.append({"code": wcode.strip(), "name": wname.strip() or wcode.strip(), "note": wnote.strip()})
-                new_sha = save_to_github("watchlist.json", watchlist, st.session_state["watchlist_sha"])
-                if new_sha:
-                    st.session_state["watchlist_sha"] = new_sha
-                    st.success(f"已添加 {wname}")
-                    st.rerun()
+    # ===== 子标签 1：📊 模型推荐 =====
+    with _t3_subtabs[0]:
+        st.caption("模型每日扫描自动加入：基本面全过 + 质量过关 + 价格不到位的股")
+        if not _wl_model:
+            st.info("暂无模型推荐股。点击上方'触发全市场扫描'按钮跑一次")
+        else:
+            for i, item in enumerate(_wl_model):
+                _render_stock_row(item, 'model', i)
+
+    # ===== 子标签 2：🤔 太难表 =====
+    with _t3_subtabs[1]:
+        st.caption("用户标记的'看不懂/复杂'股。【好】→ 我的关注，【坏】→ 黑名单 1 年，【分析中】→ 置顶")
+        if not _wl_toohard:
+            st.info("太难表为空。从'模型推荐'点【太难】按钮加入")
+        else:
+            # 置顶分析中的
+            _analyzing = [x for x in _wl_toohard if x.get('analysis_status') == 'analyzing']
+            _pending = [x for x in _wl_toohard if x.get('analysis_status') != 'analyzing']
+            for i, item in enumerate(_analyzing + _pending):
+                _render_stock_row(item, 'toohard', i)
+
+    # ===== 子标签 3：⭐ 我的关注 =====
+    with _t3_subtabs[2]:
+        st.caption("用户精选 + 太难表【好】转入。等好价格买入")
+        if not _wl_my:
+            st.info("我的关注表为空")
+        else:
+            for i, item in enumerate(_wl_my):
+                _render_stock_row(item, 'my', i)
+
+        st.divider()
+        st.subheader("➕ 直接加入我的关注")
+        with st.form("t3_add_my", clear_on_submit=True):
+            c1, c2 = st.columns(2)
+            with c1:
+                _wc = st.text_input("股票代码", placeholder="600519", key="t3_my_code")
+                _wn = st.text_input("名称", placeholder="贵州茅台", key="t3_my_name")
+            with c2:
+                _wnote = st.text_input("备注", placeholder="品牌+地理垄断", key="t3_my_note")
+            if st.form_submit_button("加入我的关注", type="primary"):
+                if _wc:
+                    from watchlist_manager import _save
+                    _wl_my.append({
+                        "code": _wc.strip().zfill(6),
+                        "name": _wn.strip() or _wc.strip(),
+                        "note": _wnote.strip(),
+                        "added_date": datetime.now().strftime("%Y-%m-%d"),
+                    })
+                    if _save('my', _wl_my):
+                        st.success(f"已添加 {_wn}")
+                        st.rerun()
+
+    # ===== 子标签 4：🚫 黑名单 =====
+    with _t3_subtabs[3]:
+        st.caption("太难表【坏】转入。1 年后自动解除（每天清理一次）")
+        if not _wl_blacklist:
+            st.info("黑名单为空（无被判'坏'的股）")
+        else:
+            for i, item in enumerate(_wl_blacklist):
+                _render_stock_row(item, 'blacklist', i)
+
+    # TODO-047：旧的"按 industry 分组+watchlist 单表"代码已被上方 4 子区替代（删除）
+    # 旧逻辑已迁移至 4 子区 + ➕ 直接加入我的关注 表单
 
 # ============================================
 # Tab4: ETF 监测（持仓里每只 ETF 的估值/分位/买卖信号）

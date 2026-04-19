@@ -1,0 +1,79 @@
+[
+  {
+    "code": "000538",
+    "name": "云南白药",
+    "category": "中药",
+    "note": "国家绝密配方+百年品牌",
+    "industry_auto": "中药Ⅱ"
+  },
+  {
+    "code": "600085",
+    "name": "同仁堂",
+    "category": "中药",
+    "note": "350年国药老字号",
+    "industry_auto": "中药Ⅱ"
+  },
+  {
+    "code": "600900",
+    "name": "长江电力",
+    "category": "电力",
+    "note": "长江6大梯级电站独家运营",
+    "industry_auto": "电力"
+  },
+  {
+    "code": "601888",
+    "name": "中国中免",
+    "category": "免税",
+    "note": "国内唯一免税全牌照",
+    "industry_auto": "旅游零售Ⅱ"
+  },
+  {
+    "code": "600941",
+    "name": "中国移动",
+    "category": "通信",
+    "note": "9亿用户+通信牌照",
+    "industry_auto": "通信服务"
+  },
+  {
+    "code": "601006",
+    "name": "大秦铁路",
+    "category": "铁路",
+    "note": "西煤东运主通道独家",
+    "industry_auto": "铁路公路"
+  },
+  {
+    "code": "601816",
+    "name": "京沪高铁",
+    "category": "铁路",
+    "note": "最黄金高铁线路独家",
+    "industry_auto": "铁路公路"
+  },
+  {
+    "code": "601398",
+    "name": "工商银行",
+    "category": "银行",
+    "note": "国家信用+金融压舱石",
+    "industry_auto": "银行Ⅱ"
+  },
+  {
+    "code": "000661",
+    "name": "长春高新",
+    "category": "医药",
+    "note": "生长激素国内市占70%+",
+    "industry_auto": "生物制品"
+  },
+  {
+    "code": "603288",
+    "name": "海天味业",
+    "category": "调味品",
+    "note": "酱油市占30%+",
+    "industry_auto": "调味发酵品Ⅱ"
+  },
+  {
+    "code": "600887",
+    "name": "伊利股份",
+    "category": "乳制品",
+    "note": "乳业双寡头",
+    "industry_auto": "饮料乳品"
+  }
+]

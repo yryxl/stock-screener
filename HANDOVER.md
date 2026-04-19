@@ -57,7 +57,11 @@ G:/Claude Code/ask/stock_screener/
 ├── backtest_stocks.json     # 股票池定义（90 只）
 ├── etf_index_map.json       # ETF 代码 → 跟踪指数映射表
 ├── holdings.json            # 当前真实持仓
-├── watchlist.json           # 关注列表
+├── watchlist.json           # 旧关注列表（已废弃，保留备份；2026-04-19 已迁移到下方 4 表）
+├── watchlist_model.json     # 📊 模型推荐（每日扫描自动加：基本面好+价格不到位）
+├── watchlist_toohard.json   # 🤔 太难表（用户标记"看不懂"，含 analysis_status）
+├── watchlist_my.json        # ⭐ 我的关注（用户精选 + 太难表[好]转入）
+├── blacklist.json           # 🚫 黑名单（太难表[坏]转入，1 年自动到期解除）
 ├── daily_results.json       # 每日扫描结果（含 ETF 信号+浮盈评估）
 ├── stock_industry_cache.json # 个股行业缓存
 │
@@ -178,7 +182,7 @@ Personal Access Token 没有 `workflow` scope，无法通过 git push 修改 `.g
 |---|---|
 | 模型推荐 | 全市场扫描结果（每周一自动更新） |
 | 持仓管理 | 6只持仓 + 组合分类四色卡片 + 浮盈评估 + 三类提醒 |
-| 重点关注表 | 11只关注股 + PE区间 + 评分 + 股息率 |
+| 关注表（4 层流转） | 📊 模型推荐 / 🤔 太难表 / ⭐ 我的关注 / 🚫 黑名单（TODO-047）<br>用户操作按钮：[太难][好][坏][分析中][取消]，黑名单 1 年自动到期 |
 | ETF 监测 | 5只ETF的指数PE/分位/温度/浮盈/买卖信号 |
 
 ### 回测页（backtest_page.py）

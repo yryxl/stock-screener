@@ -404,18 +404,87 @@ def run_full_scan(config):
 
 def auto_add_to_watchlist(candidates, max_new_per_day=10):
     """
-    TODO-045 自动加入关注表
+    TODO-045 / TODO-047 自动加入关注表
+
+    2026-04-18 重构（TODO-047）：
+      - 加到 watchlist_model.json（不是旧的 watchlist.json）
+      - 跳过已在 my/toohard/blacklist 表的（用户已知）
+      - 黑名单到期自动清理 + 不重复加
 
     规则：
       - 基本面全过（passed=True）
       - 价格不合适（signal in 'buy_watch'/'sell_watch'/'hold'，非买入信号）
       - 质量过关（is_10y_king 或 is_good_quality）
-      - 不重复加用户已有的（含 holdings + 现有 watchlist）
       - 限制每天最多新增 max_new_per_day 只（按 total_score 排序）
-      - 标记 auto_added=True + auto_added_date
 
     旧的自动加入项保留（不自动删）：可能下次扫描又达标
     """
+    if not candidates:
+        return
+
+    try:
+        from watchlist_manager import (cleanup_expired_blacklist,
+                                        get_all_blocked_codes,
+                                        add_to_model, get_summary)
+    except ImportError:
+        # fallback 到旧逻辑（兼容性）
+        return _auto_add_to_watchlist_legacy(candidates, max_new_per_day)
+
+    # 黑名单到期清理
+    expired = cleanup_expired_blacklist()
+    if expired:
+        print(f"  🔓 黑名单到期清理 {expired} 只")
+
+    # 跳过：持仓 + 已在 my/toohard/未到期黑名单
+    holdings = load_json("holdings.json") or []
+    blocked = get_all_blocked_codes()
+    for h in holdings:
+        blocked.add(str(h.get("code", "")).zfill(6))
+
+    # 筛选符合条件的候选
+    eligible = []
+    for c in candidates:
+        if not c.get("passed"):
+            continue
+        signal = c.get("signal", "")
+        if signal not in ("buy_watch", "sell_watch", "hold", "hold_keep"):
+            continue
+        if not (c.get("is_10y_king") or c.get("is_good_quality")):
+            continue
+        code = str(c.get("code", "")).zfill(6)
+        if code in blocked:
+            continue
+        eligible.append(c)
+
+    # 按总分排序，取 top N
+    eligible.sort(key=lambda x: -(x.get("total_score") or 0))
+    new_picks = eligible[:max_new_per_day]
+
+    today = beijing_now().strftime("%Y-%m-%d")
+    added_count = 0
+    for c in new_picks:
+        code = str(c.get("code", "")).zfill(6)
+        signal_text = c.get("signal_text", "")[:30]
+        stock = {
+            "code": code,
+            "name": c.get("name", code),
+            "category": c.get("industry") or c.get("category", ""),
+            "note": f"自动添加 {today}：{signal_text}",
+            "total_score": c.get("total_score"),
+        }
+        ok, _msg = add_to_model(stock)
+        if ok:
+            added_count += 1
+
+    s = get_summary()
+    if added_count > 0:
+        print(f"  📌 自动加入模型推荐表: {added_count} 只 / 当前共 {s['model']} 只")
+    else:
+        print(f"  📌 自动加入模型推荐表: 0 只新增（model {s['model']} / toohard {s['toohard']} / my {s['my']} / 黑名单 {s['blacklist']}）")
+
+
+def _auto_add_to_watchlist_legacy(candidates, max_new_per_day=10):
+    """旧版兼容：仍写到 watchlist.json"""
     if not candidates:
         return
 
@@ -435,10 +504,8 @@ def auto_add_to_watchlist(candidates, max_new_per_day=10):
         if not c.get("passed"):
             continue
         signal = c.get("signal", "")
-        # 仅"等价格"信号才加（已经能买的在 ai_recommendations 里展示）
         if signal not in ("buy_watch", "sell_watch", "hold", "hold_keep"):
             continue
-        # 质量过关
         if not (c.get("is_10y_king") or c.get("is_good_quality")):
             continue
         code = str(c.get("code", "")).zfill(6)
@@ -446,11 +513,9 @@ def auto_add_to_watchlist(candidates, max_new_per_day=10):
             continue
         eligible.append(c)
 
-    # 按总分排序，取 top N
     eligible.sort(key=lambda x: -(x.get("total_score") or 0))
     new_picks = eligible[:max_new_per_day]
 
-    # 加到 watchlist
     today = beijing_now().strftime("%Y-%m-%d")
     for c in new_picks:
         code = str(c.get("code", "")).zfill(6)
