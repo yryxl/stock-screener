@@ -768,23 +768,22 @@ def run_backtest(start_year, start_month, initial_capital=100000, verbose=True,
             if sid in moat_broken_registry:
                 broken_info = moat_broken_registry[sid]
                 broken_year = int(broken_info["broken_at"][:4])
-                years_since = year - broken_year
 
-                recovered = False
-                if years_since >= MOAT_RECOVERY_YEARS:
-                    # 时间够了，检查松动后每一年的 ROE 是否都 ≥ 15%
-                    reports_check = get_annual_reports_before(
-                        sid, year, month, lookback_years=MOAT_RECOVERY_YEARS + 1
-                    )
-                    # 只取松动之后的年报
-                    post_break = [
-                        r for r in reports_check
-                        if int(str(r["date"])[:4]) >= broken_year
-                    ]
-                    roes = [r.get("roe") for r in post_break if r.get("roe") is not None]
-                    if (len(roes) >= MOAT_RECOVERY_YEARS
-                            and all(r >= 15 for r in roes)):
-                        recovered = True
+                # 提取松动后的 ROE 序列
+                reports_check = get_annual_reports_before(
+                    sid, year, month, lookback_years=MOAT_RECOVERY_YEARS + 1
+                )
+                post_break = [
+                    r for r in reports_check
+                    if int(str(r["date"])[:4]) >= broken_year
+                ]
+                roes = [r.get("roe") for r in post_break if r.get("roe") is not None]
+
+                # B2 提取的判定函数：是否已恢复
+                from backtest_engine import check_moat_recovery
+                recovered = check_moat_recovery(broken_year, year, roes,
+                                                  recovery_years=MOAT_RECOVERY_YEARS,
+                                                  threshold=15)
 
                 if recovered:
                     del moat_broken_registry[sid]

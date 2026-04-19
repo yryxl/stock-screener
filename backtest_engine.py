@@ -785,6 +785,39 @@ def get_cash_flow_warnings(sid, year, month):
     return warnings
 
 
+def check_moat_recovery(broken_year, current_year, post_break_roes,
+                         recovery_years=10, threshold=15):
+    """
+    检查松动护城河是否已恢复（B2 提取的纯函数 / 测试用）
+
+    巴菲特原则：松动后必须连续 recovery_years 年 ROE ≥ threshold% 才解除标签。
+    在 17 年回测周期里基本等于永久封禁，与巴菲特"卖掉的极少回购"一致。
+
+    Args:
+      broken_year: 松动登记的年份（如 2020）
+      current_year: 当前评估的年份（如 2030）
+      post_break_roes: 松动后的 ROE 序列（按年报顺序，含松动年）
+      recovery_years: 恢复所需的连续达标年数（默认 10）
+      threshold: ROE 达标阈值（默认 15%）
+
+    Returns: bool（True = 已恢复，可清除松动标签 / False = 仍在封禁）
+    """
+    # 1. 时间不够 → 直接拒绝
+    if current_year - broken_year < recovery_years:
+        return False
+
+    # 2. 数据不足（< recovery_years 年）→ 拒绝
+    valid_roes = [r for r in post_break_roes if r is not None]
+    if len(valid_roes) < recovery_years:
+        return False
+
+    # 3. 任何一年 < threshold → 拒绝
+    if not all(r >= threshold for r in valid_roes[:recovery_years]):
+        return False
+
+    return True
+
+
 def check_moat_cycle(sid, year, month):
     """
     周期股的"基本面崩塌"检查
