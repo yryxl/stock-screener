@@ -1063,10 +1063,22 @@ with tab2:
                             'border-radius:4px;font-size:13px;color:#1b5e20;">'
                             '✅ 国企/民企<br>分布合理</div>',
                             unsafe_allow_html=True)
-                # 可展开看明细
-                with st.expander("📋 国企/民企明细"):
+                # 明细折叠（H4：按类型分组，与防守/进攻明细风格统一）
+                with st.expander("📋 国企/民企明细（按类型分组）"):
+                    _own_groups = {'state_owned': [], 'private': [], 'unknown': []}
+                    _own_labels = {'state_owned': '🏛️ 国企', 'private': '🏢 民企', 'unknown': '❓ 未知'}
                     for d in ownership['detail']:
-                        st.markdown(f"- {d['status_label']} **{d['code']} {d['name']}**：{d['reason']}")
+                        # 按 status 字段分组（calc_holdings_ownership_breakdown 返回 'state_owned'/'private'/'unknown'）
+                        _key = d.get('status', 'unknown')
+                        if _key not in _own_groups:
+                            _key = 'unknown'
+                        _own_groups[_key].append(d)
+                    for _gk in ['state_owned', 'private', 'unknown']:
+                        _items = _own_groups[_gk]
+                        if _items:
+                            st.markdown(f"**{_own_labels[_gk]}**（{len(_items)} 只）")
+                            for d in _items:
+                                st.markdown(f"- **{d['code']} {d['name']}**：{d['reason']}")
                     st.caption(
                         "💡 判定逻辑：高置信度白名单优先 → 板块前缀粗判 → 不确定的归未知。"
                         "宁可错过不犯错，避免误判。"

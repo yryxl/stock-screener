@@ -375,16 +375,20 @@ def calc_holdings_ownership_breakdown(holdings):
         status, reason = is_state_owned(code)
         if status is True:
             state_owned += 1
+            status_key = 'state_owned'
             label = '🏛️ 国企'
         elif status is False:
             private += 1
+            status_key = 'private'
             label = '🏢 民企'
         else:
             unknown += 1
+            status_key = 'unknown'
             label = '❓ 未知'
         detail.append({
             'code': code,
             'name': h.get('name', code),
+            'status': status_key,         # H4：app.py 按类型分组用
             'status_label': label,
             'reason': reason,
         })
