@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "code": "600519",
+    "name": "贵州茅台",
+    "shares": 100,
+    "cost": 1500.0,
+    "buy_date": "2026-04-20",
+    "attribution": "pre_model"
+  }
+]
