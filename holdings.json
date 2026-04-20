@@ -6,13 +6,5 @@
     "cost": 56.4,
     "buy_date": "2026-04-07",
     "attribution": "pre_model"
-  },
-  {
-    "code": "510330",
-    "name": "沪深300ETF华夏",
-    "shares": 300,
-    "cost": 4.898,
-    "buy_date": "2026-03-13",
-    "attribution": "pre_model"
   }
 ]
