@@ -2439,10 +2439,38 @@ with tab2:
                 holdings.append(new_h)
                 # BUG-022 修：失败回滚 + 显示错误
                 if save_holdings_safely(holdings):
-                    st.success(f"已添加 {new_h['name']}")
+                    # BUG-026 修：添加持仓时自动生成 transaction_log 建仓记录
+                    # 这样持仓 + 交易明细保持一致，无需用户手工补录
+                    try:
+                        import transaction_log as _tlog
+                        ok_tx, _ = _tlog.log_transaction(
+                            new_h["code"], new_h["name"], "buy",
+                            price=float(new_cost),
+                            shares=int(new_shares),
+                            date=new_buy_date.strftime("%Y-%m-%d"),
+                            note="添加持仓时自动记录的建仓",
+                        )
+                        if ok_tx:
+                            # 同步 transaction_log 到 GitHub
+                            try:
+                                _tx_data = _tlog._load()
+                                _tx_sha = st.session_state.get("tx_log_sha")
+                                _new_tx_sha = save_to_github("transaction_log.json",
+                                                              _tx_data, _tx_sha)
+                                if _new_tx_sha:
+                                    st.session_state["tx_log_sha"] = _new_tx_sha
+                            except Exception:
+                                pass
+                            st.success(f"已添加 {new_h['name']}（含建仓交易记录）")
+                        else:
+                            st.success(f"已添加 {new_h['name']}")
+                            st.warning("⚠ 交易明细自动记录失败，可手工在明细里补一笔")
+                    except Exception as _e:
+                        st.success(f"已添加 {new_h['name']}")
+                        st.warning(f"⚠ 交易明细自动记录异常：{_e}")
                     st.rerun()
                 else:
-                    # 回滚（save_holdings_safely 已经触发了 reload，session_state["holdings"] 已经是 GitHub 真实状态）
+                    # 回滚（save_holdings_safely 已经触发了 reload）
                     pass  # 不 rerun，让用户看到 error
 
     if holdings:
