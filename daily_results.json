@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-20 15:17",
-  "mode": "holdings",
+  "date": "2026-04-20 17:05",
+  "mode": "merge_full",
   "is_trading_day": true,
-  "data_source": "持仓检查",
+  "data_source": "分段扫描合并（含 0 个文件）",
   "ai_recommendations": [
     {
       "code": "000538",
