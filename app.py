@@ -240,6 +240,19 @@ def load_all_data(force=False):
         st.session_state["holdings"], st.session_state["holdings_sha"] = load_from_github("holdings.json")
         st.session_state["watchlist"], st.session_state["watchlist_sha"] = load_from_github("watchlist.json")
         st.session_state["daily"], _ = load_from_github("daily_results.json")
+        # BUG-023：加载 transaction_log.json 从 GitHub（云端同步），写到本地文件
+        try:
+            _tx_data, _tx_sha = load_from_github("transaction_log.json")
+            if _tx_data is not None and isinstance(_tx_data, list):
+                # 写本地让 transaction_log.py 读取
+                import os as _os, json as _json
+                _tx_path = _os.path.join(_os.path.dirname(__file__), "transaction_log.json")
+                with open(_tx_path, "w", encoding="utf-8") as _tf:
+                    _json.dump(_tx_data, _tf, ensure_ascii=False, indent=2)
+            if _tx_sha:
+                st.session_state["tx_log_sha"] = _tx_sha
+        except Exception:
+            pass  # GitHub 没这个文件或网络问题，不影响主流程
         st.session_state["data_loaded"] = True
         st.session_state["data_loaded_at"] = now
 
@@ -2259,7 +2272,19 @@ with tab2:
                                     fee=_fee_in, note=_note_in
                                 )
                                 if ok:
-                                    st.success(msg)
+                                    # BUG-023 修：同步到 GitHub 避免云端重启丢失
+                                    try:
+                                        _tx_data = _tlog._load()
+                                        _gh_sha = st.session_state.get("tx_log_sha")
+                                        _new_sha = save_to_github("transaction_log.json",
+                                                                    _tx_data, _gh_sha)
+                                        if _new_sha:
+                                            st.session_state["tx_log_sha"] = _new_sha
+                                            st.success(msg + "（已同步 GitHub）")
+                                        else:
+                                            st.warning(msg + "\n⚠ 本地已记录，但同步 GitHub 失败。刷新页面可能丢失。")
+                                    except Exception as _te:
+                                        st.warning(msg + f"\n⚠ 同步 GitHub 异常：{_te}")
                                     st.rerun()
                                 else:
                                     st.error(msg)
@@ -2274,7 +2299,6 @@ with tab2:
                                 key=f"tx_del_sel_{code}",
                             )
                             if st.button("🗑️ 删除选中的记录", key=f"tx_del_btn_{code}"):
-                                # 找原始 _load() 里的索引（_hist 是按 date 倒序，要找回原始位置）
                                 _all = _tlog._load()
                                 _target = _hist[_del_idx]
                                 for _i, _rr in enumerate(_all):
@@ -2282,7 +2306,19 @@ with tab2:
                                           and _rr.get('code') == _target.get('code')):
                                         ok, msg = _tlog.delete_transaction(_i)
                                         if ok:
-                                            st.success(msg)
+                                            # BUG-023 修：同步 GitHub
+                                            try:
+                                                _tx_data = _tlog._load()
+                                                _gh_sha = st.session_state.get("tx_log_sha")
+                                                _new_sha = save_to_github("transaction_log.json",
+                                                                            _tx_data, _gh_sha)
+                                                if _new_sha:
+                                                    st.session_state["tx_log_sha"] = _new_sha
+                                                    st.success(msg + "（已同步）")
+                                                else:
+                                                    st.warning(msg + "\n⚠ 本地已删，但同步 GitHub 失败")
+                                            except Exception as _te:
+                                                st.warning(msg + f"\n⚠ 同步异常：{_te}")
                                             st.rerun()
                                         break
                 except Exception as _e:
