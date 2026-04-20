@@ -2165,31 +2165,31 @@ with tab2:
                         _curr_price = sig_data.get("price") or h.get("cost", 0)
                         _summary = _tlog.get_summary(code, current_price=_curr_price)
 
-                        # 顶部汇总
+                        # 顶部汇总（BUG-025：单价/均价用 4 位小数，金额用 2 位）
                         if _summary:
                             _s1, _s2, _s3, _s4 = st.columns(4)
                             with _s1:
                                 st.metric("交易记录中持有", f"{_summary['shares_held']} 股",
-                                          help="基于交易明细推算的当前持有数量（与 holdings.json 可能不同）")
+                                          help="基于交易明细累计的持有数量（建仓+加仓-减仓）。BUG-024 后会自动同步到上方持仓表")
                             with _s2:
                                 _avg = _summary['avg_cost']
-                                st.metric("交易记录均价", f"¥{_avg:.2f}" if _avg else "—",
-                                          help="按交易明细累计的加权平均成本（含手续费摊薄）")
+                                st.metric("交易记录均价", f"¥{_avg:.4f}" if _avg else "—",
+                                          help="按交易明细累计的加权平均成本（含手续费摊薄）。ETF 等小价股 4 位小数")
                             with _s3:
                                 _rp = _summary['realized_pnl']
                                 _color = "normal" if _rp >= 0 else "inverse"
-                                st.metric("已实现盈亏", f"¥{_rp:+,.0f}", delta_color=_color)
+                                st.metric("已实现盈亏", f"¥{_rp:+,.2f}", delta_color=_color)
                             with _s4:
                                 _up = _summary['unrealized_pnl']
                                 if _up is not None:
                                     _ucolor = "normal" if _up >= 0 else "inverse"
-                                    st.metric(f"浮盈（@¥{_curr_price:.2f}）", f"¥{_up:+,.0f}",
+                                    st.metric(f"浮盈（@¥{_curr_price:.4f}）", f"¥{_up:+,.2f}",
                                               delta_color=_ucolor)
                             _txt = (f"首次买入 {_summary['first_buy_date']} · "
                                     f"持有 {_summary['days_held']} 天 · "
                                     f"累计 {_summary['transaction_count']} 笔交易 · "
-                                    f"投入 ¥{_summary['total_invested']:,.0f} · "
-                                    f"收回 ¥{_summary['total_received']:,.0f}")
+                                    f"投入 ¥{_summary['total_invested']:,.2f} · "
+                                    f"收回 ¥{_summary['total_received']:,.2f}")
                             st.caption(_txt)
 
                             # H5-4：与 holdings.json 对账（不强制同步，只提示）
@@ -2204,11 +2204,12 @@ with tab2:
                                 if _diff_shares != 0:
                                     _msg.append(f"持仓数量：交易记录 {_summary['shares_held']} 股 vs 持仓表 {_holdings_shares} 股（差 {_diff_shares:+d}）")
                                 if _cost_diff_pct > 10:
-                                    _msg.append(f"成本均价：交易记录 ¥{_summary['avg_cost']:.2f} vs 持仓表 ¥{_holdings_cost:.2f}（差 {_cost_diff_pct:.1f}%）")
+                                    _msg.append(f"成本均价：交易记录 ¥{_summary['avg_cost']:.4f} vs 持仓表 ¥{_holdings_cost:.4f}（差 {_cost_diff_pct:.1f}%）")
                                 st.warning(
                                     "⚠️ 交易记录与持仓表不一致：\n\n- " + "\n- ".join(_msg) +
-                                    "\n\n💡 这通常是历史交易没全部录入。两层独立，互不强制同步。"
-                                    "如需以交易记录为准，请手工修改持仓表（用上方'修改持仓'表单）。"
+                                    "\n\n💡 BUG-024 后：每次记录新交易会自动同步持仓表。"
+                                    "若仍不一致，可能是历史持仓没用'记录新交易'录入，"
+                                    "或上方'修改持仓'被手动改过。再加一笔交易即可强制同步。"
                                 )
 
                         # 历史记录列表
@@ -2225,8 +2226,8 @@ with tab2:
                                     f"<div style='padding:6px 10px;background:#fafafa;"
                                     f"border-left:3px solid {_color};margin-bottom:4px;border-radius:3px;font-size:13px;'>"
                                     f"<b>{_r['date']}</b> · {_act_label} · "
-                                    f"{_r['shares']} 股 @ ¥{_r['price']:.2f} · "
-                                    f"<span style='color:{_color};'>{_arrow}¥{_amount:,.0f}</span>"
+                                    f"{_r['shares']} 股 @ ¥{_r['price']:.4f} · "
+                                    f"<span style='color:{_color};'>{_arrow}¥{_amount:,.2f}</span>"
                                     f"{' · ' + _note if _note else ''}"
                                     f"</div>",
                                     unsafe_allow_html=True
@@ -2248,9 +2249,10 @@ with tab2:
                             with _f2:
                                 _date = st.date_input("交易日", key=f"tx_date_{code}")
                             with _f3:
+                                # BUG-025: ETF 实际价常是 4.9151 这种 4 位小数，2 位会丢精度
                                 _price_in = st.number_input("成交单价", min_value=0.0,
                                                               value=float(_curr_price or 0),
-                                                              step=0.01, format="%.2f",
+                                                              step=0.0001, format="%.4f",
                                                               key=f"tx_price_{code}")
                             with _f4:
                                 _shares_in = st.number_input("数量（股）", min_value=1,
@@ -2272,7 +2274,7 @@ with tab2:
                                     fee=_fee_in, note=_note_in
                                 )
                                 if ok:
-                                    # BUG-023 修：同步到 GitHub 避免云端重启丢失
+                                    # BUG-023：同步 transaction_log.json 到 GitHub
                                     try:
                                         _tx_data = _tlog._load()
                                         _gh_sha = st.session_state.get("tx_log_sha")
@@ -2280,11 +2282,34 @@ with tab2:
                                                                     _tx_data, _gh_sha)
                                         if _new_sha:
                                             st.session_state["tx_log_sha"] = _new_sha
-                                            st.success(msg + "（已同步 GitHub）")
-                                        else:
-                                            st.warning(msg + "\n⚠ 本地已记录，但同步 GitHub 失败。刷新页面可能丢失。")
                                     except Exception as _te:
-                                        st.warning(msg + f"\n⚠ 同步 GitHub 异常：{_te}")
+                                        st.warning(f"⚠ 交易记录同步 GitHub 异常：{_te}")
+
+                                    # BUG-024 修：交易记录是"唯一真相"，自动同步持仓表
+                                    # 用 transaction_log.get_summary 重算 shares/cost
+                                    # 这样用户在"建仓 400 + 加仓 300"后，持仓表自动变 700
+                                    try:
+                                        _summary = _tlog.get_summary(code, current_price=_curr_price)
+                                        if _summary:
+                                            _new_shares = _summary['shares_held']
+                                            _new_cost = _summary['avg_cost'] or 0
+                                            # 更新 holdings 里对应的那只
+                                            for _hi, _hh in enumerate(holdings):
+                                                if str(_hh.get('code', '')).zfill(6) == code:
+                                                    holdings[_hi]['shares'] = _new_shares
+                                                    if _new_cost > 0:
+                                                        holdings[_hi]['cost'] = round(_new_cost, 4)
+                                                    # 同步 buy_date（首次买入日期）
+                                                    if _summary.get('first_buy_date'):
+                                                        holdings[_hi]['buy_date'] = _summary['first_buy_date']
+                                                    break
+                                            # 保存持仓
+                                            if save_holdings_safely(holdings):
+                                                st.success(f"{msg}\n✅ 持仓表已自动同步：{_new_shares} 股 @ ¥{_new_cost:.4f}")
+                                            else:
+                                                st.warning(f"{msg}\n⚠ 交易已记录但持仓表同步失败")
+                                    except Exception as _se:
+                                        st.warning(f"{msg}\n⚠ 持仓自动同步异常：{_se}")
                                     st.rerun()
                                 else:
                                     st.error(msg)
@@ -2295,7 +2320,7 @@ with tab2:
                             _del_idx = st.selectbox(
                                 "选择要删除的记录",
                                 options=list(range(len(_hist))),
-                                format_func=lambda i: f"{_hist[i]['date']} {_tlog.ACTIONS.get(_hist[i]['action'], '')} {_hist[i]['shares']}股@¥{_hist[i]['price']:.2f}",
+                                format_func=lambda i: f"{_hist[i]['date']} {_tlog.ACTIONS.get(_hist[i]['action'], '')} {_hist[i]['shares']}股@¥{_hist[i]['price']:.4f}",
                                 key=f"tx_del_sel_{code}",
                             )
                             if st.button("🗑️ 删除选中的记录", key=f"tx_del_btn_{code}"):
@@ -2306,7 +2331,7 @@ with tab2:
                                           and _rr.get('code') == _target.get('code')):
                                         ok, msg = _tlog.delete_transaction(_i)
                                         if ok:
-                                            # BUG-023 修：同步 GitHub
+                                            # BUG-023：同步 transaction_log 到 GitHub
                                             try:
                                                 _tx_data = _tlog._load()
                                                 _gh_sha = st.session_state.get("tx_log_sha")
@@ -2314,11 +2339,22 @@ with tab2:
                                                                             _tx_data, _gh_sha)
                                                 if _new_sha:
                                                     st.session_state["tx_log_sha"] = _new_sha
-                                                    st.success(msg + "（已同步）")
-                                                else:
-                                                    st.warning(msg + "\n⚠ 本地已删，但同步 GitHub 失败")
-                                            except Exception as _te:
-                                                st.warning(msg + f"\n⚠ 同步异常：{_te}")
+                                            except Exception:
+                                                pass
+                                            # BUG-024：删除后也重新同步持仓表（shares 可能减少）
+                                            try:
+                                                _summary = _tlog.get_summary(code, current_price=_curr_price)
+                                                for _hi, _hh in enumerate(holdings):
+                                                    if str(_hh.get('code', '')).zfill(6) == code:
+                                                        if _summary:
+                                                            holdings[_hi]['shares'] = _summary['shares_held']
+                                                            if _summary['avg_cost']:
+                                                                holdings[_hi]['cost'] = round(_summary['avg_cost'], 4)
+                                                        break
+                                                save_holdings_safely(holdings)
+                                            except Exception:
+                                                pass
+                                            st.success(msg)
                                             st.rerun()
                                         break
                 except Exception as _e:
