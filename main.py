@@ -153,18 +153,38 @@ def save_daily_results_safely(daily_data):
 
 
 def is_trading_day():
-    """通过AKShare交易日历判断今天是否交易日（考虑节假日）"""
+    """通过AKShare交易日历判断今天是否交易日（考虑节假日）
+
+    2026-04-20 修 BUG-019：原实现接口返回的 df 不含今天日期时直接返回 False，
+    导致 2026 年后的所有日期都被误判"休市"（接口数据只更新到 2025 年底）。
+    现修为：超出接口数据范围时降级到"周末判断"（更符合实际）。
+    """
     today_str = beijing_now().strftime("%Y%m%d")
+    today_weekday = beijing_now().weekday()
+
+    # 周末（周六/日）肯定休市，无需查接口
+    if today_weekday >= 5:
+        return False
+
     try:
-        # 获取交易日历
         df = safe_fetch(ak.tool_trade_date_hist_sina)
         if df is not None and not df.empty:
             trade_dates = set(df["trade_date"].astype(str).str.replace("-", ""))
+
+            # ★ BUG-019 修复：检查接口数据是否覆盖到今天
+            max_date = max(trade_dates) if trade_dates else "00000000"
+            if today_str > max_date:
+                # 接口数据没更新到今天 → 不可信，降级到工作日判断
+                # 宁可误判工作日为"交易日"（最多多跑一次扫描，无副作用）
+                # 也别误判工作日为"休市"（导致用户收"休市"消息+扫描跳过）
+                print(f"  ⚠ 交易日历只到 {max_date}，今天 {today_str} 超范围，按工作日处理")
+                return True
+
             return today_str in trade_dates
     except Exception as e:
         print(f"  获取交易日历失败: {e}")
     # 失败时回退到简单判断（排除周末）
-    return beijing_now().weekday() < 5
+    return today_weekday < 5
 
 
 def update_watchlist_industries(watchlist):
