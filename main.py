@@ -1120,6 +1120,83 @@ def main():
         else:
             send_simple_msg(config, f"芒格选股 {today}\n\nAI全市场扫描暂无推荐\n继续观察")
 
+        # TODO-022 第 4 批：freshness 报警单独推一条
+        # 列出"持仓+ETF 红色 / 关注 红色 / 候选股聚合超阈值"的清单
+        try:
+            from scan_freshness import get_alert_level, get_freshness, get_lag_in_trading_days
+            from holdings_attribution import filter_model_only
+
+            holdings = load_json("holdings.json") or []
+
+            red_alerts = []  # [(kind, code, name, lag, last_at), ...]
+            yellow_alerts = []
+
+            # 持仓 + ETF
+            for h in holdings:
+                code = str(h.get("code", "")).zfill(6)
+                if not code:
+                    continue
+                level = get_alert_level(code)
+                if level in ('red', 'yellow'):
+                    fr = get_freshness(code) or {}
+                    lag = get_lag_in_trading_days(code)
+                    item = ('持仓' if not code.startswith(('5', '1')) else 'ETF',
+                            code, h.get('name', code), lag,
+                            fr.get('last_scanned_at', '?'))
+                    if level == 'red':
+                        red_alerts.append(item)
+                    else:
+                        yellow_alerts.append(item)
+
+            # 关注表
+            try:
+                from watchlist_manager import _load as _wl_load
+                for table in ('my', 'model'):
+                    for it in _wl_load(table):
+                        code = str(it.get("code", "")).zfill(6)
+                        if not code:
+                            continue
+                        level = get_alert_level(code)
+                        if level in ('red', 'yellow'):
+                            fr = get_freshness(code) or {}
+                            lag = get_lag_in_trading_days(code)
+                            item = ('关注', code, it.get('name', code), lag,
+                                    fr.get('last_scanned_at', '?'))
+                            if level == 'red':
+                                red_alerts.append(item)
+                            else:
+                                yellow_alerts.append(item)
+            except Exception:
+                pass
+
+            # 只推有红色或多黄色的情况，避免日常消息打扰
+            if red_alerts or len(yellow_alerts) >= 5:
+                lines = [f"📊 数据新鲜度报警 {today}", ""]
+                if red_alerts:
+                    lines.append(f"🔴 严重未更新（{len(red_alerts)} 只）")
+                    for kind, code, name, lag, last in red_alerts[:10]:
+                        last_short = last[:10] if isinstance(last, str) and len(last) >= 10 else '?'
+                        lines.append(f"  · [{kind}] {name}({code}) 已 {lag} 个交易日未更新（最后 {last_short}）")
+                    if len(red_alerts) > 10:
+                        lines.append(f"  ... 还有 {len(red_alerts) - 10} 只")
+                    lines.append("")
+                if yellow_alerts:
+                    lines.append(f"🟡 偏旧（{len(yellow_alerts)} 只）")
+                    for kind, code, name, lag, last in yellow_alerts[:5]:
+                        lines.append(f"  · [{kind}] {name}({code}) 1 个交易日未更新")
+                    if len(yellow_alerts) > 5:
+                        lines.append(f"  ... 还有 {len(yellow_alerts) - 5} 只")
+                    lines.append("")
+                lines.append("💡 建议手动触发 patch_round 补漏，或检查 akshare 接口")
+                _msg = "\n".join(lines).strip()
+                if _msg:
+                    send_simple_msg(config, _msg)
+                    print(f"  ✅ freshness 报警已推送（红 {len(red_alerts)} 黄 {len(yellow_alerts)}）")
+            else:
+                print(f"  🟢 数据新鲜度健康（红 {len(red_alerts)} 黄 {len(yellow_alerts)}），无需报警")
+        except Exception as _e:
+            print(f"  ⚠ freshness 报警失败（不影响主流程）：{_e}")
+
     elif mode == "all":
         # 全部运行
         data_note = "交易日实时数据" if trading else "休市日，数据来自休市前最后交易日"

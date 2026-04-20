@@ -473,7 +473,52 @@ with _rc2:
         load_all_data(force=True)
         st.rerun()
 
-tab1, tab2, tab3, tab4 = st.tabs(["🎯 模型推荐", "📋 持仓管理", "⭐ 关注表（4 层）", "🧊 ETF 监测"])
+# TODO-022 第 4 批：Tab 标签按 freshness 加颜色（取页面最高报警）
+# 🟢 全部新鲜 / 🟡 有黄色警告 / 🔴 有红色警报
+def _tab_color_emoji(stocks_with_kind):
+    """计算 tab 颜色 emoji"""
+    try:
+        from scan_freshness import get_tab_alert_level
+        level = get_tab_alert_level(stocks_with_kind)
+        return {'green': '🟢', 'yellow': '🟡', 'red': '🔴'}.get(level, '⚪')
+    except Exception:
+        return ''
+
+
+# 各 Tab 监控的股票集合
+_holdings = st.session_state.get("holdings", []) or []
+_etf_codes = [h for h in _holdings if str(h.get('code', '')).startswith(('5', '1'))]
+_non_etf_holdings = [h for h in _holdings if not str(h.get('code', '')).startswith(('5', '1'))]
+
+_daily_for_tab = st.session_state.get("daily", {}) or {}
+_recs_codes = [{'code': str(s.get('code', '')).zfill(6), 'kind': 'candidate'}
+               for s in (_daily_for_tab.get('ai_recommendations', []) or [])]
+
+_holdings_kind = [{'code': str(h.get('code', '')).zfill(6), 'kind': 'holding'}
+                   for h in _non_etf_holdings]
+_etf_kind = [{'code': str(h.get('code', '')).zfill(6), 'kind': 'etf'}
+              for h in _etf_codes]
+
+_watchlist_kind = []
+try:
+    from watchlist_manager import _load as _wl_load
+    for table in ('my', 'model'):
+        for it in _wl_load(table):
+            _watchlist_kind.append({'code': str(it.get('code', '')).zfill(6), 'kind': 'watchlist'})
+except Exception:
+    pass
+
+_tab1_emoji = _tab_color_emoji(_recs_codes)
+_tab2_emoji = _tab_color_emoji(_holdings_kind)
+_tab3_emoji = _tab_color_emoji(_watchlist_kind)
+_tab4_emoji = _tab_color_emoji(_etf_kind)
+
+tab1, tab2, tab3, tab4 = st.tabs([
+    f"{_tab1_emoji} 🎯 模型推荐",
+    f"{_tab2_emoji} 📋 持仓管理",
+    f"{_tab3_emoji} ⭐ 关注表（4 层）",
+    f"{_tab4_emoji} 🧊 ETF 监测",
+])
 
 # ============================================
 # Tab1: 模型推荐（只来自全市场扫描）
@@ -1771,7 +1816,7 @@ with tab2:
 
                 col1, col2, col3, col4, col5, col6, col7 = st.columns([2, 1.2, 1.2, 1.2, 2.5, 0.6, 0.6])
                 with col1:
-                    # 股票名 + 可能的提醒铃铛 + focus 高亮 + 归因标签
+                    # 股票名 + 可能的提醒铃铛 + focus 高亮 + 归因标签 + freshness emoji
                     _name_display = h.get('name', '未知')
                     if _has_alert:
                         _name_display = f"🔔 {_name_display}"
@@ -1788,8 +1833,31 @@ with tab2:
                         _attr_help = ''
                     if _attr_emoji:
                         _name_display = f"{_attr_emoji} {_name_display}"
+                    # TODO-022 第 4 批：freshness emoji（数据新鲜度）
+                    _fr_emoji = ''
+                    _fr_caption = ''
+                    try:
+                        from scan_freshness import get_alert_level, get_freshness, get_lag_in_trading_days
+                        _fr_level = get_alert_level(code)
+                        _fr_emoji = {'green': '🟢', 'yellow': '🟡', 'red': '🔴',
+                                      'unknown': '⚪'}.get(_fr_level, '')
+                        _fr = get_freshness(code)
+                        if _fr and _fr.get('last_scanned_at'):
+                            from datetime import datetime as _dt
+                            _last = _dt.fromisoformat(_fr['last_scanned_at'])
+                            _lag = get_lag_in_trading_days(code)
+                            _lag_str = f'{_lag} 个交易日前' if _lag else '当日'
+                            _fr_caption = f"📊 {_fr_emoji} 数据{_lag_str}（最后 {_last.strftime('%m-%d %H:%M')}）"
+                        elif _fr_level == 'unknown':
+                            _fr_caption = "📊 ⚪ 暂无成功扫描记录"
+                    except Exception:
+                        pass
+                    if _fr_emoji and _fr_emoji != '🟢':
+                        _name_display = f"{_fr_emoji} {_name_display}"
                     st.markdown(f"**{_name_display}**", help=_attr_help)
                     caption = f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.0f}"
+                    if _fr_caption:
+                        caption += f"\n{_fr_caption}"
                     if is_etf and index_name:
                         caption += f" | 跟踪 {index_name}"
                     # 财务指标摘要（和回测版对齐）
