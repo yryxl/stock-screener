@@ -974,6 +974,138 @@ def main():
         except Exception as _e:
             print(f"  ⚠ 段健康校验失败：{_e}")
 
+    elif mode == "patch_round":
+        # TODO-022 第 3 批：补漏轮
+        # 跑 scan_freshness 里 fails ≥ 1 的股，按"持仓优先 + fails 倒序"排序
+        # 单轮 timeout 内最多跑 1100 只（按 60 分钟 / 3 秒一只算）
+        print("=== 补漏轮 patch_round ===")
+        try:
+            from scan_freshness import get_stale_stocks
+            holdings = load_json("holdings.json") or []
+            holdings_codes = [str(h.get("code", "")).zfill(6) for h in holdings
+                              if h.get("code")]
+            # ETF 也算持仓优先
+            etf_codes = [c for c in holdings_codes if c.startswith(('5', '1'))]
+            non_etf_holdings = [c for c in holdings_codes if c not in etf_codes]
+
+            # 关注表（model + my，toohard 不算因为太复杂用户要慢慢分析）
+            from watchlist_manager import _load as _wl_load
+            watchlist_codes = []
+            for table in ('model', 'my'):
+                for it in _wl_load(table):
+                    c = str(it.get("code", "")).zfill(6)
+                    if c:
+                        watchlist_codes.append(c)
+
+            # 漏跑列表（按持仓优先 + fails 倒序）
+            stale = get_stale_stocks(
+                priority_holdings=non_etf_holdings,
+                priority_etf=etf_codes,
+                priority_watchlist=watchlist_codes,
+                max_count=1100,  # 单轮上限
+            )
+            stale_codes = [c for c, _, _ in stale]
+
+            if not stale_codes:
+                print("  🟢 无漏跑数据，本轮跳过")
+                return
+
+            print(f"  待补 {len(stale_codes)} 只（前 5: {stale_codes[:5]}...）")
+        except Exception as _e:
+            print(f"  ⚠ 拉漏跑列表失败：{_e}")
+            return
+
+        # 用 screen_all_stocks 跑这些股
+        stale_set = set(stale_codes)
+        from screener import screen_all_stocks as _scan
+        candidates = _scan(config,
+                           code_filter=lambda c: c in stale_set,
+                           track_freshness=True)
+        ai_recs = [s for s in candidates if s.get("signal") and s["signal"] not in ("hold", None)]
+
+        # 写到独立 cache（merge 时合并）
+        round_id = now.strftime("patch_%Y%m%d_%H%M")
+        save_json(f"market_scan_{round_id}.json", {
+            "date": now.strftime("%Y-%m-%d %H:%M"),
+            "mode": "patch_round",
+            "stale_count_input": len(stale_codes),
+            "candidates_count": len(candidates),
+            "ai_recommendations": ai_recs,
+        })
+        print(f"  补漏完成：输入 {len(stale_codes)} / 候选 {len(candidates)} / 推荐 {len(ai_recs)}")
+
+    elif mode == "merge_full":
+        # TODO-022 第 3 批：合并 7 段 + 当天补漏轮的所有 ai_recommendations
+        # 写到 daily_results.json，给 09:05 send_ai 用
+        print("=== merge_full ===")
+        import glob
+        all_recs = []
+        seen_codes = set()
+        merged_files = []
+        today_str = now.strftime("%Y%m%d")
+
+        # 1. 读 7 段
+        for p in range(1, 8):
+            f = os.path.join(os.path.dirname(__file__), f"market_scan_full_p{p}.json")
+            if os.path.exists(f):
+                try:
+                    data = load_json(f"market_scan_full_p{p}.json")
+                    if isinstance(data, dict):
+                        recs = data.get("ai_recommendations", [])
+                        for s in recs:
+                            code = str(s.get("code", "")).zfill(6)
+                            if code and code not in seen_codes:
+                                seen_codes.add(code)
+                                s["source"] = f"段 {p}"
+                                all_recs.append(s)
+                        merged_files.append(f"p{p}({len(recs)})")
+                except Exception as _e:
+                    print(f"  ⚠ 段 {p} 读取失败：{_e}")
+
+        # 2. 读当天的补漏轮（market_scan_patch_YYYYMMDD_*.json）
+        patch_pattern = os.path.join(os.path.dirname(__file__),
+                                       f"market_scan_patch_{today_str}_*.json")
+        for pf in sorted(glob.glob(patch_pattern)):
+            try:
+                fname = os.path.basename(pf)
+                data = load_json(fname)
+                if isinstance(data, dict):
+                    recs = data.get("ai_recommendations", [])
+                    added = 0
+                    for s in recs:
+                        code = str(s.get("code", "")).zfill(6)
+                        if code and code not in seen_codes:
+                            seen_codes.add(code)
+                            s["source"] = "补漏"
+                            all_recs.append(s)
+                            added += 1
+                    merged_files.append(f"{fname.replace('market_scan_', '').replace('.json', '')}(+{added})")
+            except Exception as _e:
+                print(f"  ⚠ 补漏文件 {pf} 读取失败：{_e}")
+
+        # 3. 写 daily_results
+        new_data = {
+            "date": now.strftime("%Y-%m-%d %H:%M"),
+            "mode": "merge_full",
+            "is_trading_day": trading,
+            "data_source": f"分段扫描合并（含 {len(merged_files)} 个文件）",
+            "ai_recommendations": all_recs,
+            "merged_files": merged_files,
+        }
+        existing = load_json("daily_results.json")
+        merged = merge_daily_data(existing if isinstance(existing, dict) else {}, new_data)
+        save_json("daily_results.json", merged)
+
+        # 同时写到 cache 给 send_ai 用
+        save_json("market_scan_cache.json", {
+            "date": now.strftime("%Y-%m-%d"),
+            "ai_recommendations": all_recs,
+        })
+
+        print(f"  ✅ 合并完成：{len(all_recs)} 只推荐 / {len(merged_files)} 个源文件")
+        for s in merged_files:
+            print(f"     - {s}")
+
     elif mode == "send_ai":
         # 发送AI推荐（早上9点）
         cache = load_json("market_scan_cache.json")

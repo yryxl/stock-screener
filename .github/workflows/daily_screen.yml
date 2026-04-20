@@ -26,6 +26,15 @@ on:
     - cron: '0 17 * * *'     # 01:00 北京 - mode=full_p5（段 5，尾号桶 4）
     - cron: '0 19 * * *'     # 03:00 北京 - mode=full_p6（段 6，尾号桶 5）
     - cron: '0 21 * * *'     # 05:00 北京 - mode=full_p7（段 7，尾号桶 6）
+    # TODO-022 第 3 批：补漏轮 6 个 + merge
+    # 凌晨 3 轮（06/07/08）+ 白天 3 轮（11/14/16）= 6 个擦底
+    - cron: '0 22 * * *'     # 06:00 北京 - mode=patch_round（凌晨补漏 1）
+    - cron: '0 23 * * *'     # 07:00 北京 - mode=patch_round（凌晨补漏 2）
+    - cron: '0 0 * * *'      # 08:00 北京 - mode=patch_round（凌晨补漏 3）
+    - cron: '15 0 * * *'     # 08:15 北京 - mode=merge_full（合并段 + 补漏）
+    - cron: '0 3 * * *'      # 11:00 北京 - mode=patch_round（白天补漏 4）
+    - cron: '0 6 * * *'      # 14:00 北京 - mode=patch_round（白天补漏 5）
+    - cron: '0 8 * * *'      # 16:00 北京 - mode=patch_round（白天补漏 6）
 
   workflow_dispatch:
     inputs:
@@ -49,6 +58,9 @@ on:
           - full_p5
           - full_p6
           - full_p7
+          # TODO-022 第 3 批
+          - patch_round
+          - merge_full
 
 
 jobs:
@@ -90,6 +102,7 @@ jobs:
             echo "mode=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT
           else
             HOUR=$(TZ='Asia/Shanghai' date +%H)
+            MINUTE=$(TZ='Asia/Shanghai' date +%M)
             # TODO-022 第 2 批：分段扫描时段（17/19/21/23/01/03/05 北京）
             if [ "$HOUR" = "17" ]; then
               echo "mode=full_p1" >> $GITHUB_OUTPUT
@@ -105,6 +118,15 @@ jobs:
               echo "mode=full_p6" >> $GITHUB_OUTPUT
             elif [ "$HOUR" = "05" ]; then
               echo "mode=full_p7" >> $GITHUB_OUTPUT
+            # TODO-022 第 3 批：补漏轮 + merge
+            elif [ "$HOUR" = "06" ] || [ "$HOUR" = "07" ]; then
+              echo "mode=patch_round" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "08" ] && [ "$MINUTE" -lt "15" ]; then
+              echo "mode=patch_round" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "08" ] && [ "$MINUTE" -ge "15" ] && [ "$MINUTE" -lt "30" ]; then
+              echo "mode=merge_full" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "11" ] || [ "$HOUR" = "14" ] || [ "$HOUR" = "16" ]; then
+              echo "mode=patch_round" >> $GITHUB_OUTPUT
             # 原有时段保持
             elif [ "$HOUR" -le 4 ]; then
               echo "mode=full" >> $GITHUB_OUTPUT
