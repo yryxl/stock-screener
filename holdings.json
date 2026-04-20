@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "code": "000583",
+    "name": "云南白药",
+    "shares": 100,
+    "cost": 56.4,
+    "buy_date": "2026-04-07",
+    "attribution": "pre_model"
+  }
+]
