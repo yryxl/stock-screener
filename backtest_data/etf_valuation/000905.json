@@ -28052,7 +28052,37 @@
       "pe": 28.11,
       "pe_median": 31.81,
       "source": "legu"
+    },
+    {
+      "date": "2026-04-13",
+      "pe": 31.23,
+      "dividend_yield": 1.25,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-14",
+      "pe": 31.7,
+      "dividend_yield": 1.23,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-15",
+      "pe": 31.52,
+      "dividend_yield": 1.24,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-16",
+      "pe": 32.05,
+      "dividend_yield": 1.22,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-04-17",
+      "pe": 32.18,
+      "dividend_yield": 1.21,
+      "source": "csindex"
     }
   ],
-  "last_updated": "2026-04-11 21:49"
+  "last_updated": "2026-04-19 15:15"
 }

@@ -75,6 +75,13 @@ def load_from_github(filename):
 
 
 def save_to_github(filename, data, sha):
+    """保存到 GitHub。
+
+    BUG-022 修（2026-04-20）：sha 过期时自动 reload 重试一次。
+    根因：用户 session_state 里的 sha 是 streamlit 启动时拿的，
+    若中间有外部 commit（如 cron / 别的 streamlit 实例 / Python 直调），
+    GitHub 端 sha 已变 → PUT 返回 409 Conflict → 之前无声 return None。
+    """
     try:
         cfg = get_github_config()
         url = f"https://api.github.com/repos/{cfg['repo']}/contents/{filename}"
@@ -86,9 +93,47 @@ def save_to_github(filename, data, sha):
         resp = requests.put(url, json=payload, headers=github_headers(cfg["token"]), timeout=10)
         if resp.status_code in (200, 201):
             return resp.json()["content"]["sha"]
+        # BUG-022：sha 过期 → 自动 reload 最新 sha 重试一次
+        if resp.status_code in (409, 422):
+            try:
+                get_resp = requests.get(url, headers=github_headers(cfg["token"]), timeout=10)
+                if get_resp.status_code == 200:
+                    fresh_sha = get_resp.json()["sha"]
+                    payload["sha"] = fresh_sha
+                    resp2 = requests.put(url, json=payload, headers=github_headers(cfg["token"]), timeout=10)
+                    if resp2.status_code in (200, 201):
+                        return resp2.json()["content"]["sha"]
+            except Exception:
+                pass
         return None
     except Exception:
         return None
+
+
+def save_holdings_safely(holdings):
+    """专门给 holdings 用的：save 失败时显示明显错误 + 提示用户
+
+    BUG-022 修：之前 add/del/edit 三处都是 `if new_sha: ...` 但没 else，
+    save 失败时无声 → 用户以为成功，刷新后发现没保存。
+    """
+    new_sha = save_to_github("holdings.json", holdings, st.session_state.get("holdings_sha"))
+    if new_sha:
+        st.session_state["holdings_sha"] = new_sha
+        return True
+    # 失败 → 强制 reload + 显示错误
+    try:
+        fresh_data, fresh_sha = load_from_github("holdings.json")
+        if fresh_sha:
+            st.session_state["holdings_sha"] = fresh_sha
+            st.session_state["holdings"] = fresh_data
+        st.error(
+            "🚨 保存到 GitHub 失败！本地修改已丢失。\n"
+            "可能原因：网络不稳 或 sha 过期（已自动刷新最新 sha）\n"
+            "请重新操作一次"
+        )
+    except Exception as _e:
+        st.error(f"🚨 保存失败：{_e}")
+    return False
 
 
 SIGNAL_LABELS = {
@@ -1927,11 +1972,15 @@ with tab2:
                         st.rerun()
                 with col7:
                     if st.button("🗑️", key=f"del_h_{i}", help="删除持仓"):
-                        holdings.pop(i)
-                        new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
-                        if new_sha:
-                            st.session_state["holdings_sha"] = new_sha
+                        # BUG-022 修：删失败要回滚 + 显示错误
+                        _removed = holdings.pop(i)
+                        if save_holdings_safely(holdings):
+                            st.success(f"已删除 {_removed.get('name', '')}")
                             st.rerun()
+                        else:
+                            # 回滚 session_state
+                            holdings.insert(i, _removed)
+                            # 不 rerun，让用户看到上面的 error
 
                 # ============ 备注面板（点击📝按钮展开）============
                 if st.session_state.get(f"show_notes_{code}", False):
@@ -2299,7 +2348,9 @@ with tab2:
         except Exception:
             new_attribution = 'pre_model'
         if st.form_submit_button("添加", use_container_width=True, type="primary"):
-            if new_code:
+            if not new_code or not new_code.strip():
+                st.error("⚠ 股票代码不能为空")
+            else:
                 new_h = {
                     "code": new_code.strip(),
                     "name": new_name.strip() or new_code.strip(),
@@ -2314,11 +2365,13 @@ with tab2:
                 if new_target_price > 0:
                     new_h["target_price"] = float(new_target_price)
                 holdings.append(new_h)
-                new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
-                if new_sha:
-                    st.session_state["holdings_sha"] = new_sha
-                    st.success(f"已添加")
+                # BUG-022 修：失败回滚 + 显示错误
+                if save_holdings_safely(holdings):
+                    st.success(f"已添加 {new_h['name']}")
                     st.rerun()
+                else:
+                    # 回滚（save_holdings_safely 已经触发了 reload，session_state["holdings"] 已经是 GitHub 真实状态）
+                    pass  # 不 rerun，让用户看到 error
 
     if holdings:
         st.subheader("✏️ 修改持仓")
@@ -2358,6 +2411,8 @@ with tab2:
                     help="买入时认为的合理价。可参考模型 max_buy_price_rr10 字段。0 表示未设置。"
                 )
                 if st.form_submit_button("更新", use_container_width=True):
+                    # BUG-022 修：备份原值用于失败回滚
+                    _original = dict(holdings[idx]) if idx < len(holdings) else None
                     if es == 0:
                         holdings.pop(idx)
                     else:
@@ -2368,10 +2423,15 @@ with tab2:
                             holdings[idx]["target_price"] = float(new_target_price_edit)
                         elif "target_price" in holdings[idx]:
                             holdings[idx].pop("target_price")  # 改为 0 = 删除字段
-                    new_sha = save_to_github("holdings.json", holdings, st.session_state["holdings_sha"])
-                    if new_sha:
-                        st.session_state["holdings_sha"] = new_sha
+                    if save_holdings_safely(holdings):
+                        st.success("已更新")
                         st.rerun()
+                    else:
+                        # 回滚
+                        if es == 0 and _original:
+                            holdings.insert(idx, _original)
+                        elif _original:
+                            holdings[idx] = _original
 
 # ============================================
 # Tab3: 关注表三层分流（TODO-047 重构 2026-04-18）
