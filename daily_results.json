@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-20 20:17",
+  "date": "2026-04-20 22:46",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -437,23 +437,23 @@
       "pe": 18.55,
       "signal": "hold",
       "signal_text": "PE=18.6，超出合理区间10-16，等待回落",
-      "total_score": 21,
+      "total_score": 23,
       "dividend_yield": 5.42,
       "dimensions": {
         "ROE质量": {
-          "score": 1,
+          "score": 2,
           "max": 10,
-          "detail": "均值4.8%不足 | 最低-0.3% | 下滑 | 低杠杆21%"
+          "detail": "均值5.0%不足 | 最低-0.3% | 稳定 | 低杠杆20%"
         },
         "财务健康": {
           "score": 7,
           "max": 10,
-          "detail": "负债21%极低 | 流动比率1.5 | 现金流优 | 利润率下滑"
+          "detail": "负债20%极低 | 流动比率1.8 | 现金流优 | 利润率下滑"
         },
         "盈利能力": {
-          "score": 5,
+          "score": 6,
           "max": 10,
-          "detail": "毛利率40%强"
+          "detail": "毛利率41%强 | 10年数据"
         },
         "股息率": {
           "score": 5,
@@ -515,18 +515,18 @@
   ],
   "holding_signals": [
     {
-      "code": "000583",
+      "code": "000538",
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 0,
-      "pe": 0,
-      "signal": null,
-      "signal_text": "PE数据缺失",
-      "industry": "-",
-      "holding_pnl": 0,
-      "pnl_pct": null,
-      "pnl_label": "",
+      "price": 55.0,
+      "pe": 19.04,
+      "signal": "hold_keep",
+      "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
+      "industry": "中药Ⅱ",
+      "holding_pnl": -2.4822695035460973,
+      "pnl_pct": -2.48,
+      "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
       "bull_top_alert": false,
@@ -541,12 +541,12 @@
     {
       "code": "510330",
       "name": "沪深300ETF华夏",
-      "shares": 300,
-      "cost": 4.898,
+      "shares": 700,
+      "cost": 4.915,
       "current_price": 4.962,
-      "pnl_pct": 1.31,
+      "pnl_pct": 0.96,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +1.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -565,32 +565,103 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 1
+    },
+    {
+      "code": "510500",
+      "name": "中证500ETF",
+      "shares": 100,
+      "cost": 8.502,
+      "current_price": 8.355,
+      "pnl_pct": -1.73,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_override": true,
+      "must_sell": false,
+      "bull_top_alert": false,
+      "index_code": "000905",
+      "index_name": "中证500",
+      "kind": "broad",
+      "temperature": {
+        "level": 2,
+        "label": "🔴 泡沫区·贵到不舒服",
+        "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
+        "percentile": 89.3,
+        "current_pe": 32.45,
+        "current_dividend_yield": 1.2,
+        "as_of": "2026-04-20",
+        "data_points": 2427,
+        "lookback_years": 10
+      },
+      "signal": "sell_heavy",
+      "signal_text": "PE分位89.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -1.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 1
+    },
+    {
+      "code": "512890",
+      "name": "红利低波ETF华泰柏瑞",
+      "shares": 3300,
+      "cost": 1.221,
+      "current_price": 1.19,
+      "pnl_pct": -2.54,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_override": true,
+      "must_sell": false,
+      "bull_top_alert": false,
+      "index_code": "H30269",
+      "index_name": "中证红利低波动",
+      "kind": "strategy_dividend",
+      "temperature": {
+        "level": 2,
+        "label": "🔴 泡沫区·贵到不舒服",
+        "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
+        "percentile": 89.2,
+        "current_pe": 8.2,
+        "current_dividend_yield": 4.91,
+        "as_of": "2026-04-20",
+        "data_points": 1218,
+        "lookback_years": 10
+      },
+      "signal": "sell_heavy",
+      "signal_text": "PE分位89.2%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 1
     }
   ],
   "portfolio_classification": {
-    "total_value": 7109.4,
-    "defensive_value": 1469.3999999999999,
-    "offensive_value": 5640.0,
-    "defensive_pct": 20.6684108363575,
-    "offensive_pct": 79.3315891636425,
+    "total_value": 13960.0,
+    "defensive_value": 4290.7,
+    "offensive_value": 9669.3,
+    "defensive_pct": 30.735673352435526,
+    "offensive_pct": 69.26432664756447,
     "buckets": {
       "broad_etf": {
-        "value": 1469.3999999999999,
+        "value": 4290.7,
         "items": [
           {
             "code": "510330",
             "name": "沪深300ETF华夏",
-            "value": 1469.3999999999999
+            "value": 3440.5
+          },
+          {
+            "code": "510500",
+            "name": "中证500ETF",
+            "value": 850.2
           }
         ],
-        "pct": 20.6684108363575
+        "pct": 30.735673352435526
       },
       "strategy_etf": {
-        "value": 0,
-        "items": [],
-        "pct": 0.0
+        "value": 4029.3,
+        "items": [
+          {
+            "code": "512890",
+            "name": "红利低波ETF华泰柏瑞",
+            "value": 4029.3
+          }
+        ],
+        "pct": 28.86318051575931
       },
       "sector_etf": {
         "value": 0,
@@ -601,12 +672,12 @@
         "value": 5640.0,
         "items": [
           {
-            "code": "000583",
+            "code": "000538",
             "name": "云南白药",
             "value": 5640.0
           }
         ],
-        "pct": 79.3315891636425
+        "pct": 40.40114613180516
       }
     }
   },
@@ -623,12 +694,12 @@
   },
   "position_warnings": [
     {
-      "code": "000583",
+      "code": "000538",
       "name": "云南白药",
-      "pct": 79.3315891636425,
+      "pct": 40.40114613180516,
       "level": "danger",
       "tier": "普通标的",
-      "text": "仓位79.3% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
+      "text": "仓位40.4% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ]
 }
