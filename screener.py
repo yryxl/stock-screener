@@ -476,13 +476,17 @@ def screen_single_stock(code, config, quotes_df):
         "mgmt_score": None,       # REQ-185：管理层积分卡（0-100）
         "mgmt_tier": "",          # REQ-185：优秀/中性/注意/警告
         "mgmt_flags": [],         # REQ-185：管理层触发的警告列表
+        # TODO-022 数据质量标签（区分"拉数据失败"和"基本面没过"）
+        "data_quality": "ok",     # ok / no_indicator / no_annual / exception
     }
 
     df_indicator = get_financial_indicator(code)
     if df_indicator is None:
+        result["data_quality"] = "no_indicator"
         return result
     df_annual = extract_annual_data(df_indicator, years=12)  # 取 12 年保证 E 规则 10 年数据
     if df_annual.empty or len(df_annual) < 3:
+        result["data_quality"] = "no_annual"
         return result
 
     # 行业只查一次，后续复用
@@ -776,7 +780,19 @@ def screen_single_stock(code, config, quotes_df):
     return result
 
 
-def screen_all_stocks(config):
+def screen_all_stocks(config, code_filter=None, track_freshness=True):
+    """全市场扫描
+
+    Args:
+      config: 配置字典
+      code_filter: 可选 callable(code) -> bool，True 保留该股
+                   用于分段扫描（如 mode=full_p1 只跑代码 hash 后落在第 1 段的股）
+      track_freshness: 是否跟踪 scan_freshness（默认 True；测试时可关）
+
+    Returns:
+      passed: 通过基本面+护城河的股列表（已排序）
+              如果 track_freshness=True，会顺带写 scan_freshness.json
+    """
     print("正在获取A股列表...")
     stocks = get_all_stocks()
     if stocks.empty:
@@ -820,17 +836,48 @@ def screen_all_stocks(config):
         candidate_codes &= set(valid["代码"].tolist())
         print(f"  价格有效: {len(candidate_codes)} 只（不再按 100 元硬过滤）")
 
+    # TODO-022 第 2 批：按 code_filter 分段扫描
+    if code_filter is not None:
+        before = len(candidate_codes)
+        candidate_codes = {c for c in candidate_codes if code_filter(c)}
+        print(f"  分段筛选后: {len(candidate_codes)} 只（原 {before}）")
+
+    # TODO-022：scan_freshness 跟踪
+    success_records = []   # [(code, signal), ...]
+    fail_codes = []        # [code, ...]
+
     passed = []
     total = len(candidate_codes)
     for i, code in enumerate(candidate_codes, 1):
         if i % 10 == 0:
             print(f"深度分析: {i}/{total}")
-        result = screen_single_stock(code, config, quotes_df)
-        if result["passed"]:
-            name_row = stocks[stocks["code"] == code]
-            result["name"] = name_row.iloc[0]["name"] if not name_row.empty else code
-            passed.append(result)
+        try:
+            result = screen_single_stock(code, config, quotes_df)
+            # TODO-022：根据 data_quality 判定 success/fail
+            if track_freshness:
+                if result.get("data_quality") == "ok":
+                    success_records.append((code, result.get("signal")))
+                else:
+                    # data_quality in ('no_indicator', 'no_annual', 'exception')
+                    fail_codes.append(code)
+            if result["passed"]:
+                name_row = stocks[stocks["code"] == code]
+                result["name"] = name_row.iloc[0]["name"] if not name_row.empty else code
+                passed.append(result)
+        except Exception as _e:
+            # 极少触发（screen_single_stock 内部已 try/except 多数情况）
+            if track_freshness:
+                fail_codes.append(code)
         time.sleep(0.05)  # 最小防限流间隔（原0.3秒，节省约80秒/374只）
+
+    # TODO-022：批量写 scan_freshness
+    if track_freshness:
+        try:
+            from scan_freshness import log_scan_batch
+            log_scan_batch(success_records, fail_codes)
+            print(f"  📊 freshness 更新：成功 {len(success_records)} / 失败 {len(fail_codes)}")
+        except Exception as _e:
+            print(f"  ⚠ freshness 更新失败（不影响主流程）：{_e}")
 
     signal_order = {"buy_heavy": 0, "buy_medium": 1, "buy_light": 2, "buy_watch": 3, "hold_keep": 4, "hold": 5, "sell_watch": 6, "sell_light": 7, "sell_medium": 8, "sell_heavy": 9, "true_decline": 10, None: 11}
     passed.sort(key=lambda x: signal_order.get(x.get("signal"), 7))

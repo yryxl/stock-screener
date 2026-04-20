@@ -500,6 +500,54 @@ def run_full_scan(config):
     })
     print(f"  AI推荐: {len(ai_recs)}只")
 
+    # TODO-021（2026-04-20 用户要求）：扫描结果合理性校验
+    # 防"沉默失败"——4-13/4-19 那种 4420 只 → 0 推荐的异常被静悄悄当结果用
+    try:
+        from scan_validator import (validate_scan_result, log_anomaly,
+                                      set_retry_pending, get_recent_anomalies)
+        prev_anomalies = get_recent_anomalies(days=2)
+        prev_recs = None
+        for a in reversed(prev_anomalies):
+            if a.get('recommendations_count') is not None:
+                prev_recs = a['recommendations_count']
+                break
+        is_ok, level, msg, action = validate_scan_result(
+            len(candidates), len(ai_recs), prev_recommendations=prev_recs
+        )
+        emoji = {'green': '🟢', 'yellow': '🟡', 'red': '🔴'}[level]
+        print(f"  {emoji} 扫描健康度：{msg}")
+
+        # 异常处理
+        if action in ('warn', 'retry'):
+            log_anomaly({
+                'level': level,
+                'candidates_count': len(candidates),
+                'recommendations_count': len(ai_recs),
+                'message': msg,
+                'action': action,
+            })
+            # 严重异常 → 推送 + 标记重跑
+            if action == 'retry':
+                # 微信报警
+                try:
+                    alert_msg = (
+                        f"🚨 模型扫描异常\n"
+                        f"候选 {len(candidates)} 只，推荐 {len(ai_recs)} 只\n"
+                        f"{msg}\n"
+                        f"系统已标记自动重跑（下次 cron 触发时跑 mode=all）"
+                    )
+                    send_simple_msg(config, alert_msg)
+                except Exception as _e2:
+                    print(f"  ⚠ 报警推送失败：{_e2}")
+                # 标记重跑（受 24h 内 2 次上限保护）
+                ok2, msg2 = set_retry_pending(
+                    msg, candidates_count=len(candidates),
+                    recommendations_count=len(ai_recs)
+                )
+                print(f"  📌 重跑标记：{msg2}")
+    except Exception as e:
+        print(f"  ⚠ 扫描合理性校验异常（不影响主流程）: {e}")
+
     # TODO-045（2026-04-18 用户要求）：自动加入关注表
     # 规则："基本面全过 + 护城河完好 + 价格不合适"的股自动入关注表
     # 不重复加用户已手动加的；不删旧的（可能临时不达标但下次又过）
@@ -718,6 +766,19 @@ def main():
     now = beijing_now()
     print(f"=== 芒格选股系统 {now.strftime('%Y-%m-%d %H:%M')} 模式:{mode} ===\n")
 
+    # TODO-021（2026-04-20）：启动时检查"上次扫描异常待重跑"标记
+    # 如果有 → 强制把 mode 改为 all 跑一次完整扫描
+    try:
+        from scan_validator import get_pending_retry, clear_retry_flag
+        retry_flag = get_pending_retry()
+        if retry_flag and mode != 'all':
+            print(f"📌 检测到上次扫描异常待重跑：{retry_flag.get('reason')}")
+            print(f"   原 mode={mode} → 强制改为 all 重跑全市场扫描")
+            mode = 'all'
+            # 不在这里 clear flag——等扫描真正成功后再清除（在下方 run_full_scan 之后）
+    except Exception as _e:
+        print(f"  ⚠ 重跑标记检查失败（不影响主流程）: {_e}")
+
     config = load_config()
     today = now.strftime("%m-%d")
     trading = is_trading_day()
@@ -858,6 +919,60 @@ def main():
         merged = merge_daily_data(existing if isinstance(existing, dict) else {}, new_data)
         save_json("daily_results.json", merged)
         print(f"  已保存，等待9点发送")
+
+    elif mode and mode.startswith("full_p"):
+        # TODO-022 第 2 批：分段全市场扫描
+        # 7 段，按 int(code) % 7 分桶
+        # mode=full_p1 跑桶 0，full_p2 跑桶 1，... full_p7 跑桶 6
+        try:
+            p_idx = int(mode[6:]) - 1  # 'full_p1' → 0
+            if not (0 <= p_idx <= 6):
+                raise ValueError(f"段编号超范围：{p_idx}")
+        except Exception as _e:
+            print(f"  ⚠ 无效 mode={mode}: {_e}")
+            return
+
+        def code_filter(c):
+            try:
+                return int(c) % 7 == p_idx
+            except (ValueError, TypeError):
+                return False  # 非数字代码（如港股 ETF）跳过
+
+        from screener import screen_all_stocks as _scan
+        print(f"=== 分段扫描 段 {p_idx + 1}/7（mode={mode}）===")
+        candidates = _scan(config, code_filter=code_filter, track_freshness=True)
+        ai_recs = [s for s in candidates if s.get("signal") and s["signal"] not in ("hold", None)]
+
+        # 写到段独立 cache（之后第 3 批 merge 用）
+        save_json(f"market_scan_{mode}.json", {
+            "date": now.strftime("%Y-%m-%d %H:%M"),
+            "mode": mode,
+            "p_idx": p_idx,
+            "candidates_count": len(candidates),
+            "ai_recommendations": ai_recs,
+        })
+        print(f"  段 {p_idx + 1} 完成：候选 {len(candidates)} / 推荐 {len(ai_recs)}")
+
+        # 段健康校验（< 50% 进 freshness 失败列表，仅记录不重跑——补漏轮处理）
+        try:
+            from scan_freshness import _load as _fr_load
+            fr = _fr_load()
+            # 这段对应的代码集合
+            seg_codes = [c for c in fr.keys() if c.isdigit() and int(c) % 7 == p_idx]
+            seg_total = len(seg_codes)
+            if seg_total > 0:
+                seg_fails = sum(1 for c in seg_codes
+                                if fr.get(c, {}).get('consecutive_fails', 0) > 0)
+                completion = (seg_total - seg_fails) / seg_total
+                if completion < 0.5:
+                    print(f"  🚨 段健康度差：完成率 {completion:.0%}（< 50%）")
+                    print(f"     失败 {seg_fails} 只将由后续补漏轮处理")
+                elif completion < 0.98:
+                    print(f"  🟡 段健康度警告：完成率 {completion:.0%}（漏 {seg_fails} 只）")
+                else:
+                    print(f"  🟢 段健康：完成率 {completion:.0%}")
+        except Exception as _e:
+            print(f"  ⚠ 段健康校验失败：{_e}")
 
     elif mode == "send_ai":
         # 发送AI推荐（早上9点）

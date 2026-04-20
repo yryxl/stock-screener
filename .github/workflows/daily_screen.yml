@@ -10,19 +10,28 @@ on:
     # 下午 15:10 → holdings 备份（收盘后检查）
     # 下午 18:00 → watchlist（晚间关注表分析）
     # 晚上 22:00 → watchlist 备份
-    - cron: '30 18 * * *'    # 02:30 北京
-    - cron: '55 0 * * *'     # 08:55 北京
+    - cron: '30 18 * * *'    # 02:30 北京 - mode=full（旧的全市场扫描，保留备用）
+    - cron: '55 0 * * *'     # 08:55 北京 - send_ai
     - cron: '5 1 * * *'      # 09:05 北京（9点备份，防GitHub跳过）
-    - cron: '30 4 * * *'     # 12:30 北京
-    - cron: '10 7 * * *'     # 15:10 北京
-    - cron: '0 10 * * *'     # 18:00 北京
-    - cron: '0 14 * * *'     # 22:00 北京
+    - cron: '30 4 * * *'     # 12:30 北京 - holdings
+    - cron: '10 7 * * *'     # 15:10 北京 - holdings 备份
+    - cron: '0 10 * * *'     # 18:00 北京 - watchlist
+    - cron: '0 14 * * *'     # 22:00 北京 - watchlist 备份
+    # TODO-022 第 2 批：分段全市场扫描 7 段（17/19/21/23/01/03/05 北京时间）
+    # 替代 mode=all（一次跑完 5500+ 总超时），分摊到 7 段每段约 800 只
+    - cron: '0 9 * * *'      # 17:00 北京 - mode=full_p1（段 1，尾号桶 0）
+    - cron: '0 11 * * *'     # 19:00 北京 - mode=full_p2（段 2，尾号桶 1）
+    - cron: '0 13 * * *'     # 21:00 北京 - mode=full_p3（段 3，尾号桶 2）
+    - cron: '0 15 * * *'     # 23:00 北京 - mode=full_p4（段 4，尾号桶 3）
+    - cron: '0 17 * * *'     # 01:00 北京 - mode=full_p5（段 5，尾号桶 4）
+    - cron: '0 19 * * *'     # 03:00 北京 - mode=full_p6（段 6，尾号桶 5）
+    - cron: '0 21 * * *'     # 05:00 北京 - mode=full_p7（段 7，尾号桶 6）
 
   workflow_dispatch:
     inputs:
       mode:
         description: '运行模式'
-        default: 'all'
+        default: 'holdings'
         type: choice
         options:
           - all
@@ -32,6 +41,14 @@ on:
           - send_ai
           - holiday
           - reanalyze
+          # TODO-022 第 2 批：分段扫描手动触发选项
+          - full_p1
+          - full_p2
+          - full_p3
+          - full_p4
+          - full_p5
+          - full_p6
+          - full_p7
 
 
 jobs:
@@ -73,7 +90,23 @@ jobs:
             echo "mode=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT
           else
             HOUR=$(TZ='Asia/Shanghai' date +%H)
-            if [ "$HOUR" -le 4 ]; then
+            # TODO-022 第 2 批：分段扫描时段（17/19/21/23/01/03/05 北京）
+            if [ "$HOUR" = "17" ]; then
+              echo "mode=full_p1" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "19" ]; then
+              echo "mode=full_p2" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "21" ]; then
+              echo "mode=full_p3" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "23" ]; then
+              echo "mode=full_p4" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "01" ]; then
+              echo "mode=full_p5" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "03" ]; then
+              echo "mode=full_p6" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "05" ]; then
+              echo "mode=full_p7" >> $GITHUB_OUTPUT
+            # 原有时段保持
+            elif [ "$HOUR" -le 4 ]; then
               echo "mode=full" >> $GITHUB_OUTPUT
             elif [ "$HOUR" -le 9 ]; then
               echo "mode=send_ai" >> $GITHUB_OUTPUT
