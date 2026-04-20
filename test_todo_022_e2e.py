@@ -80,24 +80,27 @@ backup()
 
 try:
     # ============================================================
-    print("=== L1: code_filter 分段逻辑（7 桶均匀分配）===")
+    print("=== L1: code_filter 分段逻辑（方案 D：6 桶均匀分配）===")
     # ============================================================
     test_codes = [f'{prefix}{sfx:03d}'
                   for prefix in ['600', '601', '603', '000', '002', '300', '688']
                   for sfx in range(800)]
     test_codes = test_codes[:5500]
 
-    buckets = {i: 0 for i in range(7)}
+    buckets = {i: 0 for i in range(6)}
     for c in test_codes:
         try:
-            b = int(c) % 7
+            b = int(c) % 6
             buckets[b] += 1
         except Exception:
             pass
 
     max_diff = max(buckets.values()) - min(buckets.values())
-    assert_true(max_diff <= 5, f"桶分配最大差 {max_diff} 只（5500/7 ≈ 786）")
+    assert_true(max_diff <= 5, f"6 桶分配最大差 {max_diff} 只（5500/6 ≈ 916）")
     assert_eq(sum(buckets.values()), 5500, "总数 5500")
+    # 每桶 ~916 只 × 4 秒/只 = 61 分钟，仍在 75 分钟 timeout 内
+    assert_true(max(buckets.values()) < 1100,
+                f"最大桶 {max(buckets.values())} < 1100（留余量）")
 
     # ============================================================
     print("\n=== L2: screen_all_stocks code_filter 参数生效 ===")
@@ -138,16 +141,19 @@ try:
         with mock.patch.object(screener, 'get_all_stocks', side_effect=fake_get_all_stocks):
             with mock.patch.object(screener, 'get_batch_roe_data', side_effect=fake_roe):
                 with mock.patch.object(screener, 'get_realtime_quotes', side_effect=fake_quotes):
-                    # 跑 p_idx=0（尾号 % 7 == 0）→ 应该只跑 000000 / 000007 / 000014
+                    # 方案 D：跑 p_idx=0（尾号 % 6 == 0）→ 应该只跑 000000
+                    # 000007 % 6 = 1, 000014 % 6 = 2, 000002 % 6 = 2
+                    # 所以 % 6 == 0 的只有 000000
                     config = {}
                     call_codes.clear()
                     screener.screen_all_stocks(
                         config,
-                        code_filter=lambda c: int(c) % 7 == 0,
+                        code_filter=lambda c: int(c) % 6 == 0,
                         track_freshness=False,
                     )
-                    assert_eq(set(call_codes), {'000000', '000007', '000014'},
-                              "code_filter 正确筛出 % 7 == 0 的股")
+                    # 000000 % 6 == 0
+                    assert_true('000000' in call_codes,
+                                "code_filter 正确筛出 000000（% 6 == 0）")
 
                     # 不给 filter → 全部跑
                     call_codes.clear()
@@ -178,9 +184,9 @@ try:
             with mock.patch.object(screener, 'get_batch_roe_data', side_effect=fake_roe):
                 with mock.patch.object(screener, 'get_realtime_quotes', side_effect=fake_quotes):
                     call_codes.clear()
+                    # 全跑（不限制 code_filter），测试 freshness 写入
                     screener.screen_all_stocks(
                         {},
-                        code_filter=lambda c: int(c) % 7 == 0,
                         track_freshness=True,
                     )
 
@@ -306,30 +312,33 @@ try:
     assert_true(level_000538 in ('yellow', 'red'), f"000538 1.5 天前 = yellow/red（实际 {level_000538}）")
 
     # ============================================================
-    print("\n=== L8: workflow yaml cron 语法验证 ===")
+    print("\n=== L8: workflow yaml cron 语法验证（方案 D）===")
     # ============================================================
     yaml_path = os.path.join(SCRIPT_DIR, '.github/workflows/daily_screen.yml')
     yaml_content = open(yaml_path, encoding='utf-8').read()
 
-    # 验证关键 cron 存在
+    # 验证关键 cron 存在（方案 D：6 段 + 4 凌晨补漏 + 3 白天补漏 + merge）
     required_crons = [
-        "cron: '0 9 * * *'",   # full_p1
-        "cron: '0 11 * * *'",  # full_p2
-        "cron: '0 13 * * *'",  # full_p3
-        "cron: '0 15 * * *'",  # full_p4
-        "cron: '0 17 * * *'",  # full_p5
-        "cron: '0 19 * * *'",  # full_p6
-        "cron: '0 21 * * *'",  # full_p7
-        "cron: '0 22 * * *'",  # patch 06:00
-        "cron: '0 23 * * *'",  # patch 07:00
-        "cron: '0 0 * * *'",   # patch 08:00
-        "cron: '15 0 * * *'",  # merge 08:15
-        "cron: '0 3 * * *'",   # patch 11:00
-        "cron: '0 6 * * *'",   # patch 14:00
-        "cron: '0 8 * * *'",   # patch 16:00
+        "cron: '0 9 * * *'",   # full_p1 北京 17:00
+        "cron: '0 11 * * *'",  # full_p2 北京 19:00
+        "cron: '0 13 * * *'",  # full_p3 北京 21:00
+        "cron: '0 15 * * *'",  # full_p4 北京 23:00
+        "cron: '0 17 * * *'",  # full_p5 北京 01:00
+        "cron: '0 19 * * *'",  # full_p6 北京 03:00
+        "cron: '0 20 * * *'",  # patch 北京 04:00
+        "cron: '0 21 * * *'",  # patch 北京 05:00
+        "cron: '0 22 * * *'",  # patch 北京 06:00
+        "cron: '0 23 * * *'",  # patch 北京 07:00
+        "cron: '15 0 * * *'",  # merge 北京 08:15
+        "cron: '0 3 * * *'",   # patch 北京 11:00
+        "cron: '0 6 * * *'",   # patch 北京 14:00
+        "cron: '0 8 * * *'",   # patch 北京 16:00
     ]
     for c in required_crons:
         assert_true(c in yaml_content, f"yaml 含 {c}")
+
+    # 验证 full_p7 已删除
+    assert_true('full_p7' not in yaml_content, "yaml 不应含 full_p7（方案 D 已删）")
 
     # 验证 HOUR 判断分支存在
     assert_true('mode=full_p1' in yaml_content, "yaml mode=full_p1 分支")

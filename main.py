@@ -921,25 +921,25 @@ def main():
         print(f"  已保存，等待9点发送")
 
     elif mode and mode.startswith("full_p"):
-        # TODO-022 第 2 批：分段全市场扫描
-        # 7 段，按 int(code) % 7 分桶
-        # mode=full_p1 跑桶 0，full_p2 跑桶 1，... full_p7 跑桶 6
+        # TODO-022 第 2 批（方案 D 调整）：分段全市场扫描
+        # 6 段，按 int(code) % 6 分桶（每段约 916 只）
+        # mode=full_p1 跑桶 0，full_p2 跑桶 1，... full_p6 跑桶 5
         try:
             p_idx = int(mode[6:]) - 1  # 'full_p1' → 0
-            if not (0 <= p_idx <= 6):
-                raise ValueError(f"段编号超范围：{p_idx}")
+            if not (0 <= p_idx <= 5):
+                raise ValueError(f"段编号超范围：{p_idx}（方案 D 已改 6 段）")
         except Exception as _e:
             print(f"  ⚠ 无效 mode={mode}: {_e}")
             return
 
         def code_filter(c):
             try:
-                return int(c) % 7 == p_idx
+                return int(c) % 6 == p_idx
             except (ValueError, TypeError):
                 return False  # 非数字代码（如港股 ETF）跳过
 
         from screener import screen_all_stocks as _scan
-        print(f"=== 分段扫描 段 {p_idx + 1}/7（mode={mode}）===")
+        print(f"=== 分段扫描 段 {p_idx + 1}/6（mode={mode}）===")
         candidates = _scan(config, code_filter=code_filter, track_freshness=True)
         ai_recs = [s for s in candidates if s.get("signal") and s["signal"] not in ("hold", None)]
 
@@ -957,8 +957,8 @@ def main():
         try:
             from scan_freshness import _load as _fr_load
             fr = _fr_load()
-            # 这段对应的代码集合
-            seg_codes = [c for c in fr.keys() if c.isdigit() and int(c) % 7 == p_idx]
+            # 这段对应的代码集合（方案 D 改为 % 6）
+            seg_codes = [c for c in fr.keys() if c.isdigit() and int(c) % 6 == p_idx]
             seg_total = len(seg_codes)
             if seg_total > 0:
                 seg_fails = sum(1 for c in seg_codes
@@ -1044,8 +1044,8 @@ def main():
         merged_files = []
         today_str = now.strftime("%Y%m%d")
 
-        # 1. 读 7 段
-        for p in range(1, 8):
+        # 1. 读 6 段（方案 D 从 7 段改为 6 段）
+        for p in range(1, 7):
             f = os.path.join(os.path.dirname(__file__), f"market_scan_full_p{p}.json")
             if os.path.exists(f):
                 try:

@@ -17,24 +17,24 @@ on:
     - cron: '10 7 * * *'     # 15:10 北京 - holdings 备份
     - cron: '0 10 * * *'     # 18:00 北京 - watchlist
     - cron: '0 14 * * *'     # 22:00 北京 - watchlist 备份
-    # TODO-022 第 2 批：分段全市场扫描 7 段（17/19/21/23/01/03/05 北京时间）
-    # 替代 mode=all（一次跑完 5500+ 总超时），分摊到 7 段每段约 800 只
-    - cron: '0 9 * * *'      # 17:00 北京 - mode=full_p1（段 1，尾号桶 0）
-    - cron: '0 11 * * *'     # 19:00 北京 - mode=full_p2（段 2，尾号桶 1）
-    - cron: '0 13 * * *'     # 21:00 北京 - mode=full_p3（段 3，尾号桶 2）
-    - cron: '0 15 * * *'     # 23:00 北京 - mode=full_p4（段 4，尾号桶 3）
-    - cron: '0 17 * * *'     # 01:00 北京 - mode=full_p5（段 5，尾号桶 4）
-    - cron: '0 19 * * *'     # 03:00 北京 - mode=full_p6（段 6，尾号桶 5）
-    - cron: '0 21 * * *'     # 05:00 北京 - mode=full_p7（段 7，尾号桶 6）
-    # TODO-022 第 3 批：补漏轮 6 个 + merge
-    # 凌晨 3 轮（06/07/08）+ 白天 3 轮（11/14/16）= 6 个擦底
-    - cron: '0 22 * * *'     # 06:00 北京 - mode=patch_round（凌晨补漏 1）
-    - cron: '0 23 * * *'     # 07:00 北京 - mode=patch_round（凌晨补漏 2）
-    - cron: '0 0 * * *'      # 08:00 北京 - mode=patch_round（凌晨补漏 3）
+    # TODO-022 方案 D：分段全市场扫描 6 段（17/19/21/23/01/03 北京时间）
+    # 每段约 916 只（5500/6），每段 2 小时间隔
+    # 相比原 7 段，整体提前 2 小时完成，留更多补漏时间
+    - cron: '0 9 * * *'      # 17:00 北京 - mode=full_p1（段 1，尾号 % 6 == 0）
+    - cron: '0 11 * * *'     # 19:00 北京 - mode=full_p2（段 2，尾号 % 6 == 1）
+    - cron: '0 13 * * *'     # 21:00 北京 - mode=full_p3（段 3，尾号 % 6 == 2）
+    - cron: '0 15 * * *'     # 23:00 北京 - mode=full_p4（段 4，尾号 % 6 == 3）
+    - cron: '0 17 * * *'     # 01:00 北京 - mode=full_p5（段 5，尾号 % 6 == 4）
+    - cron: '0 19 * * *'     # 03:00 北京 - mode=full_p6（段 6，尾号 % 6 == 5）
+    # TODO-022 方案 D 补漏：凌晨 4 轮 + 白天 3 轮 = 7 个擦底
+    - cron: '0 20 * * *'     # 04:00 北京 - mode=patch_round（凌晨补漏 1）
+    - cron: '0 21 * * *'     # 05:00 北京 - mode=patch_round（凌晨补漏 2）
+    - cron: '0 22 * * *'     # 06:00 北京 - mode=patch_round（凌晨补漏 3）
+    - cron: '0 23 * * *'     # 07:00 北京 - mode=patch_round（凌晨补漏 4）
     - cron: '15 0 * * *'     # 08:15 北京 - mode=merge_full（合并段 + 补漏）
-    - cron: '0 3 * * *'      # 11:00 北京 - mode=patch_round（白天补漏 4）
-    - cron: '0 6 * * *'      # 14:00 北京 - mode=patch_round（白天补漏 5）
-    - cron: '0 8 * * *'      # 16:00 北京 - mode=patch_round（白天补漏 6）
+    - cron: '0 3 * * *'      # 11:00 北京 - mode=patch_round（白天补漏 5）
+    - cron: '0 6 * * *'      # 14:00 北京 - mode=patch_round（白天补漏 6）
+    - cron: '0 8 * * *'      # 16:00 北京 - mode=patch_round（白天补漏 7）
 
   workflow_dispatch:
     inputs:
@@ -57,8 +57,7 @@ on:
           - full_p4
           - full_p5
           - full_p6
-          - full_p7
-          # TODO-022 第 3 批
+          # TODO-022 方案 D 补漏/合并
           - patch_round
           - merge_full
 
@@ -103,7 +102,7 @@ jobs:
           else
             HOUR=$(TZ='Asia/Shanghai' date +%H)
             MINUTE=$(TZ='Asia/Shanghai' date +%M)
-            # TODO-022 第 2 批：分段扫描时段（17/19/21/23/01/03/05 北京）
+            # TODO-022 方案 D：分段扫描 6 段（17/19/21/23/01/03 北京）
             if [ "$HOUR" = "17" ]; then
               echo "mode=full_p1" >> $GITHUB_OUTPUT
             elif [ "$HOUR" = "19" ]; then
@@ -116,12 +115,8 @@ jobs:
               echo "mode=full_p5" >> $GITHUB_OUTPUT
             elif [ "$HOUR" = "03" ]; then
               echo "mode=full_p6" >> $GITHUB_OUTPUT
-            elif [ "$HOUR" = "05" ]; then
-              echo "mode=full_p7" >> $GITHUB_OUTPUT
-            # TODO-022 第 3 批：补漏轮 + merge
-            elif [ "$HOUR" = "06" ] || [ "$HOUR" = "07" ]; then
-              echo "mode=patch_round" >> $GITHUB_OUTPUT
-            elif [ "$HOUR" = "08" ] && [ "$MINUTE" -lt "15" ]; then
+            # TODO-022 方案 D：补漏 凌晨 4 + 白天 3 + merge
+            elif [ "$HOUR" = "04" ] || [ "$HOUR" = "05" ] || [ "$HOUR" = "06" ] || [ "$HOUR" = "07" ]; then
               echo "mode=patch_round" >> $GITHUB_OUTPUT
             elif [ "$HOUR" = "08" ] && [ "$MINUTE" -ge "15" ] && [ "$MINUTE" -lt "30" ]; then
               echo "mode=merge_full" >> $GITHUB_OUTPUT
