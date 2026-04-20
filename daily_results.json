@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-20 18:26",
+  "date": "2026-04-20 20:17",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -515,18 +515,18 @@
   ],
   "holding_signals": [
     {
-      "code": "000538",
+      "code": "000583",
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 55.0,
-      "pe": 19.04,
-      "signal": "hold_keep",
-      "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
-      "industry": "中药Ⅱ",
-      "holding_pnl": -2.4822695035460973,
-      "pnl_pct": -2.48,
-      "pnl_label": "几乎平本",
+      "price": 0,
+      "pe": 0,
+      "signal": null,
+      "signal_text": "PE数据缺失",
+      "industry": "-",
+      "holding_pnl": 0,
+      "pnl_pct": null,
+      "pnl_label": "",
       "pnl_advice": "",
       "must_sell": false,
       "bull_top_alert": false,
@@ -537,18 +537,55 @@
       "dividend_yield": 0
     }
   ],
-  "etf_signals": [],
+  "etf_signals": [
+    {
+      "code": "510330",
+      "name": "沪深300ETF华夏",
+      "shares": 300,
+      "cost": 4.898,
+      "current_price": 4.962,
+      "pnl_pct": 1.31,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +1.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_override": true,
+      "must_sell": false,
+      "bull_top_alert": false,
+      "index_code": "000300",
+      "index_name": "沪深300",
+      "kind": "broad",
+      "temperature": {
+        "level": 2,
+        "label": "🔴 泡沫区·贵到不舒服",
+        "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
+        "percentile": 100.0,
+        "current_pe": 17.95,
+        "current_dividend_yield": 2.32,
+        "as_of": "2026-04-20",
+        "data_points": 2427,
+        "lookback_years": 10
+      },
+      "signal": "sell_heavy",
+      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 1
+    }
+  ],
   "portfolio_classification": {
-    "total_value": 150000.0,
-    "defensive_value": 0,
-    "offensive_value": 150000.0,
-    "defensive_pct": 0.0,
-    "offensive_pct": 100.0,
+    "total_value": 7109.4,
+    "defensive_value": 1469.3999999999999,
+    "offensive_value": 5640.0,
+    "defensive_pct": 20.6684108363575,
+    "offensive_pct": 79.3315891636425,
     "buckets": {
       "broad_etf": {
-        "value": 0,
-        "items": [],
-        "pct": 0.0
+        "value": 1469.3999999999999,
+        "items": [
+          {
+            "code": "510330",
+            "name": "沪深300ETF华夏",
+            "value": 1469.3999999999999
+          }
+        ],
+        "pct": 20.6684108363575
       },
       "strategy_etf": {
         "value": 0,
@@ -561,15 +598,15 @@
         "pct": 0.0
       },
       "single_stock": {
-        "value": 150000.0,
+        "value": 5640.0,
         "items": [
           {
-            "code": "600519",
-            "name": "贵州茅台",
-            "value": 150000.0
+            "code": "000583",
+            "name": "云南白药",
+            "value": 5640.0
           }
         ],
-        "pct": 100.0
+        "pct": 79.3315891636425
       }
     }
   },
@@ -586,12 +623,12 @@
   },
   "position_warnings": [
     {
-      "code": "000538",
+      "code": "000583",
       "name": "云南白药",
-      "pct": 40.68970492749441,
+      "pct": 79.3315891636425,
       "level": "danger",
       "tier": "普通标的",
-      "text": "仓位40.7% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
+      "text": "仓位79.3% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ]
 }
