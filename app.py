@@ -1099,12 +1099,12 @@ with tab2:
 
         # 总计
         total_cost_all = sum(h.get("shares", 0) * h.get("cost", 0) for h in holdings)
-        # 计算持仓市值（用于含现金占比计算）
+        # 计算持仓市值（BUG-028 修：ETF 字段叫 current_price，个股叫 price）
         total_market_value = 0
         for h in holdings:
             code_h = str(h["code"]).zfill(6)
             sig = holding_data.get(code_h, {}) if not (code_h in etf_data) else etf_data.get(code_h, {})
-            _p = sig.get("price", 0) or h.get("cost", 0)
+            _p = sig.get("current_price") or sig.get("price") or h.get("cost", 0)
             total_market_value += _p * h.get("shares", 0)
 
         # 加载可投资现金
@@ -1369,12 +1369,18 @@ with tab2:
         # 让用户一眼看到"配置健康度"，不用拿计算器算
         try:
             from allocation_check import calc_allocation_breakdown
-            # 拉当前价
+            # 拉当前价（BUG-028：ETF 字段叫 current_price，个股叫 price）
             _hp_map = {}
             for sig in (st.session_state.get("daily", {}) or {}).get("holding_signals", []):
                 _c = str(sig.get("code", "")).zfill(6)
-                _p = sig.get("price")
+                _p = sig.get("current_price") or sig.get("price")
                 if _c and _p:
+                    _hp_map[_c] = _p
+            # ETF 信号也补进 _hp_map
+            for sig in (st.session_state.get("daily", {}) or {}).get("etf_signals", []):
+                _c = str(sig.get("code", "")).zfill(6)
+                _p = sig.get("current_price") or sig.get("price")
+                if _c and _p and _c not in _hp_map:
                     _hp_map[_c] = _p
             allocation = calc_allocation_breakdown(holdings, investable_cash, _hp_map)
             if allocation:
@@ -1603,7 +1609,8 @@ with tab2:
         for h in holdings:
             _code = str(h.get("code", "")).zfill(6)
             _sig = holding_data.get(_code, {}) if _code not in etf_data else etf_data.get(_code, {})
-            _price = _sig.get("price", 0) or h.get("cost", 0)
+            # BUG-028：ETF 字段叫 current_price
+            _price = _sig.get("current_price") or _sig.get("price") or h.get("cost", 0)
             _value = _price * h.get("shares", 0)
             _item = {"code": _code, "name": h.get("name", ""), "value": _value}
 
@@ -1694,12 +1701,12 @@ with tab2:
             _hp_for_dd = {}
             for sig in (daily or {}).get("holding_signals", []):
                 _c = str(sig.get("code", "")).zfill(6)
-                _p = sig.get("price")
+                _p = sig.get("current_price") or sig.get("price")  # BUG-028
                 if _c and _p:
                     _hp_for_dd[_c] = _p
             for sig in (daily or {}).get("etf_signals", []):
                 _c = str(sig.get("code", "")).zfill(6)
-                _p = sig.get("price")
+                _p = sig.get("current_price") or sig.get("price")  # BUG-028
                 if _c and _p:
                     _hp_for_dd[_c] = _p
             _dd_alerts = get_portfolio_drawdown_alerts(holdings, _hp_for_dd)
@@ -1819,11 +1826,12 @@ with tab2:
 
         for cat, items in category_holdings.items():
             # 分类小计（用市值算，保持和顶部卡片的分母一致）
+            # BUG-028：ETF 字段叫 current_price，个股叫 price
             cat_value = 0
             for _, h in items:
                 code_h = str(h["code"]).zfill(6)
                 _sig = holding_data.get(code_h, {}) if code_h not in etf_data else etf_data.get(code_h, {})
-                _price = _sig.get("price", 0) or h.get("cost", 0)
+                _price = _sig.get("current_price") or _sig.get("price") or h.get("cost", 0)
                 cat_value += _price * h.get("shares", 0)
             cat_cost = sum(h.get("shares", 0) * h.get("cost", 0) for _, h in items)
             # 占比用市值/持仓市值总和（和顶部分类卡片一致）
