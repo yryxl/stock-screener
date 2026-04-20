@@ -558,6 +558,7 @@ ETF 5 档行动信号各种边界场景（T-L2-004 到 T-L2-007）
 | 2026-04-20 | BUG-025 | 用户原话："金额有问题，只有小数点后两位，我需要小数点后4位"——ETF 实际单价是 4.9151 这种 4 位小数，2 位精度丢失 | app.py 交易明细 + 输入框 | （待提交）| ✅ 已修复。**解决方法**：单价/均价相关字段（成交单价输入框、交易记录均价显示、浮盈引用价、历史记录单价、删除选项单价、对账警告中的单价）全部 `%.2f` → `%.4f`，step `0.01` → `0.0001`。金额（盈亏/投入/收回）保留 2 位避免难读。 |
 | 2026-04-20 | 设计声明 | transaction_log 是用户操作的"永久日志"，严禁被清空/覆盖/重置 | transaction_log.py 顶部注释 | （待提交）| ✅ 已强化。在模块顶部加 ⚠️ 警告：接手者/未来 AI 不允许做"清空 transaction_log.json 重新开始"操作。即使误录也只能用 delete_transaction(idx) 删单条。引用用户原话："你后面如何分析我的操作"。 |
 | 2026-04-20 | BUG-026 | 用户原话："为什么没有建仓记录"——手动添加持仓后，交易明细里是空的。沪深300ETF 因为用户手动记过 2 笔所以有，中证500ETF 只加了持仓没记交易所以空。双 ETF 处理不一致暴露了设计漏洞 | app.py add_holding 表单 | （待提交）| ✅ 已修复。**根因**：add_holding form submit 只写 holdings.json，没联动写 transaction_log.json → 交易明细表是空的。与 BUG-024"交易明细是唯一真相"设计冲突。**解决方法**：add_holding 成功后立即 log_transaction(action='buy', price=cost, shares=shares, date=buy_date, note='添加持仓时自动记录的建仓')，再 save_to_github 同步。这样无论哪种方式添加持仓，交易明细里都会有记录，AI 后续分析不会缺数据。|
+| 2026-04-20 | BUG-027 | 用户截图："🧊 未识别 ETF（需补映射）"下显示沪深300ETF华夏；"刚第一个是云南白药时也没能识别"——持仓 ETF 被错误归到未识别分组，即使 etf_index_map.json 里明明有映射 | app.py Tab2 category_holdings | （待提交）| ✅ 已修复。**根因**：UI 只查 daily.etf_signals 判定 ETF，但 etf_signals 只在 etf_monitor 跑过后才有（watchlist/holdings 模式不跑 etf_monitor）。daily 过时时 → 持仓 ETF 不在 etf_data → 归到"未识别"。实际 etf_index_map.json 里 510330/510500/512890 都有映射。**解决方法**：加 fallback 查 etf_index_map.json 的 map 字段。只要代码在静态映射表里就按 kind 归类，不依赖 daily 是否过时。|
 
 ## 🧪 TODO-022 完整交付清单（4 批）
 

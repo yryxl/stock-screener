@@ -1042,6 +1042,21 @@ with tab2:
     for e in daily.get("etf_signals", []):
         etf_data[str(e.get("code", "")).zfill(6)] = e
 
+    # BUG-027 修：加载 etf_index_map.json 作为 fallback
+    # 因为 daily.etf_signals 可能过时（只含上次 etf_monitor 跑过的 ETF），
+    # 而 etf_index_map 是静态映射表（只要代码在这里就算"已识别"）
+    _etf_static_map = {}
+    try:
+        import os as _os_bug027
+        _map_path = _os_bug027.path.join(_os_bug027.path.dirname(__file__), "etf_index_map.json")
+        if _os_bug027.path.exists(_map_path):
+            with open(_map_path, encoding="utf-8") as _mf:
+                _map_raw = json.load(_mf)
+            # etf_index_map 嵌套结构：{"_comment":..., "map": {code: {index, name, kind}}}
+            _etf_static_map = _map_raw.get("map", {}) if isinstance(_map_raw, dict) else {}
+    except Exception:
+        pass
+
     # ETF kind → 中文分类映射（宽基/策略/行业）
     _ETF_KIND_LABELS = {
         "broad": "🛡 宽基 ETF",
@@ -1062,12 +1077,16 @@ with tab2:
         for i, h in enumerate(holdings):
             code = str(h["code"]).zfill(6)
 
-            # 先判断是不是 ETF
+            # 先判断是不是 ETF（BUG-027：双源判定，daily.etf_signals 过时也能识别）
             if code in etf_data:
                 kind = etf_data[code].get("kind", "sector")
                 industry = _ETF_KIND_LABELS.get(kind, "📊 ETF 基金")
+            elif code in _etf_static_map:
+                # fallback：static map 里有就按它的 kind 归类
+                kind = _etf_static_map[code].get("kind", "sector")
+                industry = _ETF_KIND_LABELS.get(kind, "📊 ETF 基金")
             elif code[0] in ("1", "5"):
-                # 未在 etf_signals 中（映射表缺失）但看起来像 ETF
+                # 真正未映射但代码像 ETF
                 industry = "📊 未识别 ETF（需补映射）"
             else:
                 # 个股：走真实行业
