@@ -537,131 +537,23 @@
       "dividend_yield": 0
     }
   ],
-  "etf_signals": [
-    {
-      "code": "510330",
-      "name": "沪深300etf",
-      "shares": 700,
-      "cost": 4.915,
-      "current_price": 4.962,
-      "pnl_pct": 0.96,
-      "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "pnl_override": true,
-      "must_sell": false,
-      "bull_top_alert": false,
-      "index_code": "000300",
-      "index_name": "沪深300",
-      "kind": "broad",
-      "temperature": {
-        "level": 2,
-        "label": "🔴 泡沫区·贵到不舒服",
-        "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 100.0,
-        "current_pe": 17.85,
-        "current_dividend_yield": 2.34,
-        "as_of": "2026-04-17",
-        "data_points": 2429,
-        "lookback_years": 10
-      },
-      "signal": "sell_heavy",
-      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 5
-    },
-    {
-      "code": "512890",
-      "name": "红利低波etf华泰",
-      "shares": 3300,
-      "cost": 1.191,
-      "current_price": 1.19,
-      "pnl_pct": -0.08,
-      "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -0.1%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "pnl_override": true,
-      "must_sell": false,
-      "bull_top_alert": false,
-      "index_code": "H30269",
-      "index_name": "中证红利低波动",
-      "kind": "strategy_dividend",
-      "temperature": {
-        "level": 2,
-        "label": "🔴 泡沫区·贵到不舒服",
-        "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 87.7,
-        "current_pe": 8.17,
-        "current_dividend_yield": 4.93,
-        "as_of": "2026-04-17",
-        "data_points": 1217,
-        "lookback_years": 10
-      },
-      "signal": "sell_heavy",
-      "signal_text": "PE分位87.7%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.1%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 5
-    },
-    {
-      "code": "510500",
-      "name": "中证500etf南方",
-      "shares": 100,
-      "cost": 8.502,
-      "current_price": 8.355,
-      "pnl_pct": -1.73,
-      "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "pnl_override": true,
-      "must_sell": false,
-      "bull_top_alert": false,
-      "index_code": "000905",
-      "index_name": "中证500",
-      "kind": "broad",
-      "temperature": {
-        "level": 2,
-        "label": "🔴 泡沫区·贵到不舒服",
-        "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 87.9,
-        "current_pe": 32.18,
-        "current_dividend_yield": 1.21,
-        "as_of": "2026-04-17",
-        "data_points": 2429,
-        "lookback_years": 10
-      },
-      "signal": "sell_heavy",
-      "signal_text": "PE分位87.9%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -1.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 5
-    }
-  ],
+  "etf_signals": [],
   "portfolio_classification": {
-    "total_value": 13861.0,
-    "defensive_value": 4290.7,
-    "offensive_value": 9570.3,
-    "defensive_pct": 30.95519803765962,
-    "offensive_pct": 69.04480196234037,
+    "total_value": 150000.0,
+    "defensive_value": 0,
+    "offensive_value": 150000.0,
+    "defensive_pct": 0.0,
+    "offensive_pct": 100.0,
     "buckets": {
       "broad_etf": {
-        "value": 4290.7,
-        "items": [
-          {
-            "code": "510330",
-            "name": "沪深300etf",
-            "value": 3440.5
-          },
-          {
-            "code": "510500",
-            "name": "中证500etf南方",
-            "value": 850.2
-          }
-        ],
-        "pct": 30.95519803765962
+        "value": 0,
+        "items": [],
+        "pct": 0.0
       },
       "strategy_etf": {
-        "value": 3930.3,
-        "items": [
-          {
-            "code": "512890",
-            "name": "红利低波etf华泰",
-            "value": 3930.3
-          }
-        ],
-        "pct": 28.355097034845972
+        "value": 0,
+        "items": [],
+        "pct": 0.0
       },
       "sector_etf": {
         "value": 0,
@@ -669,15 +561,15 @@
         "pct": 0.0
       },
       "single_stock": {
-        "value": 5640.0,
+        "value": 150000.0,
         "items": [
           {
-            "code": "000538",
-            "name": "云南白药",
-            "value": 5640.0
+            "code": "600519",
+            "name": "贵州茅台",
+            "value": 150000.0
           }
         ],
-        "pct": 40.68970492749441
+        "pct": 100.0
       }
     }
   },
@@ -686,7 +578,7 @@
     "level": 0,
     "label": "⚪ 正常·按节奏",
     "description": "估值处于合理区间（历史 30%-70% 分位）。按自己的定投/选股节奏执行，不因估值做大调整。巴菲特大多数时候都处在这个状态。",
-    "current_pe_median": 21.46,
+    "current_pe_median": 21.53,
     "percentile": 49.2,
     "lookback_years": 10,
     "as_of": "2026-04",
