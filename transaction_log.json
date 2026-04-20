@@ -1,0 +1,26 @@
+[
+  {
+    "code": "510330",
+    "name": "沪深300ETF华夏",
+    "date": "2026-03-12",
+    "action": "buy",
+    "price": 4.902,
+    "shares": 400,
+    "cash_change": -1960.8,
+    "fee": 0.0,
+    "note": "",
+    "added_at": "2026-04-20T19:36:58+08:00"
+  },
+  {
+    "code": "510330",
+    "name": "沪深300ETF华夏",
+    "date": "2026-03-13",
+    "action": "buy_add",
+    "price": 4.898,
+    "shares": 300,
+    "cash_change": -1469.4,
+    "fee": 0.0,
+    "note": "",
+    "added_at": "2026-04-20T20:15:50+08:00"
+  }
+]
