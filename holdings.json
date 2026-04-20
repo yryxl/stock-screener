@@ -19,5 +19,13 @@
     "shares": 100,
     "cost": 8.502,
     "attribution": "pre_model"
+  },
+  {
+    "code": "000538",
+    "name": "云南白药",
+    "shares": 100,
+    "cost": 56.35,
+    "buy_date": "2026-04-07",
+    "attribution": "pre_model"
   }
 ]
