@@ -38,8 +38,8 @@ jobs:
   screen:
     runs-on: ubuntu-latest
     # 防止某次运行卡住 6 小时（Actions 默认 timeout 太长）
-    # all 模式通常 30-60 分钟够用，其他模式几分钟
-    timeout-minutes: 60
+    # all 模式实测最长 50-60 分钟，提到 90 分钟留余量（2026-04-19 修 BUG-018）
+    timeout-minutes: 90
     # 同一 workflow 并发控制：新运行会取消老的正在运行的
     # 防止 cron 连续触发多个 job 互相冲突
     concurrency:
@@ -86,9 +86,10 @@ jobs:
 
 
       - name: 运行选股分析
-        # 单步超时 45 分钟，防止 akshare 接口卡死导致整个 job 挂 6 小时
-        # all 模式历史最长约 50 分钟，加 45 分钟保留余量
-        timeout-minutes: 45
+        # 单步超时 75 分钟（all 模式实测 50-60 分钟，加 15 分钟余量）
+        # 2026-04-19 BUG-018 修：原 45min 在 watchlist+akshare 慢时常超时
+        # 即使超时，main.py 的 save_json 现在会用"缩水检查"保护 daily_results 不被覆盖
+        timeout-minutes: 75
         run: python main.py --mode ${{ steps.mode.outputs.mode }} --force
         env:
           PYTHONUNBUFFERED: "1"

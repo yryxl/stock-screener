@@ -549,6 +549,7 @@ ETF 5 档行动信号各种边界场景（T-L2-004 到 T-L2-007）
 | 2026-04-18 | BUG-015 | 海德股份端到端断言再次失败：同类接口数据稳定性问题（同 BUG-008/014） | test_reliability_e2e | （待提交）| ✅ 已修复。**解决方法**：彻底放宽 mgmt 断言为软提示而非硬失败，三次同类问题决定永不阻塞测试。**长期方案见"已知接口稳定性问题汇总"段** |
 | 2026-04-19 | BUG-016 | TODO-047 实施后 watchlist_toohard.json / blacklist.json 文件不存在（用户在文件系统找不到，HANDOVER.md 列了 4 个文件但实际只有 2 个） | watchlist_manager | （待提交）| ✅ 已修复。**解决方法**：watchlist_manager 模块导入时自动跑 `_init_files_at_module_load()`，确保 4 表文件都存在（即使为空 list） |
 | 2026-04-19 | BUG-017 | 主 Tab3 名称仍是旧版"⭐ 重点关注表"，与 header"⭐ 关注表（4 层流转）"不一致 | app.py:476 | （待提交）| ✅ 已修复。**解决方法**：把 `st.tabs([..., "⭐ 重点关注表", ...])` 改成 `"⭐ 关注表（4 层）"`，与 Tab3 内容统一 |
+| 2026-04-19 | BUG-018 | GitHub Actions"每日选股分析"45min 超时被强制终止，daily_results.json 被部分写入污染（holding/watchlist/recommendations 全 0，只剩 etf_signals=6） | daily_screen.yml + main.py save_json | （待提交）| ✅ 已修复。**解决方法**：(1) workflow 单步超时 45→75min，job 总超时 60→90min；(2) save_json 改为原子写入（先 .tmp 再 rename）；(3) 新增 save_daily_results_safely 缩水保护 — 旧数据 ≥3 项但新数据为 0 时拒绝覆盖，自动备份为 .bak |
 
 ---
 

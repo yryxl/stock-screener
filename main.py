@@ -58,9 +58,98 @@ def load_json(filename):
 
 
 def save_json(filename, data):
+    """原子写入：先写 .tmp 再 rename，防止部分写入污染（2026-04-19 修 BUG-018）
+
+    特殊保护：filename == 'daily_results.json' 且看起来是"全量覆盖"时，
+    自动调 save_daily_results_safely 做缩水检查（避免超时截断丢数据）
+    """
+    # daily_results.json 特殊保护
+    if filename == "daily_results.json" and isinstance(data, dict):
+        # 只对"完整 daily 字典"启用保护（含 date+mode 是完整 daily）
+        if 'date' in data and 'mode' in data:
+            # 走保护路径，失败则降级
+            try:
+                if save_daily_results_safely(data):
+                    return  # 写入成功
+                # 保护拒绝（数据缩水）→ 不覆盖文件
+                print(f"  ⚠ save_json('{filename}') 被保护拒绝，已保留旧数据")
+                return
+            except Exception as _e:
+                # 保护逻辑出错时，降级到普通写入避免数据完全丢失
+                print(f"  ⚠ save_daily_results_safely 异常({_e})，降级普通写入")
+
+    # 通用原子写入
     path = os.path.join(os.path.dirname(__file__), filename)
-    with open(path, "w", encoding="utf-8") as f:
+    tmp_path = path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+        f.flush()
+        try:
+            os.fsync(f.fileno())
+        except Exception:
+            pass
+    os.replace(tmp_path, path)
+
+
+def save_daily_results_safely(daily_data):
+    """专门保护 daily_results.json：写入前做字段校验，缺关键字段时拒绝覆盖
+
+    背景：2026-04-19 19:25 GitHub Actions 45min 超时，daily_results 被截断写入
+    后只剩 etf_signals=6，holding/watchlist/recommendations 全是 0 → 前端崩溃。
+
+    保护规则：
+      1. 校验关键字段是否存在
+      2. 如果新数据明显比旧数据少（如旧 watchlist_signals=11 而新=0）→ 拒绝覆盖
+      3. 写入失败时保留 .bak 备份
+
+    Args:
+      daily_data: 待写入的 daily_results dict
+
+    Returns: True=写入成功, False=被保护拒绝
+    """
+    import shutil
+    path = os.path.join(os.path.dirname(__file__), "daily_results.json")
+
+    # 加载旧数据做对比
+    old = load_json("daily_results.json") if os.path.exists(path) else {}
+
+    # 字段校验
+    must_keys = ['date', 'mode']
+    for k in must_keys:
+        if k not in daily_data:
+            print(f"  ⚠ daily_results 校验失败：缺字段 {k}，拒绝覆盖")
+            return False
+
+    # 数据缩水检查（防止超时被截断）
+    if isinstance(old, dict) and old:
+        for sig_key in ['holding_signals', 'watchlist_signals', 'ai_recommendations']:
+            old_count = len(old.get(sig_key, []) or [])
+            new_count = len(daily_data.get(sig_key, []) or [])
+            # 旧的 ≥3 项但新的为 0 → 大概率是数据丢失，拒绝
+            if old_count >= 3 and new_count == 0:
+                print(f"  ⚠ daily_results 缩水：{sig_key} 从 {old_count} → 0，拒绝覆盖")
+                print(f"  💡 这通常是 GitHub Actions 超时导致的部分数据丢失")
+                return False
+
+    # 备份旧数据
+    if os.path.exists(path):
+        try:
+            shutil.copy(path, path + ".bak")
+        except Exception:
+            pass
+
+    # 原子写入新数据（不调 save_json 防止递归）
+    tmp_path = path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(daily_data, f, ensure_ascii=False, indent=2, default=str)
+        f.flush()
+        try:
+            os.fsync(f.fileno())
+        except Exception:
+            pass
+    os.replace(tmp_path, path)
+    print(f"  ✅ daily_results 安全写入完成")
+    return True
 
 
 def is_trading_day():
