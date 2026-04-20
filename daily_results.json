@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-17 22:46",
-  "mode": "watchlist",
+  "date": "2026-04-20 12:15",
+  "mode": "holdings",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "持仓检查",
   "ai_recommendations": [
     {
       "code": "000538",
@@ -519,13 +519,13 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 55.29,
+      "price": 55.22,
       "pe": 19.14,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -1.9680851063829774,
-      "pnl_pct": -1.97,
+      "holding_pnl": -2.0921985815602784,
+      "pnl_pct": -2.09,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
@@ -543,10 +543,10 @@
       "name": "沪深300etf",
       "shares": 700,
       "cost": 4.915,
-      "current_price": 4.93,
-      "pnl_pct": 0.31,
+      "current_price": 4.959,
+      "pnl_pct": 0.9,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +0.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +0.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -565,7 +565,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +0.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +0.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 5
     },
     {
@@ -573,10 +573,10 @@
       "name": "红利低波etf华泰",
       "shares": 3300,
       "cost": 1.191,
-      "current_price": 1.184,
-      "pnl_pct": -0.59,
+      "current_price": 1.187,
+      "pnl_pct": -0.34,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -0.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -0.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -595,7 +595,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位87.7%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位87.7%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -0.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 5
     },
     {
@@ -603,10 +603,10 @@
       "name": "中证500etf南方",
       "shares": 100,
       "cost": 8.502,
-      "current_price": 8.29,
-      "pnl_pct": -2.49,
+      "current_price": 8.374,
+      "pnl_pct": -1.51,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -625,7 +625,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位87.9%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位87.9%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -1.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 5
     }
   ],
@@ -698,7 +698,8 @@
       "name": "云南白药",
       "pct": 40.68970492749441,
       "level": "danger",
-      "text": "仓位40.7%≥40%，严重偏重！建议分散"
+      "tier": "普通标的",
+      "text": "仓位40.7% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ]
 }
