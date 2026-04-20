@@ -551,6 +551,7 @@ ETF 5 档行动信号各种边界场景（T-L2-004 到 T-L2-007）
 | 2026-04-19 | BUG-017 | 主 Tab3 名称仍是旧版"⭐ 重点关注表"，与 header"⭐ 关注表（4 层流转）"不一致 | app.py:476 | （待提交）| ✅ 已修复。**解决方法**：把 `st.tabs([..., "⭐ 重点关注表", ...])` 改成 `"⭐ 关注表（4 层）"`，与 Tab3 内容统一 |
 | 2026-04-19 | BUG-018 | GitHub Actions"每日选股分析"45min 超时被强制终止，daily_results.json 被部分写入污染（holding/watchlist/recommendations 全 0，只剩 etf_signals=6） | daily_screen.yml + main.py save_json | （待提交）| ✅ 已修复。**解决方法**：(1) workflow 单步超时 45→75min，job 总超时 60→90min；(2) save_json 改为原子写入（先 .tmp 再 rename）；(3) 新增 save_daily_results_safely 缩水保护 — 旧数据 ≥3 项但新数据为 0 时拒绝覆盖，自动备份为 .bak |
 | 2026-04-20 | BUG-019 | 微信连续 3 次推"本日休市"消息（用户截图：4-19 周日 18:36 / 22:31 + 4-20 周一 12:18），其中周一 12:18 误判 — 今天非节假日工作日 | main.py is_trading_day | （待提交）| ✅ 已修复。**根因**：akshare `tool_trade_date_hist_sina` 接口数据只更新到 2025 年底，2026 年所有日期都不在 trade_dates 集合 → 全被误判"非交易日"。**解决方法**：is_trading_day() 加"超出接口范围降级"逻辑——`max(trade_dates) < today` 时按工作日判断（宁可多跑一次扫描，也别误推休市）。覆盖 4 类场景测试全过 |
+| 2026-04-20 | BUG-021 | 微信收到"选股信号 04-20"空白消息（持仓+watchlist 模式后），代码却打印"已推送"假象 | notifier.py send_msg + send_template_msg | （待提交）| ✅ 已修复。**根因**：客服消息因 errcode=45015（用户超 48h 未互动）失败 → fallback 模板消息送达但 content 字段在微信端不显示。**解决方法**：(1) send_template_msg 加 safe_content 兜底（content 空时用 title 兜底）；(2) send_msg 拿模板消息真实返回值，双失败时打印 🚨🚨🚨 显眼警告（不再打"已推送"假象）；(3) send_daily_report 调用方根据真实返回区分"已推送"vs"推送失败" |
 
 ---
 

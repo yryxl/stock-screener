@@ -45,33 +45,59 @@ def send_text_msg(access_token, openid, text):
 
 
 def send_template_msg(access_token, openid, template_id, title, content):
-    """模板消息备用"""
+    """模板消息备用
+
+    2026-04-20 BUG-021 修：模板消息字段在微信公众号后台已定义，必须按字段名传。
+    若不知字段名，至少把 content 拼到 title 里防止内容空白。
+    """
     url = f"https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={access_token}"
+    # 拼接 title+content 作为完整内容，防止 content 字段名不匹配导致空白
+    safe_content = (content or '')[:200].strip()
+    if not safe_content:
+        safe_content = title  # 兜底，避免发空白消息
     data = {
         "touser": openid, "template_id": template_id,
-        "data": {"title": {"value": title}, "content": {"value": content[:200]}},
+        "data": {
+            "title": {"value": title[:60]},   # 标题截短防止过长
+            "content": {"value": safe_content},
+        },
     }
     try:
         body = json_lib.dumps(data, ensure_ascii=False).encode("utf-8")
         resp = requests.post(url, data=body, headers={"Content-Type": "application/json; charset=utf-8"}, timeout=30)
         result = resp.json()
         if result.get("errcode") == 0:
-            print(f"  模板发送成功")
+            print(f"  ✅ 模板发送成功（msgid={result.get('msgid')}）")
             return True
-        print(f"  模板发送失败: {result}")
+        # 失败的明显标记（之前是 print 但被混在大量输出里看不到）
+        print(f"  🚨 模板发送也失败！errcode={result.get('errcode')} {result.get('errmsg')}")
+        print(f"     完整响应: {result}")
+        print(f"     提示：用户可能取消订阅 / 模板被禁用 / 字段名不匹配")
         return False
     except Exception as e:
-        print(f"  模板异常: {e}")
+        print(f"  🚨 模板异常: {e}")
         return False
 
 
 def send_msg(access_token, openid, template_id, text):
-    """优先客服消息，失败用模板"""
+    """优先客服消息，失败用模板
+
+    2026-04-20 BUG-021 修：之前 fallback 模板消息后没拿返回值，
+    导致客服+模板都失败时仍打印"已推送"假象。
+    现在返回 True/False 给上层，让上层准确知道是否真的发出去了。
+    """
     ok = send_text_msg(access_token, openid, text)
-    if not ok:
-        lines = text.split("\n")
-        title = lines[0] if lines else "选股信号"
-        send_template_msg(access_token, openid, template_id, title, text)
+    if ok:
+        return True
+    # 客服失败 → 走模板
+    lines = text.split("\n")
+    title = lines[0] if lines and lines[0].strip() else "选股信号"
+    template_ok = send_template_msg(access_token, openid, template_id, title, text)
+    if not template_ok:
+        # 客服+模板双失败 — 明显标记，让用户从日志能立即看到
+        print(f"  🚨🚨🚨 客服+模板双失败，本条消息未送达！")
+        print(f"     原始内容前 200 字: {text[:200]}")
+    return template_ok
 
 
 # 信号分组（用emoji区分紧急程度，从安全→危险）
@@ -177,9 +203,13 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
         _msg = "\n".join(lines).strip()
         # 只发送有实质内容的消息（至少 20 字符）
         if len(_msg) >= 20:
-            send_msg(access_token, openid, template_id, _msg)
-            sent_any = True
-            print(f"  已推送 {signal_title}：{len(group)} 只")
+            # BUG-021：拿真实返回值，避免发送失败时还打"已推送"假象
+            sent = send_msg(access_token, openid, template_id, _msg)
+            if sent:
+                sent_any = True
+                print(f"  ✅ 已推送 {signal_title}：{len(group)} 只")
+            else:
+                print(f"  🚨 推送失败 {signal_title}：{len(group)} 只（未送达）")
         else:
             print(f"  ⚠ 跳过 {signal_title}：消息内容过短（{len(_msg)}字）")
 
@@ -197,9 +227,12 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
                 lines.append("")
         _msg = "\n".join(lines).strip()
         if len(_msg) >= 20:
-            send_msg(access_token, openid, template_id, _msg)
-            sent_any = True
-            print(f"  已推送仓位警告：{len(position_warnings)} 条")
+            sent = send_msg(access_token, openid, template_id, _msg)
+            if sent:
+                sent_any = True
+                print(f"  ✅ 已推送仓位警告：{len(position_warnings)} 条")
+            else:
+                print(f"  🚨 仓位警告推送失败：{len(position_warnings)} 条（未送达）")
         else:
             print(f"  ⚠ 跳过仓位警告：内容过短")
 
