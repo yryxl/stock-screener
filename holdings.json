@@ -14,5 +14,13 @@
     "cost": 4.9003,
     "buy_date": "2026-03-12",
     "attribution": "pre_model"
+  },
+  {
+    "code": "510500",
+    "name": "中证500ETF",
+    "shares": 100,
+    "cost": 8.452,
+    "buy_date": "2026-03-12",
+    "attribution": "pre_model"
   }
 ]
