@@ -22,5 +22,13 @@
     "cost": 8.502,
     "buy_date": "2026-03-12",
     "attribution": "pre_model"
+  },
+  {
+    "code": "512890",
+    "name": "红利低波ETF华泰柏瑞",
+    "shares": 2400,
+    "cost": 1.202,
+    "buy_date": "2026-03-20",
+    "attribution": "pre_model"
   }
 ]
