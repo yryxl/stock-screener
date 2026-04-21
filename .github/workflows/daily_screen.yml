@@ -157,6 +157,13 @@ jobs:
           cp watchlist.json /tmp/watchlist.json 2>/dev/null || true
           mkdir -p /tmp/_snapshots && cp -r snapshots/* /tmp/_snapshots/ 2>/dev/null || true
           mkdir -p /tmp/_games && cp -r backtest_games/* /tmp/_games/ 2>/dev/null || true
+          # BUG-030 修：备份 TODO-022 分段扫描相关文件（之前漏了导致 6 段白跑）
+          mkdir -p /tmp/_scan_files && cp market_scan_full_p*.json /tmp/_scan_files/ 2>/dev/null || true
+          cp market_scan_patch_*.json /tmp/_scan_files/ 2>/dev/null || true
+          cp scan_freshness.json /tmp/scan_freshness.json 2>/dev/null || true
+          cp scan_pending_retry.json /tmp/scan_pending_retry.json 2>/dev/null || true
+          cp scan_anomaly_log.json /tmp/scan_anomaly_log.json 2>/dev/null || true
+          cp transaction_log.json /tmp/transaction_log.json 2>/dev/null || true
           # 强制同步到远程最新状态（包含所有代码提交，不会冲突）
           git fetch origin main
           git reset --hard origin/main
@@ -166,8 +173,24 @@ jobs:
           cp /tmp/watchlist.json . 2>/dev/null || true
           mkdir -p snapshots && cp -r /tmp/_snapshots/* snapshots/ 2>/dev/null || true
           mkdir -p backtest_games && cp -r /tmp/_games/* backtest_games/ 2>/dev/null || true
+          # BUG-030 修：恢复 TODO-022 分段扫描文件
+          cp /tmp/_scan_files/market_scan_full_p*.json . 2>/dev/null || true
+          cp /tmp/_scan_files/market_scan_patch_*.json . 2>/dev/null || true
+          cp /tmp/scan_freshness.json . 2>/dev/null || true
+          cp /tmp/scan_pending_retry.json . 2>/dev/null || true
+          cp /tmp/scan_anomaly_log.json . 2>/dev/null || true
+          cp /tmp/transaction_log.json . 2>/dev/null || true
           # 提交并推送（基于最新代码，绝不会冲突）
-          git add daily_results.json market_scan_cache.json watchlist.json snapshots/ backtest_games/ stock_notes.json user_cash.json 2>/dev/null || true
+          # BUG-030 修：加入 TODO-022 + H5 + scan validator 等新增文件
+          git add daily_results.json market_scan_cache.json watchlist.json \
+                  snapshots/ backtest_games/ stock_notes.json user_cash.json \
+                  market_scan_full_p1.json market_scan_full_p2.json \
+                  market_scan_full_p3.json market_scan_full_p4.json \
+                  market_scan_full_p5.json market_scan_full_p6.json \
+                  market_scan_patch_*.json \
+                  scan_freshness.json scan_pending_retry.json scan_anomaly_log.json \
+                  transaction_log.json \
+                  2>/dev/null || true
           git diff --cached --quiet || git commit -m "更新数据 $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')"
           git push
 
