@@ -565,6 +565,7 @@ ETF 5 档行动信号各种边界场景（T-L2-004 到 T-L2-007）
 | 2026-04-21 | BUG-031 | 用户对比券商：我们持仓市值"¥13,728"应该是"¥13,728.40"——金额精度 0 位小数与券商不一致 | app.py 12 处 `:,.0f` | （待提交）| ✅ 已修复。**根因**：BUG-025 只改了交易明细的精度，外面市值/现金/总资产/分类小计 12 处仍用 `:,.0f`。**解决方法**：sed 批量替换 `:,.0f` → `:,.2f`（带逗号= 金额，不影响百分比 `:.0f`）。覆盖：持仓市值/可投资现金/总资产/卖出市值/可动用合计/防守进攻明细/分类小计/资产配置明细/持仓成本总计/分类卡片市值。 |
 | 2026-04-21 | BUG-032 | full_p1 跑超时被掐 → yml commit 步骤跳过 → 已扫部分文件全丢 | daily_screen.yml | （待提交）| ✅ 已修复。**根因**：commit 步骤没加 `if: always()`，前一步 timeout 时整个 step 被跳过。**解决方法**：commit 步骤加 `if: always()`，让 timeout 后也提交已经写到磁盘的文件（配合 BUG-033 增量保存生效）。 |
 | 2026-04-21 | BUG-033 | 单段超时被掐时已扫几十只全部丢失，无法恢复 | screener.py screen_all_stocks | （待提交）| ✅ 已修复。**根因**：原逻辑等全部跑完才一次性写文件，timeout 被掐时 in-memory 数据全丢。**解决方法**：screen_all_stocks 加 `incremental_save_path` 参数，每 20 只就把当前 passed + ai_recommendations 写到文件 + `is_partial=True` 标记。配合 BUG-032，超时被掐后 GitHub 仍能拿到部分数据。main.py mode=full_pN 自动传该路径。 |
+| 2026-04-21 | BUG-034 | 段 1 深度分析跑到 40/60 就 75min 超时——单只 akshare 调用卡死无上限导致整段拖垮 | data_fetcher.py safe_fetch | b03a61d | ✅ 已修复。**根因**：`safe_fetch` 调用 akshare 无任何超时保护，某只股网络卡住就永远等（log 显示单只 22min 才动一次进度）。**解决方法**：safe_fetch 加 SIGALRM 20s 硬超时 + platform.system()=='Linux' 开关（仅 GHA runner 启用，Windows 本地不受影响）。单只 worst case：20s × 2 源 + 2s × 2 重试 = 44s，60 只段 worst case：44s × 60 = 44min，稳在 75min 预算内。 |
 
 ## 🧪 TODO-022 完整交付清单（4 批）
 
