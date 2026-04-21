@@ -1406,6 +1406,16 @@ with tab2:
                 )
 
                 # 6 类资产 metric（2 行 × 3 列）+ H2 一键查推荐 ETF 按钮
+                # BUG-035：先算出本次真正有推荐的类别 set，按钮只在该集合里显示
+                # （之前显示条件 abs(dev)>3 宽于推荐生成条件 dev<-5，导致超目标的类别
+                #  显示按钮但点了打不开——高股息+5.8、黄金-5.0 两种情况）
+                try:
+                    from etf_recommendations import get_recommendations_from_allocation as _g_recs
+                    _recs_cache = _g_recs(allocation) or []
+                    _rec_classes = {r.get('asset_class') for r in _recs_cache if r}
+                except Exception:
+                    _recs_cache = None
+                    _rec_classes = set()
                 _row1 = st.columns(3)
                 _row2 = st.columns(3)
                 _cols = list(_row1) + list(_row2)
@@ -1415,11 +1425,12 @@ with tab2:
                         _delta = f"目标 {_b['target_pct']}% (偏差 {_b['deviation_pp']:+.1f}pp)"
                         st.metric(_b['label'], f"{_b['actual_pct']}%", _delta,
                                   delta_color=_color)
-                        # H2：偏差 > 3pp（绝对值）或 status=red/yellow 才显示 🔍 按钮
+                        # H2+BUG-035：必须同时满足"偏差显眼"+"有对应推荐"才显示按钮
+                        _ac = _b.get('asset_class', f'idx_{_i}')
                         _need_help = (abs(_b.get('deviation_pp', 0)) > 3
                                       or _b.get('status') in ('red', 'yellow'))
-                        if _need_help:
-                            _ac = _b.get('asset_class', f'idx_{_i}')
+                        _has_rec = _ac in _rec_classes
+                        if _need_help and _has_rec:
                             if st.button(f"🔍 查推荐 ETF",
                                           key=f"etf_help_{_ac}_{_i}",
                                           help=f"展开下方对应的 ETF 推荐",
@@ -1427,6 +1438,13 @@ with tab2:
                                 st.session_state['expand_etf_for'] = _ac
                                 st.toast(f"已展开 {_b['label']} 的 ETF 推荐", icon="🔍")
                                 st.rerun()
+                        elif _need_help and not _has_rec:
+                            # 有偏差但超目标或偏差不足 5pp → 说明原因，不给假按钮
+                            _dev = _b.get('deviation_pp', 0)
+                            if _dev > 0:
+                                st.caption(f"⚠️ 已超目标 {_dev:+.1f}pp，应减仓非加仓")
+                            else:
+                                st.caption(f"💡 偏差 {_dev:.1f}pp 较小，无需补仓")
 
                 # 可展开明细
                 with st.expander("📋 资产配置明细（每只持仓属于哪类）"):
@@ -1444,9 +1462,10 @@ with tab2:
 
                 # TODO-040 ETF 推荐功能（2026-04-18 用户提"有反馈无推荐"）
                 # 根据配置偏差，自动推荐补缺 ETF（综合 CAPE + 集中度评级）
+                # BUG-035：复用上面已算过的 _recs_cache，避免重复调用
                 try:
-                    from etf_recommendations import get_recommendations_from_allocation
-                    _recs = get_recommendations_from_allocation(allocation)
+                    _recs = _recs_cache if _recs_cache is not None else \
+                        __import__('etf_recommendations').get_recommendations_from_allocation(allocation)
                     if _recs:
                         st.subheader("📊 推荐补缺 ETF（REQ-ALLOCATION-RECOMMEND）")
                         st.caption(
