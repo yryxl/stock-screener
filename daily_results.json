@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-20 22:46",
-  "mode": "watchlist",
+  "date": "2026-04-21 10:19",
+  "mode": "merge_full",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "分段扫描合并（含 0 个文件）",
   "ai_recommendations": [
     {
       "code": "000538",
@@ -543,10 +543,10 @@
       "name": "沪深300ETF华夏",
       "shares": 700,
       "cost": 4.915,
-      "current_price": 4.962,
-      "pnl_pct": 0.96,
+      "current_price": 4.938,
+      "pnl_pct": 0.47,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +0.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -565,7 +565,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +0.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 1
     },
     {
@@ -573,10 +573,10 @@
       "name": "中证500ETF",
       "shares": 100,
       "cost": 8.502,
-      "current_price": 8.355,
-      "pnl_pct": -1.73,
+      "current_price": 8.287,
+      "pnl_pct": -2.53,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -595,7 +595,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位89.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -1.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位89.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 1
     },
     {
@@ -603,10 +603,10 @@
       "name": "红利低波ETF华泰柏瑞",
       "shares": 3300,
       "cost": 1.221,
-      "current_price": 1.19,
-      "pnl_pct": -2.54,
+      "current_price": 1.196,
+      "pnl_pct": -2.05,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -625,7 +625,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位89.2%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位89.2%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 1
     }
   ],
