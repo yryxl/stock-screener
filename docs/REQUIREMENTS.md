@@ -1566,6 +1566,80 @@ A 股造假识别，新增 4 项 P1 工作：036/037/038/039。news_screen skill
   - ✅ 场景 4（普通标的）：21% 警告、73% 危险
 - **协同效应**：和 REQ-187 鳄鱼出击（总仓位上限 80%）形成"总仓+单股"双重集中度管理
 
+### REQ-197：补漏轮 3 次重试上限（2026-04-21 用户提出 / 待实施）
+- **时间**：2026-04-21
+- **来源**：用户工作流程图 PDF "重跑三次后→不再跑，并记录为当天的遗漏数据"
+- **核心问题**：当前补漏轮（凌晨 4 + 白天 3 = 7 轮）无次数硬上限，某只股可能反复重试浪费资源
+- **设计**：
+  - 每只股每天最多重试 3 次
+  - 超过 3 次仍失败 → 标记"今日永久漏跑"
+  - 当天剩余补漏轮跳过该股
+  - 第 2 天 freshness fails 计数继续累积，触发持续未更新报警
+- **实现位置**（待写）：
+  - scan_freshness.py 加 daily_retry_count 字段（每天重置）
+  - patch_round 跑前过滤 daily_retry_count >= 3 的股
+- **优先级**：中（避免补漏轮无限重试）
+
+### REQ-196：双保险写入校验（2026-04-21 用户提出 / 待实施）
+- **时间**：2026-04-21
+- **来源**：用户工作流程图 PDF "上传 GitHub + 本地保存 → 校验本次上传/保存是否成功"
+- **核心问题**：当前所有数据只走 GitHub 单源，云端故障/限流时数据丢失
+- **设计（用户简化版）**：
+  - 写入 GitHub（已有）
+  - 同步写入本地副本（新增）
+  - 校验**本次写入是否成功**（不需要"取最完整的一边"复杂逻辑）
+  - 任一失败 → 显眼报警（log + UI 提示）
+- **覆盖文件**：daily_results.json / holdings.json / transaction_log.json / scan_freshness.json / snapshots/
+- **实现位置**（待写）：
+  - 新增 `data_dual_save.py`：save_dual(filename, data) 包装 GitHub + 本地两份写入
+  - app.py / main.py 关键写入点改用 save_dual
+- **优先级**：中（增强数据可靠性）
+
+### REQ-195：黑名单数据照跑但不推荐（2026-04-21 用户拍板 / 待实施）
+- **时间**：2026-04-21
+- **来源**：用户工作流程图 PDF "黑名单中股票数据照跑，但不再推荐购买"
+- **核心问题**：当前 watchlist_manager.get_all_blocked_codes 把黑名单股完全屏蔽出扫描，但黑名单 1 年到期后突然恢复时数据是 1 年前的旧数据
+- **设计**：
+  - 全市场扫描时**仍包含**黑名单股（拉数据 + 跑评估）
+  - 但**不写入** ai_recommendations（不推荐买）
+  - 不进入关注表 model
+  - 黑名单 1 年到期自动恢复时，已经有最新数据可用（不会数据空缺）
+- **附加价值**：
+  - 1 年内可观察黑名单股是否真的"变好了"
+  - 数据连续性保证（避免 freshness fails 累积导致红色警报）
+- **实现位置**（待写）：
+  - main.py auto_add_to_watchlist 不过滤黑名单股（让它进 model 表显示但加 blacklisted=true 标记）
+  - app.py 模型推荐 Tab 过滤掉 blacklisted=true
+- **优先级**：低（设计完善，不影响主流程）
+
+### REQ-194：周快照升级（长期归因分析）（2026-04-21 用户提出 / 待实施）
+- **时间**：2026-04-21
+- **来源**：用户原话："1 年或多年后，可以凭这些快照数据分析模型是否有问题，和我的操作有什么问题"
+- **核心问题**：当前 snapshots/YYYY-WWW.json 只记"那一刻的持仓"，缺失：操作时间/类型/当时模型推荐/归因/错过机会/违背操作 — 多年后无法做归因分析
+- **设计（10 类字段，用户拍板"你认为有用的数据都要保存"）**：
+  1. **市场环境**：hs300_pe_percentile / hs300_temperature / bond_yield_10y / buffett_index / cape_status
+  2. **持股快照（升级）**：含 attribution（model/pre_model/manual）+ category + kind + 防守/进攻
+  3. **本周交易明细**：从 transaction_log.json 截取本周所有 buy/buy_add/sell_partial/sell_all/dividend
+  4. **本周模型推荐**：当周 daily_results.ai_recommendations 列表 + 用户响应（未操作/已买入/拒绝）
+  5. **错过的机会**：模型推荐但用户没操作的股 + tracked_for_followup 标记
+  6. **违背模型的操作**：用户买/卖但模型反对的（attribution=manual 且 model_signal 相反）
+  7. **关注表 4 层快照**：model/toohard/my/blacklist 4 表数量 + 本周流转事件
+  8. **数据健康度**：scan_freshness 汇总 + 红/黄/未更新计数
+  9. **推送记录**：本周 send_ai 推送的所有消息
+  10. **健康度报告**：REQ-151 模型可靠性熔断 9 项指标当周值
+- **多年后能分析**：
+  - 模型推荐股的真实胜率（filter attribution=model 算 1/3/5 年回报）
+  - 自主决定 vs 模型推荐 谁更准
+  - 错过的机会代价（推荐没买的股 1 年后涨跌）
+  - 违背模型的代价（用户违背操作后续表现）
+  - 市场环境 vs 决策（贪婪/恐惧时的操作模式）
+  - 模型校准（按信号强度分组算回报，哪类信号最准）
+- **实现位置**（待写）：
+  - snapshot.py 大改：collect_market_context / collect_transactions_this_week / collect_recommendations_this_week / detect_missed_opportunities / detect_off_model_actions
+  - 新增 snapshot_analyzer.py：基于历史快照做归因报告
+- **优先级**：中（不影响每天使用，但是长期价值核心）
+- **依赖**：REQ-193 持仓模型归因（已有）+ H5 transaction_log（已有）+ 关注表 4 层（已有）
+
 ### REQ-193：持仓模型归因（避免污染模型成绩）（2026-04-19 ✅ 已实施）
 - **时间**：2026-04-19
 - **来源**：用户原话："比如现在持仓的云南白药是没有模型时买入的，那 3 年后如果持仓没跑赢或大赢，这类和模型推荐相左的持仓，都不应该算入模型成绩"
