@@ -855,11 +855,26 @@ def screen_all_stocks(config, code_filter=None, track_freshness=True,
     passed = []
     total = len(candidate_codes)
     import json as _json_inc
+    # BUG-037：每只股 60s 硬超时（覆盖所有 ak.xxx 调用，含 china_adjustments.py 里
+    #          没走 safe_fetch 的 9 处直接调用）。仅 Linux/GHA 启用
+    from data_fetcher import _USE_ALARM, _FetchTimeout
+    if _USE_ALARM:
+        from data_fetcher import _alarm_handler
+        import signal as _signal
+    _per_stock_timeout = 60  # 单只股最多 60s
+    _timeout_count = 0
     for i, code in enumerate(candidate_codes, 1):
         if i % 10 == 0:
             print(f"深度分析: {i}/{total}", flush=True)
         try:
-            result = screen_single_stock(code, config, quotes_df)
+            if _USE_ALARM:
+                _signal.signal(_signal.SIGALRM, _alarm_handler)
+                _signal.alarm(_per_stock_timeout)
+            try:
+                result = screen_single_stock(code, config, quotes_df)
+            finally:
+                if _USE_ALARM:
+                    _signal.alarm(0)
             # TODO-022：根据 data_quality 判定 success/fail
             if track_freshness:
                 if result.get("data_quality") == "ok":
@@ -871,6 +886,12 @@ def screen_all_stocks(config, code_filter=None, track_freshness=True,
                 name_row = stocks[stocks["code"] == code]
                 result["name"] = name_row.iloc[0]["name"] if not name_row.empty else code
                 passed.append(result)
+        except _FetchTimeout:
+            # BUG-037：单只股超时被切断
+            _timeout_count += 1
+            print(f"  [单只股超时{_per_stock_timeout}s] {code}", flush=True)
+            if track_freshness:
+                fail_codes.append(code)
         except Exception as _e:
             # 极少触发（screen_single_stock 内部已 try/except 多数情况）
             if track_freshness:

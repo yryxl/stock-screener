@@ -16,8 +16,14 @@ _INDUSTRY_CACHE_FILE = os.path.join(_SCRIPT_DIR, "stock_industry_cache.json")
 _industry_cache_mem = None  # 进程内存缓存，避免反复读文件
 
 
-# BUG-034: akshare 单次调用硬超时（防卡死拖垮整段扫描）
-# 仅 Linux（GHA runner）启用 SIGALRM；Windows 本地跳过
+# BUG-034 原方案：safe_fetch 内层 SIGALRM 已被 BUG-037 取代
+# BUG-037：把 SIGALRM 移到 screener.screen_all_stocks 循环外层（每只股 60s）
+# 原因：china_adjustments.py 里 9 处直接 ak.xxx() 调用没走 safe_fetch
+#       内层 SIGALRM 保护不到 → 某只股进入这些函数会被永远卡死（log 显示 69 分钟无进度）
+# 解决：safe_fetch 回到"无 timeout"的原始设计，外层在调用 screen_single_stock 时
+#       统一用 SIGALRM(60) 包住，不论内部调用走没走 safe_fetch
+
+# 给 screener.py 共享的工具（screener.py 会 from data_fetcher import _USE_ALARM, _alarm_handler）
 _USE_ALARM = platform.system() == 'Linux'
 if _USE_ALARM:
     import signal
@@ -26,34 +32,25 @@ if _USE_ALARM:
         pass
 
     def _alarm_handler(signum, frame):
-        raise _FetchTimeout("akshare call timeout")
+        raise _FetchTimeout("call timeout")
+else:
+    class _FetchTimeout(Exception):
+        pass
 
 
-def safe_fetch(func, *args, retry=2, delay=2, timeout=20, **kwargs):
-    """带重试 + 超时的安全请求
-    BUG-034: 每次调用加 timeout 秒硬超时（默认 20s），防 akshare 某只股卡死
-             拖垮整段扫描（75min GHA 限额内跑完 60 只）
+def safe_fetch(func, *args, retry=2, delay=2, timeout=None, **kwargs):
+    """带重试的安全请求（原始版本）
+    BUG-037：内层 timeout 改为不实际生效（参数保留向后兼容），
+             实际超时控制由外层 screen_single_stock 包装的 SIGALRM(60s) 统一管
     """
     for i in range(retry):
         try:
-            if _USE_ALARM:
-                signal.signal(signal.SIGALRM, _alarm_handler)
-                signal.alarm(timeout)
-            try:
-                return func(*args, **kwargs)
-            finally:
-                if _USE_ALARM:
-                    signal.alarm(0)  # 任何路径都先清掉 alarm
+            return func(*args, **kwargs)
         except Exception as e:
-            # _FetchTimeout 也在这里被捕获（Linux 下）
             if i < retry - 1:
                 time.sleep(delay)
             else:
-                # 超时单独打印，便于日志里统计
-                if _USE_ALARM and isinstance(e, _FetchTimeout):
-                    print(f"  [超时{timeout}s] {getattr(func, '__name__', func)}", flush=True)
-                else:
-                    print(f"  获取数据失败: {e}")
+                print(f"  获取数据失败: {e}")
                 return None
 
 
