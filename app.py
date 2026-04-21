@@ -1474,6 +1474,22 @@ with tab2:
                         )
                         # H2：根据 expand_etf_for 自动展开匹配的推荐
                         _focus_ac = st.session_state.get('expand_etf_for')
+                        # BUG-035：点击按钮后自动滚动到推荐区（解决"看不到展开效果"UX 问题）
+                        if _focus_ac:
+                            st.markdown('<div id="etf_reco_anchor"></div>', unsafe_allow_html=True)
+                            import streamlit.components.v1 as _comps
+                            _comps.html(
+                                """
+                                <script>
+                                setTimeout(() => {
+                                    const doc = window.parent.document;
+                                    const anchor = doc.getElementById('etf_reco_anchor');
+                                    if (anchor) { anchor.scrollIntoView({behavior:'smooth', block:'start'}); }
+                                }, 150);
+                                </script>
+                                """,
+                                height=0,
+                            )
                         for _r in _recs:
                             _is_expanded = (_r.get('asset_class') == _focus_ac)
                             with st.expander(f"{_r['label']} (偏差 {_r['deviation_pp']:+.1f}pp)",

@@ -58,8 +58,10 @@ def safe_fetch(func, *args, retry=2, delay=2, timeout=20, **kwargs):
 
 
 def get_all_stocks():
-    """获取全部A股列表，过滤ST和北交所"""
-    df = safe_fetch(ak.stock_info_a_code_name)
+    """获取全部A股列表，过滤ST和北交所
+    BUG-036：批量接口给 90s 超时
+    """
+    df = safe_fetch(ak.stock_info_a_code_name, timeout=90)
     if df is None:
         return pd.DataFrame()
     df = df[~df["name"].str.contains("ST|退市", na=False)]
@@ -68,8 +70,12 @@ def get_all_stocks():
 
 
 def get_realtime_quotes():
-    """获取全A股实时行情（不含行业字段，行业请用 get_stock_industry）"""
-    df = safe_fetch(ak.stock_zh_a_spot_em)
+    """获取全A股实时行情（不含行业字段，行业请用 get_stock_industry）
+
+    BUG-036：批量接口数据量大（5500+ 只股），需要给更长 timeout（90s）
+    否则 BUG-034 的 20s 默认 timeout 会切断这个接口，导致后续 ROE 筛选退化为全市场扫描
+    """
+    df = safe_fetch(ak.stock_zh_a_spot_em, timeout=90)
     if df is None:
         return pd.DataFrame()
     return df
@@ -96,7 +102,8 @@ def get_etf_realtime_quotes(ttl_sec=1800):
             and now - _etf_quotes_cache["fetched_at"] < ttl_sec):
         return _etf_quotes_cache["data"]
 
-    df = safe_fetch(ak.fund_etf_spot_em)
+    # BUG-036：ETF 批量接口给 90s 超时（接口比较慢）
+    df = safe_fetch(ak.fund_etf_spot_em, timeout=90)
     if df is None or df.empty:
         return pd.DataFrame()
 
@@ -214,8 +221,12 @@ def get_stock_industry(code, fallback=""):
 
 
 def get_batch_roe_data(date="20241231"):
-    """批量获取全A股业绩报表（含ROE），一次调用获取所有股票"""
-    df = safe_fetch(ak.stock_yjbb_em, date=date)
+    """批量获取全A股业绩报表（含ROE），一次调用获取所有股票
+
+    BUG-036：批量数据接口（一次拉所有股的指标），需要 90s 超时
+    否则 BUG-034 默认 20s 会让接口失败，导致 screener 退化为"全市场扫描"段大小爆炸
+    """
+    df = safe_fetch(ak.stock_yjbb_em, date=date, timeout=90)
     if df is None:
         return pd.DataFrame()
     return df
@@ -226,7 +237,8 @@ def get_batch_dividend_data():
     # 尝试从东财获取股息率排行
     try:
         # 用实时行情的方式获取，某些AKShare版本可能包含股息率
-        df = safe_fetch(ak.stock_zh_a_spot_em)
+        # BUG-036：批量接口给 90s 超时
+        df = safe_fetch(ak.stock_zh_a_spot_em, timeout=90)
         if df is not None and not df.empty:
             # 打印列名帮助调试
             print(f"  实时行情列名: {list(df.columns)}")
