@@ -192,15 +192,24 @@ jobs:
           cp /tmp/transaction_log.json . 2>/dev/null || true
           # 提交并推送（基于最新代码，绝不会冲突）
           # BUG-030 修：加入 TODO-022 + H5 + scan validator 等新增文件
-          git add daily_results.json market_scan_cache.json watchlist.json \
-                  snapshots/ backtest_games/ stock_notes.json user_cash.json \
-                  market_scan_full_p1.json market_scan_full_p2.json \
-                  market_scan_full_p3.json market_scan_full_p4.json \
-                  market_scan_full_p5.json market_scan_full_p6.json \
-                  market_scan_patch_*.json \
-                  scan_freshness.json scan_pending_retry.json scan_anomaly_log.json \
-                  transaction_log.json \
-                  2>/dev/null || true
+          # BUG-038 修：git add 是"全有或全无"——显式列 p1~p6 但只跑 1 段时 p2~p6 不存在 →
+          # git add 整体失败 → p1 也没 stage。改用 glob 让 bash 只扩展到存在的文件。
+          # 每个文件单独 add 一次，存在就 stage，不存在不影响其他。
+          for f in daily_results.json market_scan_cache.json watchlist.json \
+                   stock_notes.json user_cash.json \
+                   scan_freshness.json scan_pending_retry.json scan_anomaly_log.json \
+                   transaction_log.json; do
+            [ -f "$f" ] && git add "$f" 2>/dev/null || true
+          done
+          [ -d snapshots ] && git add snapshots/ 2>/dev/null || true
+          [ -d backtest_games ] && git add backtest_games/ 2>/dev/null || true
+          # glob 批量 add（bash 会扩展成实际存在的文件列表，没匹配时用 nullglob 跳过）
+          shopt -s nullglob
+          _scan_files=(market_scan_full_p*.json market_scan_patch_*.json)
+          shopt -u nullglob
+          if [ ${#_scan_files[@]} -gt 0 ]; then
+            git add "${_scan_files[@]}" 2>/dev/null || true
+          fi
           # BUG-033 调试：git add 之后 + 即将提交的文件列表
           echo "=== DEBUG: after git add, ls 工作目录 ==="
           ls -la market_scan_*.json scan_*.json transaction_log.json daily_results.json 2>&1 | head -30
