@@ -674,13 +674,14 @@ with tab1:
             # 4 列展示
             _f1, _f2, _f3, _f4 = st.columns(4)
             with _f1:
-                st.metric("💵 现金", f"¥{_funds['cash']:,.0f}")
+                # BUG-031：金额改 2 位小数
+                st.metric("💵 现金", f"¥{_funds['cash']:,.2f}")
             with _f2:
                 _sv = _funds['sellable_value']
-                st.metric("📉 持仓中应卖市值", f"¥{_sv:,.0f}",
+                st.metric("📉 持仓中应卖市值", f"¥{_sv:,.2f}",
                           f"{len(_funds['sellable_holdings'])} 只" if _funds['sellable_holdings'] else "无")
             with _f3:
-                st.metric("💰 可动用合计", f"¥{_funds['available']:,.0f}",
+                st.metric("💰 可动用合计", f"¥{_funds['available']:,.2f}",
                           help="现金 + 持仓中卖出信号股的市值（方案 B）")
             with _f4:
                 if _funds['sellable_holdings']:
@@ -1118,15 +1119,16 @@ with tab2:
         total_assets = total_market_value + investable_cash
 
         # 顶部展示：持仓市值 + 可投资现金 + 总资产 + 股债比（REQ-187 建议上限）
+        # BUG-031：金额改 2 位小数，与券商 APP 一致（13,728.40 不是 13,728）
         _ta_col1, _ta_col2, _ta_col3, _ta_col4 = st.columns(4)
         with _ta_col1:
-            st.metric("持仓市值", f"¥{total_market_value:,.0f}",
+            st.metric("持仓市值", f"¥{total_market_value:,.2f}",
                       f"共{len(holdings)}只")
         with _ta_col2:
-            st.metric("可投资现金", f"¥{investable_cash:,.0f}",
+            st.metric("可投资现金", f"¥{investable_cash:,.2f}",
                       f"占{investable_cash/total_assets*100:.1f}%" if total_assets > 0 else None)
         with _ta_col3:
-            st.metric("总资产", f"¥{total_assets:,.0f}")
+            st.metric("总资产", f"¥{total_assets:,.2f}")
         with _ta_col4:
             _stock_pct = total_market_value / total_assets * 100 if total_assets > 0 else 0
             # REQ-187：按市场温度取建议上限
@@ -1249,15 +1251,15 @@ with tab2:
                 _r1, _r2, _r3, _r4 = st.columns(4)
                 with _r1:
                     st.metric("🛡 防守占比", f"{_def_pct:.1f}%",
-                              f"{len(_cat_items['defensive'])} 只 · ¥{_cat_value['defensive']:,.0f}",
+                              f"{len(_cat_items['defensive'])} 只 · ¥{_cat_value['defensive']:,.2f}",
                               help="行业稳定/高股息/宽基ETF/红利等，长期持有吃息")
                 with _r2:
                     st.metric("⚔ 进攻占比", f"{_off_pct:.1f}%",
-                              f"{len(_cat_items['offensive'])} 只 · ¥{_cat_value['offensive']:,.0f}",
+                              f"{len(_cat_items['offensive'])} 只 · ¥{_cat_value['offensive']:,.2f}",
                               help="高 ROE+高 PE/科技股/行业 ETF，追求成长但波动大")
                 with _r3:
                     st.metric("⚪ 中性占比", f"{_neu_pct:.1f}%",
-                              f"{len(_cat_items['neutral'])} 只 · ¥{_cat_value['neutral']:,.0f}")
+                              f"{len(_cat_items['neutral'])} 只 · ¥{_cat_value['neutral']:,.2f}")
                 with _r4:
                     # 综合评估
                     if _off_pct > 70:
@@ -1285,12 +1287,12 @@ with tab2:
                         if items:
                             cat_label = {'defensive': '🛡 防守型', 'offensive': '⚔ 进攻型',
                                           'neutral': '⚪ 中性', 'unknown': '❓ 未知'}[_cat_key]
-                            st.markdown(f"**{cat_label}**（{len(items)} 只 · ¥{_cat_value[_cat_key]:,.0f}）")
+                            st.markdown(f"**{cat_label}**（{len(items)} 只 · ¥{_cat_value[_cat_key]:,.2f}）")
                             for _it in items:
                                 _row_c1, _row_c2 = st.columns([10, 1])
                                 with _row_c1:
                                     st.markdown(f"- {_it['code']} **{_it['name']}** "
-                                                 f"¥{_it['value']:,.0f} — _{_it['reason']}_")
+                                                 f"¥{_it['value']:,.2f} — _{_it['reason']}_")
                                 with _row_c2:
                                     if st.button("📍", key=f"focus_{_cat_key}_{_it['code']}",
                                                   help=f"跳到 {_it['name']} 的持仓详情"):
@@ -1434,7 +1436,7 @@ with tab2:
                                         f"（实际 {_b['actual_pct']}% / 目标 {_b['target_pct']}%）")
                             for _h in _b['holdings']:
                                 st.markdown(f"- {_h['code']} **{_h['name']}** "
-                                            f"¥{_h['value']:,.0f} — _{_h['reason']}_")
+                                            f"¥{_h['value']:,.2f} — _{_h['reason']}_")
                     st.caption(
                         "💡 自动按持仓代码+名称+行业字段归类。"
                         "未识别的 ETF 暂归价值股池；未识别的个股按行业关键词判（银行/电力等→高股息）"
@@ -1574,14 +1576,14 @@ with tab2:
                         json.dump(cash_data, _f, ensure_ascii=False, indent=2)
                     # 同步到 GitHub
                     save_to_github("user_cash.json", cash_data, None)
-                    st.success(f"已保存：¥{_new_cash:,.0f}")
+                    st.success(f"已保存：¥{_new_cash:,.2f}")
                     st.rerun()
                 except Exception as _e:
                     st.error(f"保存失败：{_e}")
             if cash_data.get("updated_at"):
                 st.caption(f"上次更新：{cash_data.get('updated_at')}")
 
-        st.caption(f"持仓成本总计：¥{total_cost_all:,.0f}")
+        st.caption(f"持仓成本总计：¥{total_cost_all:,.2f}")
 
         # 组合分类简报 & 仓位警告 —— 实时基于当前 holdings 计算
         # 关键修复：不再依赖 daily_results 的 portfolio_classification（可能和 holdings 不同步）
@@ -1654,7 +1656,7 @@ with tab2:
                         f'<div style="background:{bcolor};padding:10px;border-radius:6px;text-align:center;">'
                         f'<div style="font-size:13px;color:#666;">{blabel}</div>'
                         f'<div style="font-size:20px;font-weight:bold;">{_pct:.1f}%</div>'
-                        f'<div style="font-size:11px;color:#888;">{items_count}只 · ¥{b["value"]:,.0f}</div>'
+                        f'<div style="font-size:11px;color:#888;">{items_count}只 · ¥{b["value"]:,.2f}</div>'
                         f'</div>'
                     )
                     st.markdown(bucket_html, unsafe_allow_html=True)
@@ -1839,7 +1841,7 @@ with tab2:
             pe_range_cat = get_pe_range(cat)
             range_text = f" | PE区间:{pe_range_cat}" if pe_range_cat else ""
 
-            st.subheader(f"🏷️ {cat}（市值¥{cat_value:,.0f}，占{cat_pct:.1f}%{range_text}）")
+            st.subheader(f"🏷️ {cat}（市值¥{cat_value:,.2f}，占{cat_pct:.1f}%{range_text}）")
 
             for i, h in items:
                 code = str(h["code"]).zfill(6)
@@ -1940,7 +1942,7 @@ with tab2:
                     if _fr_emoji and _fr_emoji != '🟢':
                         _name_display = f"{_fr_emoji} {_name_display}"
                     st.markdown(f"**{_name_display}**", help=_attr_help)
-                    caption = f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.0f}"
+                    caption = f"{code} | {h.get('shares',0)}股 × ¥{h.get('cost',0):.2f} = ¥{stock_cost:,.2f}"
                     if _fr_caption:
                         caption += f"\n{_fr_caption}"
                     if is_etf and index_name:
@@ -2909,7 +2911,7 @@ with tab4:
                     f'<span style="color:#888;font-size:12px;font-weight:normal;">{sub_str}</span></div>'
                     f'<div style="color:#444;font-size:13px;margin-top:4px;">{info_line}</div>'
                     f'<div style="color:#666;font-size:12px;margin-top:4px;">'
-                    f'持仓：{shares:,} 股 · 成本 ¥{cost} · 市值 ¥{value:,.0f}</div>'
+                    f'持仓：{shares:,} 股 · 成本 ¥{cost} · 市值 ¥{value:,.2f}</div>'
                     f'{pnl_html}'
                     f'<div style="color:#1976d2;font-size:13px;margin-top:6px;font-weight:bold;">{signal_text}</div>'
                     f'{note_html}'
