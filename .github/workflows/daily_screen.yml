@@ -10,7 +10,9 @@ on:
     # 下午 15:10 → holdings 备份（收盘后检查）
     # 下午 18:00 → watchlist（晚间关注表分析）
     # 晚上 22:00 → watchlist 备份
-    - cron: '30 18 * * *'    # 02:30 北京 - mode=full（旧的全市场扫描，保留备用）
+    # BUG-029 删：'30 18 * * *' 02:30 北京 mode=full（旧全市场扫描）
+    # 已被分段扫描（17/19/21/23/01/03 七段每段 ~916 只）替代
+    # 保留这个 cron 会在 02:30 启动 5500+ 只全市场扫描，必然 75min 超时
     - cron: '55 0 * * *'     # 08:55 北京 - send_ai
     - cron: '5 1 * * *'      # 09:05 北京（9点备份，防GitHub跳过）
     - cron: '30 4 * * *'     # 12:30 北京 - holdings
@@ -122,9 +124,10 @@ jobs:
               echo "mode=merge_full" >> $GITHUB_OUTPUT
             elif [ "$HOUR" = "11" ] || [ "$HOUR" = "14" ] || [ "$HOUR" = "16" ]; then
               echo "mode=patch_round" >> $GITHUB_OUTPUT
-            # 原有时段保持
-            elif [ "$HOUR" -le 4 ]; then
-              echo "mode=full" >> $GITHUB_OUTPUT
+            # BUG-029 修：删除 mode=full 兜底（cron 延迟会让段时段被这里捕获导致 75min 超时）
+            # 原有时段保持，但 0/2 这种"非整时段"时统一走 patch_round（安全兜底）
+            elif [ "$HOUR" = "00" ] || [ "$HOUR" = "02" ]; then
+              echo "mode=patch_round" >> $GITHUB_OUTPUT
             elif [ "$HOUR" -le 9 ]; then
               echo "mode=send_ai" >> $GITHUB_OUTPUT
             elif [ "$HOUR" -le 13 ]; then
