@@ -201,10 +201,21 @@ jobs:
                   scan_freshness.json scan_pending_retry.json scan_anomaly_log.json \
                   transaction_log.json \
                   2>/dev/null || true
-          # BUG-033 调试：打印即将提交的文件列表
+          # BUG-033 调试：git add 之后 + 即将提交的文件列表
+          echo "=== DEBUG: after git add, ls 工作目录 ==="
+          ls -la market_scan_*.json scan_*.json transaction_log.json daily_results.json 2>&1 | head -30
+          echo "=== DEBUG: git status -s ==="
+          git status -s | head -30
           echo "=== DEBUG: staged files ==="
           git diff --cached --name-only
           echo "=== DEBUG: staged end ==="
+          # BUG-033 兜底：如果上面 git add 没 stage 到，再试一次 -A（加所有变更包括 untracked）
+          echo "=== DEBUG: fallback git add -A for scan/transaction files ==="
+          git add -A -v market_scan_full_p*.json market_scan_patch_*.json \
+                        scan_freshness.json scan_pending_retry.json scan_anomaly_log.json \
+                        transaction_log.json 2>&1 | head -20
+          echo "=== DEBUG: after fallback, staged ==="
+          git diff --cached --name-only | head -20
           git diff --cached --quiet || git commit -m "更新数据 $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')"
           git push
 
