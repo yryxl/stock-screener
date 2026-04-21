@@ -54,11 +54,44 @@ def safe_fetch(func, *args, retry=2, delay=2, timeout=None, **kwargs):
                 return None
 
 
+def batch_fetch_with_timeout(func, *args, timeout_sec=90, **kwargs):
+    """BUG-039：批量接口专用包装（独立 SIGALRM 超时）
+
+    用于批量数据接口（stock_yjbb_em / stock_zh_a_spot_em / fund_etf_spot_em /
+    stock_info_a_code_name）这些在 screener for 循环之前调用的函数。
+
+    这些批量接口：
+    - 数据量大，正常需要 30-60s，超过 90s 认为是接口挂了
+    - 在 for 循环之前调用，和 screener 循环里的 60s alarm **时间不重叠**，
+      所以可以安全用独立 SIGALRM
+
+    失败后 fallback 到 safe_fetch 默认（无超时，带 retry）再试一次
+    """
+    # Windows 本地无法用 SIGALRM，直接走 safe_fetch
+    if not _USE_ALARM:
+        return safe_fetch(func, *args, **kwargs)
+
+    try:
+        signal.signal(signal.SIGALRM, _alarm_handler)
+        signal.alarm(timeout_sec)
+        try:
+            return func(*args, **kwargs)
+        finally:
+            signal.alarm(0)
+    except _FetchTimeout:
+        print(f"  [批量超时{timeout_sec}s] {getattr(func, '__name__', func)}，走 fallback", flush=True)
+        # fallback: 用 safe_fetch 再试一次（无 timeout，但有 retry）
+        return safe_fetch(func, *args, **kwargs)
+    except Exception as e:
+        print(f"  批量接口失败: {e}", flush=True)
+        return None
+
+
 def get_all_stocks():
     """获取全部A股列表，过滤ST和北交所
-    BUG-036：批量接口给 90s 超时
+    BUG-039：批量接口用独立 SIGALRM 超时 90s（批量调用在 screener for 循环之前，不冲突）
     """
-    df = safe_fetch(ak.stock_info_a_code_name, timeout=90)
+    df = batch_fetch_with_timeout(ak.stock_info_a_code_name, timeout_sec=90)
     if df is None:
         return pd.DataFrame()
     df = df[~df["name"].str.contains("ST|退市", na=False)]
@@ -69,10 +102,11 @@ def get_all_stocks():
 def get_realtime_quotes():
     """获取全A股实时行情（不含行业字段，行业请用 get_stock_industry）
 
-    BUG-036：批量接口数据量大（5500+ 只股），需要给更长 timeout（90s）
-    否则 BUG-034 的 20s 默认 timeout 会切断这个接口，导致后续 ROE 筛选退化为全市场扫描
+    BUG-039：批量接口用独立 SIGALRM 超时 90s
+    这个接口失败会导致 screener 退化为"全市场扫描"（段大小 728→60 差别巨大），
+    所以必须严格保护
     """
-    df = safe_fetch(ak.stock_zh_a_spot_em, timeout=90)
+    df = batch_fetch_with_timeout(ak.stock_zh_a_spot_em, timeout_sec=90)
     if df is None:
         return pd.DataFrame()
     return df
@@ -99,8 +133,8 @@ def get_etf_realtime_quotes(ttl_sec=1800):
             and now - _etf_quotes_cache["fetched_at"] < ttl_sec):
         return _etf_quotes_cache["data"]
 
-    # BUG-036：ETF 批量接口给 90s 超时（接口比较慢）
-    df = safe_fetch(ak.fund_etf_spot_em, timeout=90)
+    # BUG-039：ETF 批量接口独立 SIGALRM 90s 超时
+    df = batch_fetch_with_timeout(ak.fund_etf_spot_em, timeout_sec=90)
     if df is None or df.empty:
         return pd.DataFrame()
 
@@ -220,10 +254,9 @@ def get_stock_industry(code, fallback=""):
 def get_batch_roe_data(date="20241231"):
     """批量获取全A股业绩报表（含ROE），一次调用获取所有股票
 
-    BUG-036：批量数据接口（一次拉所有股的指标），需要 90s 超时
-    否则 BUG-034 默认 20s 会让接口失败，导致 screener 退化为"全市场扫描"段大小爆炸
+    BUG-039：批量 ROE 接口用独立 SIGALRM 90s 超时
     """
-    df = safe_fetch(ak.stock_yjbb_em, date=date, timeout=90)
+    df = batch_fetch_with_timeout(ak.stock_yjbb_em, date=date, timeout_sec=90)
     if df is None:
         return pd.DataFrame()
     return df
