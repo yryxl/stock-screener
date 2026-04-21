@@ -1,16 +1,16 @@
 {
-  "date": "2026-04-21 10:19",
-  "mode": "merge_full",
+  "date": "2026-04-21 20:40",
+  "mode": "watchlist",
   "is_trading_day": true,
-  "data_source": "分段扫描合并（含 0 个文件）",
+  "data_source": "关注表+持仓",
   "ai_recommendations": [
     {
       "code": "000538",
       "name": "云南白药",
       "category": "中药Ⅱ",
       "note": "国家绝密配方+百年品牌",
-      "price": 55.0,
-      "pe": 19.04,
+      "price": 55.06,
+      "pe": 19.06,
       "signal": "buy_watch",
       "signal_text": "PE偏低，ROE限制最高关注",
       "total_score": 30,
@@ -39,7 +39,7 @@
         "估值": {
           "score": 8,
           "max": 10,
-          "detail": "PE=19.0低估 | 简单生意"
+          "detail": "PE=19.1低估 | 简单生意"
         }
       },
       "roe": null,
@@ -50,58 +50,16 @@
   ],
   "watchlist_signals": [
     {
-      "code": "000661",
-      "name": "长春高新",
-      "category": "生物制品",
-      "note": "生长激素国内市占70%+",
-      "price": 86.99,
-      "pe": 37.0,
-      "signal": "hold",
-      "signal_text": "PE=37.0，超出合理区间20-30，等待回落",
-      "total_score": 34,
-      "dividend_yield": 8.16,
-      "dimensions": {
-        "ROE质量": {
-          "score": 7,
-          "max": 10,
-          "detail": "均值22.5%优秀 | 最低11.7% | 稳定 | 低杠杆16%"
-        },
-        "财务健康": {
-          "score": 10,
-          "max": 10,
-          "detail": "负债16%极低 | 流动比率4.8 | 现金流优 | 利润率上升"
-        },
-        "盈利能力": {
-          "score": 7,
-          "max": 10,
-          "detail": "毛利率84%极强 | 10年数据"
-        },
-        "股息率": {
-          "score": 6,
-          "max": 10,
-          "detail": "股息率8.2%极高"
-        },
-        "估值": {
-          "score": 4,
-          "max": 10,
-          "detail": "PE=37.0偏高 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
       "code": "603288",
       "name": "海天味业",
       "category": "调味发酵品Ⅱ",
       "note": "酱油市占30%+",
-      "price": 40.29,
-      "pe": 33.5,
+      "price": 40.65,
+      "pe": 33.8,
       "signal": "hold",
-      "signal_text": "PE=33.5，处于合理区间22-35，等待更低点",
+      "signal_text": "PE=33.8，处于合理区间22-35，等待更低点",
       "total_score": 31,
-      "dividend_yield": 2.73,
+      "dividend_yield": 2.71,
       "dimensions": {
         "ROE质量": {
           "score": 8,
@@ -126,7 +84,7 @@
         "估值": {
           "score": 5,
           "max": 10,
-          "detail": "PE=33.5合理偏高 | 简单生意"
+          "detail": "PE=33.8合理偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -138,8 +96,8 @@
       "name": "云南白药",
       "category": "中药Ⅱ",
       "note": "国家绝密配方+百年品牌",
-      "price": 55.0,
-      "pe": 19.04,
+      "price": 55.06,
+      "pe": 19.06,
       "signal": "buy_watch",
       "signal_text": "PE偏低，ROE限制最高关注",
       "total_score": 30,
@@ -168,7 +126,7 @@
         "估值": {
           "score": 8,
           "max": 10,
-          "detail": "PE=19.0低估 | 简单生意"
+          "detail": "PE=19.1低估 | 简单生意"
         }
       },
       "roe": null,
@@ -177,16 +135,58 @@
       "source": "关注表"
     },
     {
+      "code": "000661",
+      "name": "长春高新",
+      "category": "生物制品",
+      "note": "生长激素国内市占70%+",
+      "price": 88.3,
+      "pe": 37.56,
+      "signal": "hold",
+      "signal_text": "PE=37.6，超出合理区间20-30，等待回落",
+      "total_score": 29,
+      "dividend_yield": 8.04,
+      "dimensions": {
+        "ROE质量": {
+          "score": 4,
+          "max": 10,
+          "detail": "均值20.2%优秀 | 最低0.7% | 下滑 | 低杠杆17%"
+        },
+        "财务健康": {
+          "score": 8,
+          "max": 10,
+          "detail": "负债17%极低 | 流动比率3.8 | 现金流优 | 利润率下滑"
+        },
+        "盈利能力": {
+          "score": 7,
+          "max": 10,
+          "detail": "毛利率85%极强 | 10年数据"
+        },
+        "股息率": {
+          "score": 6,
+          "max": 10,
+          "detail": "股息率8.0%极高"
+        },
+        "估值": {
+          "score": 4,
+          "max": 10,
+          "detail": "PE=37.6偏高 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
       "code": "600941",
       "name": "中国移动",
       "category": "通信服务",
       "note": "9亿用户+通信牌照",
-      "price": 93.3,
-      "pe": 14.74,
+      "price": 96.66,
+      "pe": 15.41,
       "signal": "hold",
       "signal_text": "PE偏低但ROE不达标，继续观望",
-      "total_score": 28,
-      "dividend_yield": 5.12,
+      "total_score": 26,
+      "dividend_yield": 4.94,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -206,12 +206,12 @@
         "股息率": {
           "score": 5,
           "max": 10,
-          "detail": "股息率5.1%高"
+          "detail": "股息率4.9%高"
         },
         "估值": {
-          "score": 9,
+          "score": 7,
           "max": 10,
-          "detail": "PE=14.7极低估 | 中等复杂"
+          "detail": "PE=15.4低估 | 中等复杂"
         }
       },
       "roe": null,
@@ -223,12 +223,12 @@
       "name": "伊利股份",
       "category": "饮料乳品",
       "note": "乳业双寡头",
-      "price": 25.51,
-      "pe": 20.14,
+      "price": 25.56,
+      "pe": 20.18,
       "signal": "hold",
-      "signal_text": "PE=20.1，处于合理区间15-25，等待更低点",
+      "signal_text": "PE=20.2，处于合理区间15-25，等待更低点",
       "total_score": 26,
-      "dividend_yield": 6.66,
+      "dividend_yield": 6.65,
       "dimensions": {
         "ROE质量": {
           "score": 6,
@@ -253,7 +253,7 @@
         "估值": {
           "score": 5,
           "max": 10,
-          "detail": "PE=20.1合理偏高 | 简单生意"
+          "detail": "PE=20.2合理偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -265,12 +265,12 @@
       "name": "同仁堂",
       "category": "中药Ⅱ",
       "note": "350年国药老字号",
-      "price": 27.73,
-      "pe": 31.98,
+      "price": 27.79,
+      "pe": 32.04,
       "signal": "hold",
       "signal_text": "PE=32.0，超出合理区间20-30，等待回落",
       "total_score": 25,
-      "dividend_yield": 3.61,
+      "dividend_yield": 3.6,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -307,12 +307,12 @@
       "name": "大秦铁路",
       "category": "铁路公路",
       "note": "西煤东运主通道独家",
-      "price": 5.24,
-      "pe": 15.85,
+      "price": 5.27,
+      "pe": 15.94,
       "signal": "hold",
-      "signal_text": "PE=15.8，处于合理区间10-16，等待更低点",
+      "signal_text": "PE=15.9，处于合理区间10-16，等待更低点",
       "total_score": 25,
-      "dividend_yield": 6.66,
+      "dividend_yield": 6.63,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -332,12 +332,12 @@
         "股息率": {
           "score": 6,
           "max": 10,
-          "detail": "股息率6.7%极高"
+          "detail": "股息率6.6%极高"
         },
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=15.8合理偏高 | 中等复杂"
+          "detail": "PE=15.9合理偏高 | 中等复杂"
         }
       },
       "roe": null,
@@ -349,12 +349,12 @@
       "name": "中国中免",
       "category": "旅游零售Ⅱ",
       "note": "国内唯一免税全牌照",
-      "price": 67.69,
-      "pe": 39.22,
+      "price": 67.27,
+      "pe": 38.98,
       "signal": "hold",
-      "signal_text": "PE=39.2，处于合理区间25-40，等待更低点",
+      "signal_text": "PE=39.0，处于合理区间25-40，等待更低点",
       "total_score": 24,
-      "dividend_yield": 1.03,
+      "dividend_yield": 1.04,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -379,7 +379,7 @@
         "估值": {
           "score": 5,
           "max": 10,
-          "detail": "PE=39.2合理偏高 | 简单生意"
+          "detail": "PE=39.0合理偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -391,12 +391,12 @@
       "name": "长江电力",
       "category": "电力",
       "note": "长江6大梯级电站独家运营",
-      "price": 26.84,
-      "pe": 19.22,
+      "price": 27.13,
+      "pe": 19.43,
       "signal": "hold",
-      "signal_text": "PE=19.2，超出合理区间10-18，等待回落",
+      "signal_text": "PE=19.4，超出合理区间10-18，等待回落",
       "total_score": 23,
-      "dividend_yield": 4.3,
+      "dividend_yield": 4.25,
       "dimensions": {
         "ROE质量": {
           "score": 5,
@@ -416,12 +416,12 @@
         "股息率": {
           "score": 5,
           "max": 10,
-          "detail": "股息率4.3%高"
+          "detail": "股息率4.2%高"
         },
         "估值": {
           "score": 3,
           "max": 10,
-          "detail": "PE=19.2偏高 | 中等复杂"
+          "detail": "PE=19.4偏高 | 中等复杂"
         }
       },
       "roe": null,
@@ -433,12 +433,12 @@
       "name": "京沪高铁",
       "category": "铁路公路",
       "note": "最黄金高铁线路独家",
-      "price": 4.95,
-      "pe": 18.55,
+      "price": 5.01,
+      "pe": 18.61,
       "signal": "hold",
       "signal_text": "PE=18.6，超出合理区间10-16，等待回落",
       "total_score": 23,
-      "dividend_yield": 5.42,
+      "dividend_yield": 5.03,
       "dimensions": {
         "ROE质量": {
           "score": 2,
@@ -458,7 +458,7 @@
         "股息率": {
           "score": 5,
           "max": 10,
-          "detail": "股息率5.4%高"
+          "detail": "股息率5.0%高"
         },
         "估值": {
           "score": 3,
@@ -475,12 +475,12 @@
       "name": "工商银行",
       "category": "银行Ⅱ",
       "note": "国家信用+金融压舱石",
-      "price": 7.57,
-      "pe": 7.56,
+      "price": 7.62,
+      "pe": 7.61,
       "signal": "hold",
       "signal_text": "PE=7.6，处于合理区间6-9，等待更低点",
       "total_score": 21,
-      "dividend_yield": 6.27,
+      "dividend_yield": 6.23,
       "dimensions": {
         "ROE质量": {
           "score": 2,
@@ -500,7 +500,7 @@
         "股息率": {
           "score": 6,
           "max": 10,
-          "detail": "股息率6.3%极高"
+          "detail": "股息率6.2%极高"
         },
         "估值": {
           "score": 5,
@@ -519,13 +519,13 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 55.0,
-      "pe": 19.04,
+      "price": 55.06,
+      "pe": 19.06,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -2.4822695035460973,
-      "pnl_pct": -2.48,
+      "holding_pnl": -2.37588652482269,
+      "pnl_pct": -2.38,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
@@ -543,10 +543,10 @@
       "name": "沪深300ETF华夏",
       "shares": 700,
       "cost": 4.915,
-      "current_price": 4.933,
-      "pnl_pct": 0.37,
+      "current_price": 5.011,
+      "pnl_pct": 1.95,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +0.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -558,25 +558,25 @@
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
         "percentile": 100.0,
-        "current_pe": 17.95,
+        "current_pe": 18.0,
         "current_dividend_yield": 2.32,
-        "as_of": "2026-04-20",
+        "as_of": "2026-04-21",
         "data_points": 2427,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +0.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 1
+      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 2
     },
     {
       "code": "510500",
       "name": "中证500ETF",
       "shares": 100,
       "cost": 8.502,
-      "current_price": 8.284,
-      "pnl_pct": -2.56,
+      "current_price": 8.331,
+      "pnl_pct": -2.01,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -587,24 +587,24 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 89.3,
-        "current_pe": 32.45,
+        "percentile": 89.1,
+        "current_pe": 32.43,
         "current_dividend_yield": 1.2,
-        "as_of": "2026-04-20",
+        "as_of": "2026-04-21",
         "data_points": 2427,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位89.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 1
+      "signal_text": "PE分位89.1%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 2
     },
     {
       "code": "512890",
       "name": "红利低波ETF华泰柏瑞",
       "shares": 3300,
       "cost": 1.221,
-      "current_price": 1.196,
-      "pnl_pct": -2.05,
+      "current_price": 1.197,
+      "pnl_pct": -1.97,
       "pnl_label": "几乎平本",
       "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
@@ -617,16 +617,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 89.2,
-        "current_pe": 8.2,
-        "current_dividend_yield": 4.91,
-        "as_of": "2026-04-20",
-        "data_points": 1218,
+        "percentile": 90.8,
+        "current_pe": 8.25,
+        "current_dividend_yield": 4.88,
+        "as_of": "2026-04-21",
+        "data_points": 1219,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位89.2%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 1
+      "signal_text": "PE分位90.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 2
     }
   ],
   "portfolio_classification": {
@@ -686,7 +686,7 @@
     "level": 0,
     "label": "⚪ 正常·按节奏",
     "description": "估值处于合理区间（历史 30%-70% 分位）。按自己的定投/选股节奏执行，不因估值做大调整。巴菲特大多数时候都处在这个状态。",
-    "current_pe_median": 21.53,
+    "current_pe_median": 21.46,
     "percentile": 49.2,
     "lookback_years": 10,
     "as_of": "2026-04",
