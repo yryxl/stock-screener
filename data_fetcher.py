@@ -6,6 +6,7 @@
 import json
 import os
 import time
+import platform
 import akshare as ak
 import pandas as pd
 import numpy as np
@@ -15,16 +16,44 @@ _INDUSTRY_CACHE_FILE = os.path.join(_SCRIPT_DIR, "stock_industry_cache.json")
 _industry_cache_mem = None  # 进程内存缓存，避免反复读文件
 
 
-def safe_fetch(func, *args, retry=2, delay=2, **kwargs):
-    """带重试的安全请求"""
+# BUG-034: akshare 单次调用硬超时（防卡死拖垮整段扫描）
+# 仅 Linux（GHA runner）启用 SIGALRM；Windows 本地跳过
+_USE_ALARM = platform.system() == 'Linux'
+if _USE_ALARM:
+    import signal
+
+    class _FetchTimeout(Exception):
+        pass
+
+    def _alarm_handler(signum, frame):
+        raise _FetchTimeout("akshare call timeout")
+
+
+def safe_fetch(func, *args, retry=2, delay=2, timeout=20, **kwargs):
+    """带重试 + 超时的安全请求
+    BUG-034: 每次调用加 timeout 秒硬超时（默认 20s），防 akshare 某只股卡死
+             拖垮整段扫描（75min GHA 限额内跑完 60 只）
+    """
     for i in range(retry):
         try:
-            return func(*args, **kwargs)
+            if _USE_ALARM:
+                signal.signal(signal.SIGALRM, _alarm_handler)
+                signal.alarm(timeout)
+            try:
+                return func(*args, **kwargs)
+            finally:
+                if _USE_ALARM:
+                    signal.alarm(0)  # 任何路径都先清掉 alarm
         except Exception as e:
+            # _FetchTimeout 也在这里被捕获（Linux 下）
             if i < retry - 1:
                 time.sleep(delay)
             else:
-                print(f"  获取数据失败: {e}")
+                # 超时单独打印，便于日志里统计
+                if _USE_ALARM and isinstance(e, _FetchTimeout):
+                    print(f"  [超时{timeout}s] {getattr(func, '__name__', func)}", flush=True)
+                else:
+                    print(f"  获取数据失败: {e}")
                 return None
 
 

@@ -155,6 +155,12 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+          # BUG-033 调试：打印当前目录和所有 market_scan / scan_* / transaction_log 文件状态
+          echo "=== DEBUG: pwd ==="
+          pwd
+          echo "=== DEBUG: ls market_scan_*.json + scan_*.json + transaction_log.json ==="
+          ls -la market_scan_*.json scan_*.json transaction_log.json 2>&1 | head -30
+          echo "=== DEBUG: ls end ==="
           # 把分析结果暂存到 /tmp（避免被 git reset 清掉）
           cp daily_results.json /tmp/daily_results.json 2>/dev/null || true
           cp market_scan_cache.json /tmp/market_scan_cache.json 2>/dev/null || true
@@ -195,6 +201,10 @@ jobs:
                   scan_freshness.json scan_pending_retry.json scan_anomaly_log.json \
                   transaction_log.json \
                   2>/dev/null || true
+          # BUG-033 调试：打印即将提交的文件列表
+          echo "=== DEBUG: staged files ==="
+          git diff --cached --name-only
+          echo "=== DEBUG: staged end ==="
           git diff --cached --quiet || git commit -m "更新数据 $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')"
           git push
 
