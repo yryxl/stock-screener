@@ -940,7 +940,10 @@ def main():
 
         from screener import screen_all_stocks as _scan
         print(f"=== 分段扫描 段 {p_idx + 1}/6（mode={mode}）===")
-        candidates = _scan(config, code_filter=code_filter, track_freshness=True)
+        # BUG-033：传增量保存路径，每 20 只写一次（防超时全丢）
+        _inc_path = os.path.join(os.path.dirname(__file__), f"market_scan_{mode}.json")
+        candidates = _scan(config, code_filter=code_filter, track_freshness=True,
+                            incremental_save_path=_inc_path, save_every_n=20)
         ai_recs = [s for s in candidates if s.get("signal") and s["signal"] not in ("hold", None)]
 
         # 写到段独立 cache（之后第 3 批 merge 用）

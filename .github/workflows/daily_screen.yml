@@ -148,6 +148,10 @@ jobs:
           PYTHONUNBUFFERED: "1"
 
       - name: 提交每日结果
+        # BUG-032：always() 让前一步 timeout 时也提交已有的部分文件
+        # 之前：选股 timeout → commit 步骤跳过 → 已扫部分全丢
+        # 现在：哪怕 timeout，也能保存已扫到的部分
+        if: always()
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"

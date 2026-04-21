@@ -780,8 +780,14 @@ def screen_single_stock(code, config, quotes_df):
     return result
 
 
-def screen_all_stocks(config, code_filter=None, track_freshness=True):
+def screen_all_stocks(config, code_filter=None, track_freshness=True,
+                       incremental_save_path=None, save_every_n=20):
     """全市场扫描
+
+    BUG-033：incremental_save_path 增量保存（防超时全丢）
+    - 每 save_every_n 只股就把当前 passed 列表写入文件
+    - 即使整个流程被 timeout 掐，已扫部分仍保留
+    - save_every_n 默认 20，权衡 IO 开销和数据丢失粒度
 
     Args:
       config: 配置字典
@@ -848,9 +854,10 @@ def screen_all_stocks(config, code_filter=None, track_freshness=True):
 
     passed = []
     total = len(candidate_codes)
+    import json as _json_inc
     for i, code in enumerate(candidate_codes, 1):
         if i % 10 == 0:
-            print(f"深度分析: {i}/{total}")
+            print(f"深度分析: {i}/{total}", flush=True)
         try:
             result = screen_single_stock(code, config, quotes_df)
             # TODO-022：根据 data_quality 判定 success/fail
@@ -868,6 +875,23 @@ def screen_all_stocks(config, code_filter=None, track_freshness=True):
             # 极少触发（screen_single_stock 内部已 try/except 多数情况）
             if track_freshness:
                 fail_codes.append(code)
+        # BUG-033 增量保存：每 N 只写一次部分结果（防超时全丢）
+        if incremental_save_path and i % save_every_n == 0:
+            try:
+                _ai_recs_part = [s for s in passed
+                                  if s.get("signal") and s["signal"] not in ("hold", None)]
+                _partial = {
+                    "date": time.strftime("%Y-%m-%d %H:%M"),
+                    "mode": "incremental",
+                    "progress": f"{i}/{total}",
+                    "candidates_count": i,
+                    "ai_recommendations": _ai_recs_part,
+                    "is_partial": True,
+                }
+                with open(incremental_save_path, "w", encoding="utf-8") as _f:
+                    _json_inc.dump(_partial, _f, ensure_ascii=False, indent=2)
+            except Exception as _se:
+                print(f"  ⚠ 增量保存失败（不影响主流程）: {_se}", flush=True)
         time.sleep(0.05)  # 最小防限流间隔（原0.3秒，节省约80秒/374只）
 
     # TODO-022：批量写 scan_freshness
