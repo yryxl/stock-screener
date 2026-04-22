@@ -1,29 +1,28 @@
 name: 每日选股分析
 
 on:
-  # 2026-04-22 用户暂停所有 cron——避免 BUG 修复期间错误流程跑了 1 小时挤掉测试
-  # 修好后取消下方注释恢复（保留所有原 cron 时点供恢复参考）
-  # schedule:
-  #   - cron: '55 0 * * *'     # 08:55 北京 - send_ai
-  #   - cron: '5 1 * * *'      # 09:05 北京（9点备份，防GitHub跳过）
-  #   - cron: '30 4 * * *'     # 12:30 北京 - holdings
-  #   - cron: '10 7 * * *'     # 15:10 北京 - holdings 备份
-  #   - cron: '0 10 * * *'     # 18:00 北京 - watchlist
-  #   - cron: '0 14 * * *'     # 22:00 北京 - watchlist 备份
-  #   - cron: '0 9 * * *'      # 17:00 北京 - mode=full_p1
-  #   - cron: '0 11 * * *'     # 19:00 北京 - mode=full_p2
-  #   - cron: '0 13 * * *'     # 21:00 北京 - mode=full_p3
-  #   - cron: '0 15 * * *'     # 23:00 北京 - mode=full_p4
-  #   - cron: '0 17 * * *'     # 01:00 北京 - mode=full_p5
-  #   - cron: '0 19 * * *'     # 03:00 北京 - mode=full_p6
-  #   - cron: '0 20 * * *'     # 04:00 北京 - mode=patch_round（凌晨 1）
-  #   - cron: '0 21 * * *'     # 05:00 北京 - mode=patch_round（凌晨 2）
-  #   - cron: '0 22 * * *'     # 06:00 北京 - mode=patch_round（凌晨 3）
-  #   - cron: '0 23 * * *'     # 07:00 北京 - mode=patch_round（凌晨 4）
-  #   - cron: '15 0 * * *'     # 08:15 北京 - mode=merge_full
-  #   - cron: '0 3 * * *'      # 11:00 北京 - mode=patch_round（白天 5）
-  #   - cron: '0 6 * * *'      # 14:00 北京 - mode=patch_round（白天 6）
-  #   - cron: '0 8 * * *'      # 16:00 北京 - mode=patch_round（白天 7）
+  # 2026-04-22 BUG-042 修复后恢复 cron（run 24762965794 60/60 成功 6 推荐）
+  schedule:
+    - cron: '55 0 * * *'     # 08:55 北京 - send_ai
+    - cron: '5 1 * * *'      # 09:05 北京（9点备份，防GitHub跳过）
+    - cron: '30 4 * * *'     # 12:30 北京 - holdings
+    - cron: '10 7 * * *'     # 15:10 北京 - holdings 备份
+    - cron: '0 10 * * *'     # 18:00 北京 - watchlist
+    - cron: '0 14 * * *'     # 22:00 北京 - watchlist 备份
+    - cron: '0 9 * * *'      # 17:00 北京 - mode=full_p1
+    - cron: '0 11 * * *'     # 19:00 北京 - mode=full_p2
+    - cron: '0 13 * * *'     # 21:00 北京 - mode=full_p3
+    - cron: '0 15 * * *'     # 23:00 北京 - mode=full_p4
+    - cron: '0 17 * * *'     # 01:00 北京 - mode=full_p5
+    - cron: '0 19 * * *'     # 03:00 北京 - mode=full_p6
+    - cron: '0 20 * * *'     # 04:00 北京 - mode=patch_round（凌晨 1）
+    - cron: '0 21 * * *'     # 05:00 北京 - mode=patch_round（凌晨 2）
+    - cron: '0 22 * * *'     # 06:00 北京 - mode=patch_round（凌晨 3）
+    - cron: '0 23 * * *'     # 07:00 北京 - mode=patch_round（凌晨 4）
+    - cron: '15 0 * * *'     # 08:15 北京 - mode=merge_full
+    - cron: '0 3 * * *'      # 11:00 北京 - mode=patch_round（白天 5）
+    - cron: '0 6 * * *'      # 14:00 北京 - mode=patch_round（白天 6）
+    - cron: '0 8 * * *'      # 16:00 北京 - mode=patch_round（白天 7）
 
   workflow_dispatch:
     inputs:

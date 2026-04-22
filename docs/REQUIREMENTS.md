@@ -1566,6 +1566,32 @@ A 股造假识别，新增 4 项 P1 工作：036/037/038/039。news_screen skill
   - ✅ 场景 4（普通标的）：21% 警告、73% 危险
 - **协同效应**：和 REQ-187 鳄鱼出击（总仓位上限 80%）形成"总仓+单股"双重集中度管理
 
+### REQ-199：akshare 请求加浏览器 UA 伪装（2026-04-22 调研完成 / 备用方案，未实施）
+- **时间**：2026-04-22
+- **触发条件**：未来 em + sina 双源都挂时的备用方案
+- **根因分析**（已完成）：
+  - akshare 源码 `utils/request.py` 里 `request_with_retry` 用 `requests.Session().get()`
+  - **没有设 User-Agent**，requests 默认 UA 是 `"python-requests/2.x.x"`
+  - GHA runner IP 在 Azure 段 + 默认爬虫 UA → 几乎确定被东财封
+  - 昨晚到今早的 ConnectionResetError 基本都是这个原因
+- **方案**：monkey-patch `requests.Session.request` 给所有 akshare 请求加默认浏览器 UA
+  ```python
+  # data_fetcher.py 顶部
+  import requests
+  _BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ..."
+  _orig_session_request = requests.Session.request
+  def _patched(self, method, url, **kwargs):
+      if 'headers' not in kwargs or kwargs['headers'] is None:
+          kwargs['headers'] = {}
+      kwargs['headers'].setdefault('User-Agent', _BROWSER_UA)
+      return _orig_session_request(self, method, url, **kwargs)
+  requests.Session.request = _patched
+  ```
+- **为什么没实施**：2026-04-22 BUG-042（em + sina 双源）已跑通全流程（run 24762965794 60/60 成功 6 推荐）。既然够用就不改，避免 monkey-patch 的未知副作用
+- **实施触发**：如果 em 和 sina 同时挂（双源都不行），先改 UA 再考虑其他
+- **预期效果**：东财若只是基于 UA 封禁，改完可能直接绕过，新浪兜底都不用走
+- **优先级**：低（当前架构够用，需要时再做）
+
 ### REQ-198：实时行情批量接口返回率低（2026-04-21 用户发现 / 待调研）
 - **时间**：2026-04-21
 - **来源**：用户看 full_p1 超时日志："价格有效从 1912 筛到 430"
