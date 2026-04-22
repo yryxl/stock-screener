@@ -109,13 +109,19 @@ def batch_fetch_with_timeout(func, *args, timeout_sec=30, retry=2, delay=3,
                 last_err = e
                 err_type = type(e).__name__
                 err_str = str(e).lower()
-                # BUG-041：连接被拒绝 / reset / aborted 这类错误立即换源
-                # GHA IP 被封时重试同源没用
-                if any(k in err_str for k in ['connection', 'reset', 'aborted',
-                                                'refused', 'resolve']):
+                # BUG-041+042：连接异常时的策略
+                # - 有备用源 → 立即 break 切源（不浪费时间重试同源）
+                # - 无备用源 → 仍然 retry（这是唯一的希望，不能放弃）
+                is_network_err = any(k in err_str for k in ['connection', 'reset',
+                                                              'aborted', 'refused',
+                                                              'resolve'])
+                has_alt = src is func and len(sources) > 1
+                if is_network_err and has_alt:
                     print(f"  [{src_label} 网络异常 attempt {attempt+1}]: {err_type}: {e}"
                           f"，立即切换备用源", flush=True)
-                    break  # 跳出 retry 循环，直接切换到下一个源
+                    break  # 有备用源就快速切
+                print(f"  [{src_label} {err_type} attempt {attempt+1}/{retry}]: {e}",
+                      flush=True)
                 print(f"  [{src_label} {err_type} attempt {attempt+1}/{retry}]: {e}",
                       flush=True)
             # 不是最后一次 → sleep backoff 后重试
@@ -131,9 +137,29 @@ def batch_fetch_with_timeout(func, *args, timeout_sec=30, retry=2, delay=3,
 
 def get_all_stocks():
     """获取全部A股列表，过滤ST和北交所
-    BUG-039：批量接口用独立 SIGALRM 超时 90s（批量调用在 screener for 循环之前，不冲突）
+    BUG-042：主源 stock_info_a_code_name 失败时，从 stock_zh_a_spot 提取 代码+名称 兜底
     """
-    df = batch_fetch_with_timeout(ak.stock_info_a_code_name, timeout_sec=90)
+    def _alt_from_spot():
+        """从新浪 spot 接口提取 code/name（结构转换成 stock_info_a_code_name 格式）"""
+        df_spot = ak.stock_zh_a_spot()
+        if df_spot is None or df_spot.empty:
+            return None
+        if "代码" in df_spot.columns and "名称" in df_spot.columns:
+            out = df_spot[["代码", "名称"]].copy()
+            out.columns = ["code", "name"]
+            # 去前缀
+            out["code"] = out["code"].astype(str).str.replace(r"^(sh|sz|bj)", "",
+                                                                regex=True)
+            return out
+        return None
+
+    df = batch_fetch_with_timeout(
+        ak.stock_info_a_code_name,
+        timeout_sec=30,
+        retry=2,
+        delay=3,
+        alt_funcs=[_alt_from_spot],
+    )
     if df is None:
         return pd.DataFrame()
     df = df[~df["name"].str.contains("ST|退市", na=False)]
