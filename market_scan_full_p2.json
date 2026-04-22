@@ -1,0 +1,194 @@
+{
+  "date": "2026-04-22 19:12",
+  "mode": "full_p2",
+  "p_idx": 1,
+  "candidates_count": 4,
+  "ai_recommendations": [
+    {
+      "code": "603277",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值24.6%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率32.9%（制造档健康） 流动比率2.68"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值17.8%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率41.7%"
+        }
+      },
+      "signal": "buy_light",
+      "signal_text": "十年王者合理价（PE=16.5）→ 轻仓买入",
+      "pe": 16.47,
+      "price": 14.19,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥14.19 高于安全边际价 ¥4.63（超 207%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 4.626519473154377,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.80元，3 年 EPS CAGR -19.0%（capped 0%），10 年后 EPS 0.80元，退出 PE 15，最高合理买入价 ¥4.63",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 20.928000000000004,
+      "name": "银都股份"
+    },
+    {
+      "code": "603439",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值22.7%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率50.0%（消费档偏高，健康线 45%） 流动比率1.46"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值14.5%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率66.8%"
+        }
+      },
+      "signal": "buy_watch",
+      "signal_text": "十年王者（PE=28.0 合理偏高）→ 关注买入",
+      "pe": 27.97,
+      "price": 10.99,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 16.04568172516551,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.67元，3 年 EPS CAGR 16.9%（capped 12%），10 年后 EPS 2.08元，退出 PE 20，最高合理买入价 ¥16.05",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 20.538999999999998,
+      "name": "三力制药"
+    },
+    {
+      "code": "301609",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值23.9%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率45.4%（制造档健康） 流动比率1.80"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值17.0%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率46.6%"
+        }
+      },
+      "signal": "sell_heavy",
+      "signal_text": "PE=59.0，远高于行业上限35→可以大量卖出",
+      "pe": 58.95,
+      "price": 47.33,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥47.33 高于安全边际价 ¥18.68（超 153%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 18.68004738153597,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.04元，3 年 EPS CAGR 28.5%（capped 12%），10 年后 EPS 3.23元，退出 PE 15，最高合理买入价 ¥18.68",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 23.87625,
+      "name": "山大电力"
+    },
+    {
+      "code": "301585",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值21.6%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率11.9%（制造档健康） 流动比率6.68"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值20.7%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率41.2%"
+        }
+      },
+      "signal": "sell_heavy",
+      "signal_text": "PE=45.6，远高于行业上限30→可以大量卖出",
+      "pe": 45.58,
+      "price": 28.88,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥28.88 高于安全边际价 ¥24.14（超 20%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 24.1403689238311,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.68元，3 年 EPS CAGR 18.3%（capped 12%），10 年后 EPS 5.22元，退出 PE 12，最高合理买入价 ¥24.14",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 21.627,
+      "name": "蓝宇股份"
+    }
+  ]
+}
