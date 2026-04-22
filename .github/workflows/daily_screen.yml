@@ -1,42 +1,29 @@
 name: 每日选股分析
 
 on:
-  schedule:
-    # 北京时间（UTC+8）触发计划：
-    # 凌晨 02:30 → full（全市场扫描，夜间低压时跑）
-    # 上午 08:55 → send_ai（盘前发昨日分析结果）
-    # 上午 09:05 → send_ai 备份（GitHub cron 常跳过 9:00，加个 9:05）
-    # 中午 12:30 → holdings（盘中持仓检查）
-    # 下午 15:10 → holdings 备份（收盘后检查）
-    # 下午 18:00 → watchlist（晚间关注表分析）
-    # 晚上 22:00 → watchlist 备份
-    # BUG-029 删：'30 18 * * *' 02:30 北京 mode=full（旧全市场扫描）
-    # 已被分段扫描（17/19/21/23/01/03 七段每段 ~916 只）替代
-    # 保留这个 cron 会在 02:30 启动 5500+ 只全市场扫描，必然 75min 超时
-    - cron: '55 0 * * *'     # 08:55 北京 - send_ai
-    - cron: '5 1 * * *'      # 09:05 北京（9点备份，防GitHub跳过）
-    - cron: '30 4 * * *'     # 12:30 北京 - holdings
-    - cron: '10 7 * * *'     # 15:10 北京 - holdings 备份
-    - cron: '0 10 * * *'     # 18:00 北京 - watchlist
-    - cron: '0 14 * * *'     # 22:00 北京 - watchlist 备份
-    # TODO-022 方案 D：分段全市场扫描 6 段（17/19/21/23/01/03 北京时间）
-    # 每段约 916 只（5500/6），每段 2 小时间隔
-    # 相比原 7 段，整体提前 2 小时完成，留更多补漏时间
-    - cron: '0 9 * * *'      # 17:00 北京 - mode=full_p1（段 1，尾号 % 6 == 0）
-    - cron: '0 11 * * *'     # 19:00 北京 - mode=full_p2（段 2，尾号 % 6 == 1）
-    - cron: '0 13 * * *'     # 21:00 北京 - mode=full_p3（段 3，尾号 % 6 == 2）
-    - cron: '0 15 * * *'     # 23:00 北京 - mode=full_p4（段 4，尾号 % 6 == 3）
-    - cron: '0 17 * * *'     # 01:00 北京 - mode=full_p5（段 5，尾号 % 6 == 4）
-    - cron: '0 19 * * *'     # 03:00 北京 - mode=full_p6（段 6，尾号 % 6 == 5）
-    # TODO-022 方案 D 补漏：凌晨 4 轮 + 白天 3 轮 = 7 个擦底
-    - cron: '0 20 * * *'     # 04:00 北京 - mode=patch_round（凌晨补漏 1）
-    - cron: '0 21 * * *'     # 05:00 北京 - mode=patch_round（凌晨补漏 2）
-    - cron: '0 22 * * *'     # 06:00 北京 - mode=patch_round（凌晨补漏 3）
-    - cron: '0 23 * * *'     # 07:00 北京 - mode=patch_round（凌晨补漏 4）
-    - cron: '15 0 * * *'     # 08:15 北京 - mode=merge_full（合并段 + 补漏）
-    - cron: '0 3 * * *'      # 11:00 北京 - mode=patch_round（白天补漏 5）
-    - cron: '0 6 * * *'      # 14:00 北京 - mode=patch_round（白天补漏 6）
-    - cron: '0 8 * * *'      # 16:00 北京 - mode=patch_round（白天补漏 7）
+  # 2026-04-22 用户暂停所有 cron——避免 BUG 修复期间错误流程跑了 1 小时挤掉测试
+  # 修好后取消下方注释恢复（保留所有原 cron 时点供恢复参考）
+  # schedule:
+  #   - cron: '55 0 * * *'     # 08:55 北京 - send_ai
+  #   - cron: '5 1 * * *'      # 09:05 北京（9点备份，防GitHub跳过）
+  #   - cron: '30 4 * * *'     # 12:30 北京 - holdings
+  #   - cron: '10 7 * * *'     # 15:10 北京 - holdings 备份
+  #   - cron: '0 10 * * *'     # 18:00 北京 - watchlist
+  #   - cron: '0 14 * * *'     # 22:00 北京 - watchlist 备份
+  #   - cron: '0 9 * * *'      # 17:00 北京 - mode=full_p1
+  #   - cron: '0 11 * * *'     # 19:00 北京 - mode=full_p2
+  #   - cron: '0 13 * * *'     # 21:00 北京 - mode=full_p3
+  #   - cron: '0 15 * * *'     # 23:00 北京 - mode=full_p4
+  #   - cron: '0 17 * * *'     # 01:00 北京 - mode=full_p5
+  #   - cron: '0 19 * * *'     # 03:00 北京 - mode=full_p6
+  #   - cron: '0 20 * * *'     # 04:00 北京 - mode=patch_round（凌晨 1）
+  #   - cron: '0 21 * * *'     # 05:00 北京 - mode=patch_round（凌晨 2）
+  #   - cron: '0 22 * * *'     # 06:00 北京 - mode=patch_round（凌晨 3）
+  #   - cron: '0 23 * * *'     # 07:00 北京 - mode=patch_round（凌晨 4）
+  #   - cron: '15 0 * * *'     # 08:15 北京 - mode=merge_full
+  #   - cron: '0 3 * * *'      # 11:00 北京 - mode=patch_round（白天 5）
+  #   - cron: '0 6 * * *'      # 14:00 北京 - mode=patch_round（白天 6）
+  #   - cron: '0 8 * * *'      # 16:00 北京 - mode=patch_round（白天 7）
 
   workflow_dispatch:
     inputs:
