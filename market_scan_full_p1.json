@@ -1,7 +1,252 @@
 {
-  "date": "2026-04-21 22:28",
+  "date": "2026-04-22 12:20",
   "mode": "full_p1",
   "p_idx": 0,
-  "candidates_count": 0,
-  "ai_recommendations": []
+  "candidates_count": 5,
+  "ai_recommendations": [
+    {
+      "code": "603198",
+      "passed": true,
+      "checks": {
+        "v3_authenticity_receivable_anomaly": {
+          "passed": true,
+          "detail": "应收账款周转天数恶化：从 3 天 → 6 天（3 年 +85%），康美式造假特征（应收虚增）"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值21.7%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率26.3%（消费档健康） 流动比率3.08"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值24.7%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率63.5%"
+        }
+      },
+      "signal": "buy_heavy",
+      "signal_text": "PE=13.5，远低于行业底部15→可以重仓买入",
+      "pe": 13.46,
+      "price": 35.2,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "⚠ 数据真实性: 应收账款周转天数恶化：从 3 天 → 6 天（3 年 +85%），康美式造假特征（应收虚增）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 77.59404296945709,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 3.24元，3 年 EPS CAGR 23.3%（capped 12%），10 年后 EPS 10.06元，退出 PE 20，最高合理买入价 ¥77.59",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 21.857999999999997,
+      "name": "迎驾贡酒"
+    },
+    {
+      "code": "000858",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值21.7%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率27.6%（消费档健康） 流动比率3.25"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值34.3%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率73.6%"
+        }
+      },
+      "signal": "buy_heavy",
+      "signal_text": "PE=13.8，远低于行业底部15→可以重仓买入",
+      "pe": 13.81,
+      "price": 100.62,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 153.20621658407785,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 8.21元，3 年 EPS CAGR 9.2%（capped 9%），10 年后 EPS 19.87元，退出 PE 20，最高合理买入价 ¥153.21",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 22.131,
+      "name": "五 粮 液"
+    },
+    {
+      "code": "002832",
+      "passed": true,
+      "checks": {
+        "v3_authenticity_gm_anomaly": {
+          "passed": true,
+          "detail": "毛利率反常：77.0% 远高于行业基准（40%，超 93%）。东方纸业式信号——可能虚增收入或关联交易。建议核实"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值22.8%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率29.4%（制造档健康） 流动比率2.49"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值20.0%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率69.0%"
+        }
+      },
+      "signal": "buy_light",
+      "signal_text": "十年王者合理价（PE=16.6）→ 轻仓买入",
+      "pe": 16.57,
+      "price": 18.51,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "⚠ 数据真实性: 毛利率反常：77.0% 远高于行业基准（40%，超 93%）。东方纸业式信号——可能虚增收入或关联交易。建议核实",
+        "10% 回报锚超限：当前 ¥18.51 高于安全边际价 ¥11.13（超 66%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 11.128534132563809,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.37元，3 年 EPS CAGR 3.5%（capped 3%），10 年后 EPS 1.92元，退出 PE 15，最高合理买入价 ¥11.13",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 20.406,
+      "name": "比音勒芬"
+    },
+    {
+      "code": "603288",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值29.2%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率19.8%（消费档健康） 流动比率3.85"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值24.4%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率41.0%"
+        }
+      },
+      "signal": "buy_watch",
+      "signal_text": "十年王者（PE=33.8 合理偏高）→ 关注买入",
+      "pe": 33.8,
+      "price": 39.99,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥39.99 高于安全边际价 ¥27.95（超 43%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 27.94599834271638,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.23元，3 年 EPS CAGR 10.4%（capped 10%），10 年后 EPS 3.29元，退出 PE 22，最高合理买入价 ¥27.95",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 28.482000000000006,
+      "name": "海天味业"
+    },
+    {
+      "code": "603402",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值27.1%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率17.4%（消费档健康） 流动比率5.64"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值24.6%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率53.1%"
+        }
+      },
+      "signal": "sell_light",
+      "signal_text": "PE=27.1，高于合理区间→可以适当卖出",
+      "pe": 27.15,
+      "price": 132.66,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥132.66 高于安全边际价 ¥37.30（超 256%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 37.30131325230716,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 6.45元，3 年 EPS CAGR -6.4%（capped 0%），10 年后 EPS 6.45元，退出 PE 15，最高合理买入价 ¥37.30",
+      "mgmt_score": null,
+      "mgmt_tier": "数据不足",
+      "mgmt_flags": [
+        "管理层评分：5 个维度全部无数据，无法判定"
+      ],
+      "data_quality": "ok",
+      "king_avg_roe": 27.695999999999998,
+      "name": "陕西旅游"
+    }
+  ]
 }
