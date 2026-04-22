@@ -54,37 +54,70 @@ def safe_fetch(func, *args, retry=2, delay=2, timeout=None, **kwargs):
                 return None
 
 
-def batch_fetch_with_timeout(func, *args, timeout_sec=90, **kwargs):
-    """BUG-039：批量接口专用包装（独立 SIGALRM 超时）
+def batch_fetch_with_timeout(func, *args, timeout_sec=90, retry=3, delay=5,
+                              alt_funcs=None, **kwargs):
+    """BUG-040：批量接口专用包装 - 超时 + retry + 多源 fallback
 
-    用于批量数据接口（stock_yjbb_em / stock_zh_a_spot_em / fund_etf_spot_em /
-    stock_info_a_code_name）这些在 screener for 循环之前调用的函数。
+    修复 BUG-039 回归：
+    - BUG-039 的实现遇到 ConnectionResetError 等网络异常直接 return None
+    - 实际 GHA runner 访问东财时经常被 reset connection（IP 段限流）
+    - 一次 reset 就放弃 → 候选 0 只 → 整个 run 白跑
 
-    这些批量接口：
-    - 数据量大，正常需要 30-60s，超过 90s 认为是接口挂了
-    - 在 for 循环之前调用，和 screener 循环里的 60s alarm **时间不重叠**，
-      所以可以安全用独立 SIGALRM
+    新策略：
+    1. 主源（func）用 SIGALRM timeout 包 + retry N 次，每次间隔 `delay + i*2` 秒
+    2. 超时 / ConnectionReset / 其他网络异常都触发 retry
+    3. 主源全失败 → 依次尝试 alt_funcs 备用源（不带 timeout，带 retry）
+    4. 所有源全失败才 return None
 
-    失败后 fallback 到 safe_fetch 默认（无超时，带 retry）再试一次
+    Args:
+        func: 主数据源函数（比如 ak.stock_zh_a_spot_em）
+        timeout_sec: 主源每次调用的硬超时（默认 90s）
+        retry: 每个源重试次数（默认 3 次）
+        delay: 重试间隔基础秒数（默认 5s，递增 backoff）
+        alt_funcs: 备用源函数列表（如 [ak.stock_zh_a_spot]）
     """
-    # Windows 本地无法用 SIGALRM，直接走 safe_fetch
-    if not _USE_ALARM:
-        return safe_fetch(func, *args, **kwargs)
+    sources = [('主源-em', func)] + [(f'备用源-{i+1}', f)
+                                       for i, f in enumerate(alt_funcs or [])]
+    last_err = None
+    for src_label, src in sources:
+        for attempt in range(retry):
+            try:
+                # 仅主源用 SIGALRM timeout；备用源用 safe_fetch 内部重试
+                use_timeout = (src is func) and _USE_ALARM
+                if use_timeout:
+                    signal.signal(signal.SIGALRM, _alarm_handler)
+                    signal.alarm(timeout_sec)
+                try:
+                    result = src(*args, **kwargs)
+                finally:
+                    if use_timeout:
+                        signal.alarm(0)
+                # 成功（非空 DataFrame 或非 None）
+                if result is not None and (not hasattr(result, 'empty') or not result.empty):
+                    if src is not func:
+                        print(f"  [OK] {src_label} 成功取到数据", flush=True)
+                    return result
+                else:
+                    last_err = "返回空"
+                    print(f"  [{src_label} attempt {attempt+1}/{retry}] 返回空数据", flush=True)
+            except _FetchTimeout:
+                last_err = f"timeout {timeout_sec}s"
+                print(f"  [{src_label} 超时{timeout_sec}s attempt {attempt+1}/{retry}]",
+                      flush=True)
+            except Exception as e:
+                last_err = e
+                err_type = type(e).__name__
+                print(f"  [{src_label} {err_type} attempt {attempt+1}/{retry}]: {e}",
+                      flush=True)
+            # 不是最后一次 → sleep backoff 后重试
+            if attempt < retry - 1:
+                time.sleep(delay + attempt * 2)
+        # 当前源全失败，进入下一个备用源
+        if src is not sources[-1][1]:
+            print(f"  [!] {src_label} 全部重试失败，切换备用源", flush=True)
 
-    try:
-        signal.signal(signal.SIGALRM, _alarm_handler)
-        signal.alarm(timeout_sec)
-        try:
-            return func(*args, **kwargs)
-        finally:
-            signal.alarm(0)
-    except _FetchTimeout:
-        print(f"  [批量超时{timeout_sec}s] {getattr(func, '__name__', func)}，走 fallback", flush=True)
-        # fallback: 用 safe_fetch 再试一次（无 timeout，但有 retry）
-        return safe_fetch(func, *args, **kwargs)
-    except Exception as e:
-        print(f"  批量接口失败: {e}", flush=True)
-        return None
+    print(f"  [X] 所有源都失败: {last_err}", flush=True)
+    return None
 
 
 def get_all_stocks():
@@ -102,13 +135,31 @@ def get_all_stocks():
 def get_realtime_quotes():
     """获取全A股实时行情（不含行业字段，行业请用 get_stock_industry）
 
-    BUG-039：批量接口用独立 SIGALRM 超时 90s
-    这个接口失败会导致 screener 退化为"全市场扫描"（段大小 728→60 差别巨大），
-    所以必须严格保护
+    BUG-040：主源东财（stock_zh_a_spot_em）失败时走新浪源（stock_zh_a_spot）
+    - 两个接口列名都有"代码"和"最新价"
+    - em 代码格式："000001"（无前缀），sina 代码格式："sz000001"（带 sh/sz/bj）
+    - 兜底时自动去前缀，保持 screener 调用端格式一致
     """
-    df = batch_fetch_with_timeout(ak.stock_zh_a_spot_em, timeout_sec=90)
-    if df is None:
+    df = batch_fetch_with_timeout(
+        ak.stock_zh_a_spot_em,
+        timeout_sec=90,
+        retry=3,
+        delay=5,
+        alt_funcs=[ak.stock_zh_a_spot],  # 新浪源兜底
+    )
+    if df is None or df.empty:
         return pd.DataFrame()
+
+    # 规范化代码格式：若走了新浪源，代码带 sh/sz/bj 前缀，去掉保持和 em 一致
+    try:
+        if "代码" in df.columns:
+            sample = str(df["代码"].iloc[0])
+            if sample[:2].lower() in ("sh", "sz", "bj") and len(sample) == 8:
+                df = df.copy()
+                df["代码"] = df["代码"].astype(str).str[2:]
+                print(f"  [规范化] 去掉代码前缀（新浪源）", flush=True)
+    except Exception as _e:
+        print(f"  [!] 代码规范化失败（不影响主流程）: {_e}", flush=True)
     return df
 
 
