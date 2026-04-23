@@ -180,7 +180,8 @@ def get_all():
 def get_stale_stocks(min_fails=1, exclude_codes=None,
                        priority_holdings=None, priority_etf=None,
                        priority_watchlist=None,
-                       max_count=None):
+                       max_count=None,
+                       max_lag_hours=None):
     """取漏跑列表（补漏轮用）
 
     Args:
@@ -190,6 +191,12 @@ def get_stale_stocks(min_fails=1, exclude_codes=None,
       priority_etf: ETF 代码列表（优先排前面）
       priority_watchlist: 关注代码列表
       max_count: 最多返回多少只（None = 全部）
+      max_lag_hours: 2026-04-23 加入 — 按"距今 N 小时未扫"也算漏跑
+        背景：GitHub Actions 有时会整段跳过 cron（如昨晚
+        21:00/03:00 北京全段跳过），这批股从未被 attempt，
+        fails=0 → 永远进不了补漏名单。加个时间兜底。
+        None = 不启用（只按 fails）
+        推荐值：24（一天一扫）
 
     Returns: [(code, fails, last_scanned_at), ...] 按优先级排序
     """
@@ -199,13 +206,35 @@ def get_stale_stocks(min_fails=1, exclude_codes=None,
     priority_etf = set(_zfill_code(c) for c in (priority_etf or []))
     priority_watchlist = set(_zfill_code(c) for c in (priority_watchlist or []))
 
+    # 时间阈值：距今超过 max_lag_hours 小时的也算漏跑
+    lag_cutoff = None
+    if max_lag_hours is not None and max_lag_hours > 0:
+        lag_cutoff = datetime.now(_BEIJING) - timedelta(hours=max_lag_hours)
+
     items = []
     for code, rec in data.items():
         if code in exclude_codes:
             continue
         fails = rec.get('consecutive_fails', 0)
-        if fails < min_fails:
+
+        # 两个入围条件：fails 达标 OR 时间过老
+        stale_by_fails = fails >= min_fails
+        stale_by_time = False
+        last_at_str = rec.get('last_scanned_at')
+        if lag_cutoff is not None and last_at_str:
+            try:
+                last_dt = datetime.fromisoformat(last_at_str)
+                if last_dt < lag_cutoff:
+                    stale_by_time = True
+            except Exception:
+                # 解析失败视为"时间未知 → 算老"
+                stale_by_time = True
+        elif lag_cutoff is not None and not last_at_str:
+            stale_by_time = True  # 从未扫过
+
+        if not (stale_by_fails or stale_by_time):
             continue
+
         # 优先级：持仓+ETF > 关注 > 其它候选；同级别按 fails 倒序
         if code in priority_holdings or code in priority_etf:
             priority = 0  # 最高
@@ -213,7 +242,7 @@ def get_stale_stocks(min_fails=1, exclude_codes=None,
             priority = 1
         else:
             priority = 2
-        items.append((priority, -fails, code, fails, rec.get('last_scanned_at')))
+        items.append((priority, -fails, code, fails, last_at_str))
 
     items.sort()  # 按 (priority, -fails) 升序 = 优先级高 + fails 大优先
     result = [(code, fails, last_at) for _, _, code, fails, last_at in items]

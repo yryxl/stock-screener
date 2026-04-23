@@ -1001,11 +1001,15 @@ def main():
                         watchlist_codes.append(c)
 
             # 漏跑列表（按持仓优先 + fails 倒序）
+            # 2026-04-23：加 max_lag_hours=24 ——
+            # GitHub Actions 有时整段跳过 cron（如 2026-04-23 的 21:00/03:00 北京全段）
+            # 这批股 fails=0 进不了补漏名单 → 补时间兜底
             stale = get_stale_stocks(
                 priority_holdings=non_etf_holdings,
                 priority_etf=etf_codes,
                 priority_watchlist=watchlist_codes,
                 max_count=1100,  # 单轮上限
+                max_lag_hours=24,
             )
             stale_codes = [c for c, _, _ in stale]
 
@@ -1111,8 +1115,75 @@ def main():
 
     elif mode == "send_ai":
         # 发送AI推荐（早上9点）
+        # 2026-04-23 兜底：GitHub Actions 会跳 08:15 merge_full cron
+        # （2026-04-23 今早就跳过了）。这里先看 cache 是不是当天的，
+        # 不是就自己跑一遍 merge 再发，避免推送旧数据。
         cache = load_json("market_scan_cache.json")
-        ai_recs = cache.get("ai_recommendations", []) if isinstance(cache, dict) else []
+        cache_date = cache.get("date", "") if isinstance(cache, dict) else ""
+        today_date_str = now.strftime("%Y-%m-%d")
+        if cache_date != today_date_str:
+            print(f"⚠ market_scan_cache 日期={cache_date}，非当天 {today_date_str}")
+            print("  → 推测 merge_full cron 被 GitHub 跳过，现场补一次合并")
+            import glob as _glob
+            _all_recs = []
+            _seen = set()
+            _merged_files = []
+            _today_yyyymmdd = now.strftime("%Y%m%d")
+            for _p in range(1, 7):
+                _f = os.path.join(os.path.dirname(__file__),
+                                    f"market_scan_full_p{_p}.json")
+                if os.path.exists(_f):
+                    try:
+                        _data = load_json(f"market_scan_full_p{_p}.json")
+                        if isinstance(_data, dict):
+                            for _s in _data.get("ai_recommendations", []):
+                                _c = str(_s.get("code", "")).zfill(6)
+                                if _c and _c not in _seen:
+                                    _seen.add(_c)
+                                    _s["source"] = f"段 {_p}"
+                                    _all_recs.append(_s)
+                            _merged_files.append(f"p{_p}")
+                    except Exception as _e:
+                        print(f"  ⚠ 段 {_p} 读取失败：{_e}")
+            _patch_pat = os.path.join(os.path.dirname(__file__),
+                                        f"market_scan_patch_{_today_yyyymmdd}_*.json")
+            for _pf in sorted(_glob.glob(_patch_pat)):
+                try:
+                    _fname = os.path.basename(_pf)
+                    _data = load_json(_fname)
+                    if isinstance(_data, dict):
+                        for _s in _data.get("ai_recommendations", []):
+                            _c = str(_s.get("code", "")).zfill(6)
+                            if _c and _c not in _seen:
+                                _seen.add(_c)
+                                _s["source"] = "补漏"
+                                _all_recs.append(_s)
+                        _merged_files.append(_fname.replace("market_scan_", "").replace(".json", ""))
+                except Exception as _e:
+                    print(f"  ⚠ 补漏文件 {_pf} 读取失败：{_e}")
+            # 写回 cache + daily_results
+            save_json("market_scan_cache.json", {
+                "date": today_date_str,
+                "ai_recommendations": _all_recs,
+            })
+            _existing = load_json("daily_results.json")
+            _new_data = {
+                "date": now.strftime("%Y-%m-%d %H:%M"),
+                "mode": "send_ai_with_fallback_merge",
+                "is_trading_day": trading,
+                "data_source": f"分段扫描合并 兜底（含 {len(_merged_files)} 个文件）",
+                "ai_recommendations": _all_recs,
+                "merged_files": _merged_files,
+            }
+            _merged = merge_daily_data(
+                _existing if isinstance(_existing, dict) else {}, _new_data)
+            save_json("daily_results.json", _merged)
+            ai_recs = _all_recs
+            print(f"  ✅ 兜底合并完成：{len(_all_recs)} 只推荐 / "
+                  f"{len(_merged_files)} 个源文件")
+        else:
+            ai_recs = cache.get("ai_recommendations", []) if isinstance(cache, dict) else []
+
         if ai_recs:
             send_daily_report(
                 watchlist_signals=[],
