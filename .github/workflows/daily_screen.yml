@@ -114,6 +114,10 @@ jobs:
             # 原有时段保持，但 0/2 这种"非整时段"时统一走 patch_round（安全兜底）
             elif [ "$HOUR" = "00" ] || [ "$HOUR" = "02" ]; then
               echo "mode=patch_round" >> $GITHUB_OUTPUT
+            # BUG-043（2026-04-23）：cron '10 7'（15:10 北京 持仓备份）延迟到 15:41 时
+            # HOUR=15 落入 else → 错跑成 watchlist（昨晚实测）。显式路由到 holdings。
+            elif [ "$HOUR" = "15" ] || [ "$HOUR" = "12" ]; then
+              echo "mode=holdings" >> $GITHUB_OUTPUT              
             elif [ "$HOUR" -le 9 ]; then
               echo "mode=send_ai" >> $GITHUB_OUTPUT
             elif [ "$HOUR" -le 13 ]; then
