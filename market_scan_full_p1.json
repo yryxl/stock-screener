@@ -1,60 +1,9 @@
 {
-  "date": "2026-04-22 17:11",
+  "date": "2026-04-23 17:01",
   "mode": "full_p1",
   "p_idx": 0,
   "candidates_count": 7,
   "ai_recommendations": [
-    {
-      "code": "603198",
-      "passed": true,
-      "checks": {
-        "v3_authenticity_receivable_anomaly": {
-          "passed": true,
-          "detail": "应收账款周转天数恶化：从 3 天 → 6 天（3 年 +85%），康美式造假特征（应收虚增）"
-        },
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值21.7%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率26.3%（消费档健康） 流动比率3.08"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值24.7%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率63.5%"
-        }
-      },
-      "signal": "buy_heavy",
-      "signal_text": "PE=13.6，远低于行业底部15→可以重仓买入",
-      "pe": 13.55,
-      "price": 35.47,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "⚠ 数据真实性: 应收账款周转天数恶化：从 3 天 → 6 天（3 年 +85%），康美式造假特征（应收虚增）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 77.59404296945709,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 3.24元，3 年 EPS CAGR 23.3%（capped 12%），10 年后 EPS 10.06元，退出 PE 20，最高合理买入价 ¥77.59",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 21.857999999999997,
-      "name": "迎驾贡酒"
-    },
     {
       "code": "000858",
       "passed": true,
@@ -85,9 +34,9 @@
         }
       },
       "signal": "buy_heavy",
-      "signal_text": "PE=13.7，远低于行业底部15→可以重仓买入",
-      "pe": 13.74,
-      "price": 100.64,
+      "signal_text": "PE=13.8，远低于行业底部15→可以重仓买入",
+      "pe": 13.81,
+      "price": 101.18,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
@@ -103,6 +52,58 @@
       "data_quality": "ok",
       "king_avg_roe": 22.131,
       "name": "五 粮 液"
+    },
+    {
+      "code": "603198",
+      "passed": true,
+      "checks": {
+        "v3_authenticity_receivable_anomaly": {
+          "passed": true,
+          "detail": "应收账款周转天数恶化：从 2 天 → 10 天（3 年 +360%），康美式造假特征（应收虚增）"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值21.6%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率22.8%（消费档健康） 流动比率3.86"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值26.4%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率65.1%"
+        }
+      },
+      "signal": "buy_medium",
+      "signal_text": "PE=15.7，明显低于合理区间→可以中仓买入",
+      "pe": 15.67,
+      "price": 39.02,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "⚠ 数据真实性: 应收账款周转天数恶化：从 2 天 → 10 天（3 年 +360%），康美式造假特征（应收虚增）",
+        "10% 回报锚超限：当前 ¥39.02 高于安全边际价 ¥19.12（超 104%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 19.122947155704757,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 2.48元，3 年 EPS CAGR -6.7%（capped 0%），10 年后 EPS 2.48元，退出 PE 20，最高合理买入价 ¥19.12",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 22.156,
+      "name": "迎驾贡酒"
     },
     {
       "code": "002832",
@@ -134,15 +135,15 @@
         }
       },
       "signal": "buy_light",
-      "signal_text": "十年王者合理价（PE=16.4）→ 轻仓买入",
-      "pe": 16.36,
-      "price": 18.29,
+      "signal_text": "十年王者合理价（PE=16.2）→ 轻仓买入",
+      "pe": 16.19,
+      "price": 18.1,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 毛利率反常：77.0% 远高于行业基准（40%，超 93%）。东方纸业式信号——可能虚增收入或关联交易。建议核实",
-        "10% 回报锚超限：当前 ¥18.29 高于安全边际价 ¥11.13（超 64%）"
+        "10% 回报锚超限：当前 ¥18.10 高于安全边际价 ¥11.13（超 63%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -182,14 +183,14 @@
         }
       },
       "signal": "buy_watch",
-      "signal_text": "十年王者（PE=33.1 合理偏高）→ 关注买入",
-      "pe": 33.11,
-      "price": 39.83,
+      "signal_text": "十年王者（PE=32.9 合理偏高）→ 关注买入",
+      "pe": 32.91,
+      "price": 39.58,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥39.83 高于安全边际价 ¥27.95（超 43%）"
+        "10% 回报锚超限：当前 ¥39.58 高于安全边际价 ¥27.95（超 42%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -202,6 +203,53 @@
       "data_quality": "ok",
       "king_avg_roe": 28.482000000000006,
       "name": "海天味业"
+    },
+    {
+      "code": "603156",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值35.8%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率27.6%（消费档健康） 流动比率2.19"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值28.9%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率46.6%"
+        }
+      },
+      "signal": "sell_light",
+      "signal_text": "PE=26.0，高于合理区间→可以适当卖出",
+      "pe": 26.0,
+      "price": 33.26,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥33.26 高于安全边际价 ¥17.32（超 92%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 17.32434149938836,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.36元，3 年 EPS CAGR 8.2%（capped 8%），10 年后 EPS 3.00元，退出 PE 15，最高合理买入价 ¥17.32",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 26.589,
+      "name": "养元饮品"
     },
     {
       "code": "600900",
@@ -239,14 +287,14 @@
       "signal": "sell_light",
       "signal_text": "PE=19.2，高于合理区间→可以适当卖出",
       "pe": 19.24,
-      "price": 26.86,
+      "price": 26.95,
       "is_10y_king": false,
       "is_good_quality": false,
       "is_toll_bridge": true,
       "china_v3_risks": [
         "⚠ 数据真实性: 毛利率反常：59.1% 远高于行业基准（25%，超 137%）。东方纸业式信号——可能虚增收入或关联交易。建议核实",
         "杠杆预警：负债率60.8%（基建档健康） 流动比率0.11⚠极低",
-        "10% 回报锚超限：当前 ¥26.86 高于安全边际价 ¥15.90（超 69%）"
+        "10% 回报锚超限：当前 ¥26.95 高于安全边际价 ¥15.90（超 69%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -260,53 +308,6 @@
       "toll_class": "toll_bridge_utility",
       "king_avg_roe": 15.104000000000003,
       "name": "长江电力"
-    },
-    {
-      "code": "603156",
-      "passed": true,
-      "checks": {
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值35.8%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率27.6%（消费档健康） 流动比率2.19"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值28.9%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率46.6%"
-        }
-      },
-      "signal": "sell_light",
-      "signal_text": "PE=26.2，高于合理区间→可以适当卖出",
-      "pe": 26.24,
-      "price": 33.56,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥33.56 高于安全边际价 ¥17.32（超 94%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 17.32434149938836,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.36元，3 年 EPS CAGR 8.2%（capped 8%），10 年后 EPS 3.00元，退出 PE 15，最高合理买入价 ¥17.32",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 26.589,
-      "name": "养元饮品"
     },
     {
       "code": "603402",
@@ -334,14 +335,14 @@
         }
       },
       "signal": "sell_light",
-      "signal_text": "PE=26.8，高于合理区间→可以适当卖出",
-      "pe": 26.77,
-      "price": 132.99,
+      "signal_text": "PE=26.9，高于合理区间→可以适当卖出",
+      "pe": 26.92,
+      "price": 133.74,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥132.99 高于安全边际价 ¥37.30（超 257%）"
+        "10% 回报锚超限：当前 ¥133.74 高于安全边际价 ¥37.30（超 259%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
