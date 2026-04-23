@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-23 17:01",
+  "date": "2026-04-23 17:45",
   "mode": "full_p1",
   "p_idx": 0,
   "candidates_count": 7,
@@ -205,53 +205,6 @@
       "name": "海天味业"
     },
     {
-      "code": "603156",
-      "passed": true,
-      "checks": {
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值35.8%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率27.6%（消费档健康） 流动比率2.19"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值28.9%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率46.6%"
-        }
-      },
-      "signal": "sell_light",
-      "signal_text": "PE=26.0，高于合理区间→可以适当卖出",
-      "pe": 26.0,
-      "price": 33.26,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥33.26 高于安全边际价 ¥17.32（超 92%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 17.32434149938836,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.36元，3 年 EPS CAGR 8.2%（capped 8%），10 年后 EPS 3.00元，退出 PE 15，最高合理买入价 ¥17.32",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 26.589,
-      "name": "养元饮品"
-    },
-    {
       "code": "600900",
       "passed": true,
       "checks": {
@@ -308,6 +261,53 @@
       "toll_class": "toll_bridge_utility",
       "king_avg_roe": 15.104000000000003,
       "name": "长江电力"
+    },
+    {
+      "code": "603156",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值35.8%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率27.6%（消费档健康） 流动比率2.19"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值28.9%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率46.6%"
+        }
+      },
+      "signal": "sell_light",
+      "signal_text": "PE=26.0，高于合理区间→可以适当卖出",
+      "pe": 26.0,
+      "price": 33.26,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥33.26 高于安全边际价 ¥17.32（超 92%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 17.32434149938836,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.36元，3 年 EPS CAGR 8.2%（capped 8%），10 年后 EPS 3.00元，退出 PE 15，最高合理买入价 ¥17.32",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 26.589,
+      "name": "养元饮品"
     },
     {
       "code": "603402",
