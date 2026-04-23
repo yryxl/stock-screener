@@ -14,6 +14,7 @@ from backtest_engine import (
     check_moat, get_cash_flow_warnings, _roe_historical_avg,
     get_annual_reports_before,
 )
+from trade_fees import calc_fees
 
 SIGNAL_LABELS = {
     "buy_heavy": "🟢🟢🟢 可以重仓买入",
@@ -88,6 +89,16 @@ def reset_game():
     st.session_state["bt_industry_map"] = {}
 
 
+def _get_code_by_sid(sid):
+    """sid（S01/S02...） → 真实股票代码，用于判定沪/深交所计算手续费"""
+    cache = st.session_state.get("_bt_sid_to_code")
+    if not cache:
+        stocks = load_stock_list()
+        cache = {k: v.get("code", "") for k, v in stocks.items()}
+        st.session_state["_bt_sid_to_code"] = cache
+    return cache.get(sid, "")
+
+
 def _get_current_roe_for_sid(sid):
     """从当月 signals 拿某只股票的当前 ROE"""
     yr = st.session_state.get("bt_year", 2015)
@@ -154,9 +165,14 @@ def _build_trade_context(sid):
 
 def virtual_buy(sid, anon_id, price, shares):
     date_str = f"{st.session_state['bt_year']}-{st.session_state['bt_month']:02d}"
-    cost = price * shares
+    # 自动按上/深交所规则算买入手续费
+    real_code = _get_code_by_sid(sid)
+    fee_info = calc_fees(real_code, price, shares, "buy")
+    fee = fee_info["total"]
+    cost = price * shares + fee  # 买入总花费 = 成交金额 + 手续费
     if cost > st.session_state["bt_cash"]:
-        st.error(f"资金不足！需¥{cost:,.0f}，可用¥{st.session_state['bt_cash']:,.0f}")
+        st.error(f"资金不足！需¥{cost:,.0f}（含手续费¥{fee:,.2f}），"
+                 f"可用¥{st.session_state['bt_cash']:,.0f}")
         return False
     if shares < 100 or shares % 100 != 0:
         st.error("买入最少100股，100股为单位")
@@ -196,6 +212,9 @@ def virtual_buy(sid, anon_id, price, shares):
     trade_entry = {
         "type": "buy", "anon": anon_id, "shares": shares,
         "price": price, "date": date_str, "context": ctx,
+        "fee": fee, "fee_breakdown": fee_info["breakdown"],
+        "exchange": fee_info["exchange"], "gross": round(price * shares, 2),
+        "net": fee_info["net"],  # 买入总花费
     }
 
     for h in st.session_state["bt_holdings"]:
@@ -215,13 +234,16 @@ def virtual_buy(sid, anon_id, price, shares):
             st.session_state["bt_trade_log"].append(trade_entry)
             return True
     st.session_state["bt_holdings"].append({
-        "sid": sid, "anon": anon_id, "shares": shares, "cost": price,
+        "sid": sid, "anon": anon_id, "shares": shares, "cost": cost / shares,
         "buy_date": date_str,
         "add_dates": [],
         "roe_at_buy": current_roe,      # 首次建仓时的 ROE
         "roe_baseline": current_roe,    # 加仓后加权基准
     })
     st.session_state["bt_trade_log"].append(trade_entry)
+    _exch = "沪" if fee_info["exchange"] == "SH" else "深"
+    st.toast(f"✅ 买入 {anon_id} {shares}股 @¥{price:.2f}（{_exch}市·手续费¥{fee:.2f}）",
+             icon="💰")
     return True
 
 
@@ -231,7 +253,11 @@ def virtual_sell(sid, shares, current_price):
             if shares > h["shares"]:
                 st.error(f"持有{h['shares']}股，不能卖{shares}股")
                 return False
-            st.session_state["bt_cash"] += current_price * shares
+            # 自动按上/深交所规则算卖出手续费（含印花税）
+            real_code = _get_code_by_sid(sid)
+            fee_info = calc_fees(real_code, current_price, shares, "sell_partial")
+            fee = fee_info["total"]
+            st.session_state["bt_cash"] += current_price * shares - fee  # 净收回
 
             # 构建卖出环境快照
             ctx = _build_trade_context(sid)
@@ -252,9 +278,17 @@ def virtual_sell(sid, shares, current_price):
             st.session_state["bt_trade_log"].append({
                 "type": "sell", "anon": h["anon"], "shares": shares,
                 "price": current_price, "date": date_str, "context": ctx,
+                "fee": fee, "fee_breakdown": fee_info["breakdown"],
+                "exchange": fee_info["exchange"],
+                "gross": round(current_price * shares, 2),
+                "net": fee_info["net"],  # 净收回
             })
             if h["shares"] <= 0:
                 st.session_state["bt_holdings"].remove(h)
+            _exch = "沪" if fee_info["exchange"] == "SH" else "深"
+            st.toast(f"✅ 卖出 {h['anon']} {shares}股 @¥{current_price:.2f}"
+                     f"（{_exch}市·手续费含印花税¥{fee:.2f}）",
+                     icon="💰")
             return True
     return False
 

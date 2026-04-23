@@ -2300,83 +2300,97 @@ with tab2:
                             st.info("尚无交易记录。在下方表单记一笔，AI 后续可基于历史做分析。")
 
                         # 录入新交易
-                        st.markdown("**➕ 记录新交易**")
-                        with st.form(f"tx_form_{code}", clear_on_submit=True):
-                            _f1, _f2, _f3, _f4 = st.columns(4)
-                            with _f1:
-                                _act = st.selectbox(
-                                    "操作类型",
-                                    options=list(_tlog.ACTIONS.keys()),
-                                    format_func=lambda x: _tlog.ACTIONS[x],
-                                    key=f"tx_act_{code}",
-                                )
-                            with _f2:
-                                _date = st.date_input("交易日", key=f"tx_date_{code}")
-                            with _f3:
-                                # BUG-025: ETF 实际价常是 4.9151 这种 4 位小数，2 位会丢精度
-                                _price_in = st.number_input("成交单价", min_value=0.0,
-                                                              value=float(_curr_price or 0),
-                                                              step=0.0001, format="%.4f",
-                                                              key=f"tx_price_{code}")
-                            with _f4:
-                                _shares_in = st.number_input("数量（股）", min_value=1,
-                                                               value=100, step=100,
-                                                               key=f"tx_shares_{code}")
-                            _f5, _f6 = st.columns([1, 3])
-                            with _f5:
-                                _fee_in = st.number_input("手续费", min_value=0.0,
-                                                            value=0.0, step=1.0,
-                                                            key=f"tx_fee_{code}")
-                            with _f6:
-                                _note_in = st.text_input("备注（可选）", key=f"tx_note_{code}",
-                                                          placeholder="如：达到买入目标价 / 触发止盈 / 分红再投")
-                            if st.form_submit_button("✅ 记录这笔交易"):
-                                ok, msg = _tlog.log_transaction(
-                                    code, h.get('name', code), _act,
-                                    _price_in, _shares_in,
-                                    date=_date.strftime('%Y-%m-%d'),
-                                    fee=_fee_in, note=_note_in
-                                )
-                                if ok:
-                                    # BUG-023：同步 transaction_log.json 到 GitHub
-                                    try:
-                                        _tx_data = _tlog._load()
-                                        _gh_sha = st.session_state.get("tx_log_sha")
-                                        _new_sha = save_to_github("transaction_log.json",
-                                                                    _tx_data, _gh_sha)
-                                        if _new_sha:
-                                            st.session_state["tx_log_sha"] = _new_sha
-                                    except Exception as _te:
-                                        st.warning(f"⚠ 交易记录同步 GitHub 异常：{_te}")
+                        st.markdown("**➕ 记录新交易**（手续费自动按上/深交所规则计算，无需手填）")
 
-                                    # BUG-024 修：交易记录是"唯一真相"，自动同步持仓表
-                                    # 用 transaction_log.get_summary 重算 shares/cost
-                                    # 这样用户在"建仓 400 + 加仓 300"后，持仓表自动变 700
-                                    try:
-                                        _summary = _tlog.get_summary(code, current_price=_curr_price)
-                                        if _summary:
-                                            _new_shares = _summary['shares_held']
-                                            _new_cost = _summary['avg_cost'] or 0
-                                            # 更新 holdings 里对应的那只
-                                            for _hi, _hh in enumerate(holdings):
-                                                if str(_hh.get('code', '')).zfill(6) == code:
-                                                    holdings[_hi]['shares'] = _new_shares
-                                                    if _new_cost > 0:
-                                                        holdings[_hi]['cost'] = round(_new_cost, 4)
-                                                    # 同步 buy_date（首次买入日期）
-                                                    if _summary.get('first_buy_date'):
-                                                        holdings[_hi]['buy_date'] = _summary['first_buy_date']
-                                                    break
-                                            # 保存持仓
-                                            if save_holdings_safely(holdings):
-                                                st.success(f"{msg}\n✅ 持仓表已自动同步：{_new_shares} 股 @ ¥{_new_cost:.4f}")
-                                            else:
-                                                st.warning(f"{msg}\n⚠ 交易已记录但持仓表同步失败")
-                                    except Exception as _se:
-                                        st.warning(f"{msg}\n⚠ 持仓自动同步异常：{_se}")
-                                    st.rerun()
-                                else:
-                                    st.error(msg)
+                        # 为实时预览手续费，用表单外的 widget（变更会触发 rerun）
+                        _f1, _f2, _f3, _f4 = st.columns(4)
+                        with _f1:
+                            _act = st.selectbox(
+                                "操作类型",
+                                options=list(_tlog.ACTIONS.keys()),
+                                format_func=lambda x: _tlog.ACTIONS[x],
+                                key=f"tx_act_{code}",
+                            )
+                        with _f2:
+                            _date = st.date_input("交易日", key=f"tx_date_{code}")
+                        with _f3:
+                            # BUG-025: ETF 实际价常是 4.9151 这种 4 位小数，2 位会丢精度
+                            _price_in = st.number_input("成交单价", min_value=0.0,
+                                                          value=float(_curr_price or 0),
+                                                          step=0.0001, format="%.4f",
+                                                          key=f"tx_price_{code}")
+                        with _f4:
+                            _shares_in = st.number_input("数量（股）", min_value=1,
+                                                           value=100, step=100,
+                                                           key=f"tx_shares_{code}")
+
+                        # 自动算手续费并实时显示
+                        try:
+                            import trade_fees as _tfees
+                            _fee_info = _tfees.calc_fees(code, _price_in or 0,
+                                                         int(_shares_in or 0), _act)
+                            _fee_auto = _fee_info["total"]
+                            _exch_label = "上交所" if _fee_info["exchange"] == "SH" else "深交所"
+                            _side_label = "买入" if _fee_info["side"] == "buy" else "卖出"
+                            _net_label = "总花费" if _fee_info["side"] == "buy" else "净收回"
+                            st.info(
+                                f"💰 **{_exch_label} · {_side_label}** · 成交金额 ¥{_fee_info['amount']:,.2f}"
+                                f" · 手续费 **¥{_fee_auto:,.2f}**（{_fee_info['breakdown']}）"
+                                f" · {_net_label} ¥{_fee_info['net']:,.2f}"
+                            )
+                        except Exception as _fe:
+                            _fee_auto = 0.0
+                            st.caption(f"⚠ 手续费自动计算失败：{_fe}（将按 0 记录）")
+
+                        _note_in = st.text_input("备注（可选）", key=f"tx_note_{code}",
+                                                  placeholder="如：达到买入目标价 / 触发止盈 / 分红再投")
+                        if st.button("✅ 记录这笔交易", key=f"tx_submit_{code}", type="primary"):
+                            ok, msg = _tlog.log_transaction(
+                                code, h.get('name', code), _act,
+                                _price_in, _shares_in,
+                                date=_date.strftime('%Y-%m-%d'),
+                                fee=_fee_auto, note=_note_in
+                            )
+                            if ok:
+                                # BUG-023：同步 transaction_log.json 到 GitHub
+                                try:
+                                    _tx_data = _tlog._load()
+                                    _gh_sha = st.session_state.get("tx_log_sha")
+                                    _new_sha = save_to_github("transaction_log.json",
+                                                                _tx_data, _gh_sha)
+                                    if _new_sha:
+                                        st.session_state["tx_log_sha"] = _new_sha
+                                except Exception as _te:
+                                    st.warning(f"⚠ 交易记录同步 GitHub 异常：{_te}")
+
+                                # BUG-024 修：交易记录是"唯一真相"，自动同步持仓表
+                                # 用 transaction_log.get_summary 重算 shares/cost
+                                # 这样用户在"建仓 400 + 加仓 300"后，持仓表自动变 700
+                                try:
+                                    _summary = _tlog.get_summary(code, current_price=_curr_price)
+                                    if _summary:
+                                        _new_shares = _summary['shares_held']
+                                        _new_cost = _summary['avg_cost'] or 0
+                                        # 更新 holdings 里对应的那只
+                                        for _hi, _hh in enumerate(holdings):
+                                            if str(_hh.get('code', '')).zfill(6) == code:
+                                                holdings[_hi]['shares'] = _new_shares
+                                                if _new_cost > 0:
+                                                    holdings[_hi]['cost'] = round(_new_cost, 4)
+                                                # 同步 buy_date（首次买入日期）
+                                                if _summary.get('first_buy_date'):
+                                                    holdings[_hi]['buy_date'] = _summary['first_buy_date']
+                                                break
+                                        # 保存持仓
+                                        if save_holdings_safely(holdings):
+                                            st.success(f"{msg}\n✅ 持仓表已自动同步：{_new_shares} 股 @ ¥{_new_cost:.4f}")
+                                        else:
+                                            st.warning(f"{msg}\n⚠ 交易已记录但持仓表同步失败")
+                                except Exception as _se:
+                                    st.warning(f"{msg}\n⚠ 持仓自动同步异常：{_se}")
+                                st.rerun()
+                            else:
+                                st.error(msg)
 
                         # 删除某条（误录修正）
                         if _hist:
@@ -2507,11 +2521,20 @@ with tab2:
                     # 这样持仓 + 交易明细保持一致，无需用户手工补录
                     try:
                         import transaction_log as _tlog
+                        # 自动按上/深交所费率算建仓手续费
+                        try:
+                            import trade_fees as _tfees
+                            _auto_fee = _tfees.calc_fees(
+                                new_h["code"], float(new_cost),
+                                int(new_shares), "buy")["total"]
+                        except Exception:
+                            _auto_fee = 0.0
                         ok_tx, _ = _tlog.log_transaction(
                             new_h["code"], new_h["name"], "buy",
                             price=float(new_cost),
                             shares=int(new_shares),
                             date=new_buy_date.strftime("%Y-%m-%d"),
+                            fee=_auto_fee,
                             note="添加持仓时自动记录的建仓",
                         )
                         if ok_tx:
