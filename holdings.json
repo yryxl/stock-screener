@@ -5,7 +5,8 @@
     "shares": 700,
     "cost": 4.915,
     "buy_date": "2026-03-12",
-    "attribution": "pre_model"
+    "attribution": "pre_model",
+    "venue": "onshore"
   },
   {
     "code": "000538",
@@ -13,7 +14,8 @@
     "shares": 100,
     "cost": 56.4,
     "buy_date": "2026-04-07",
-    "attribution": "pre_model"
+    "attribution": "pre_model",
+    "venue": "onshore"
   },
   {
     "code": "510500",
@@ -21,7 +23,8 @@
     "shares": 100,
     "cost": 8.502,
     "buy_date": "2026-03-12",
-    "attribution": "pre_model"
+    "attribution": "pre_model",
+    "venue": "onshore"
   },
   {
     "code": "512890",
@@ -29,6 +32,7 @@
     "shares": 3300,
     "cost": 1.221,
     "buy_date": "2026-03-20",
-    "attribution": "pre_model"
+    "attribution": "pre_model",
+    "venue": "onshore"
   }
 ]

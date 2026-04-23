@@ -2299,8 +2299,14 @@ with tab2:
                         else:
                             st.info("尚无交易记录。在下方表单记一笔，AI 后续可基于历史做分析。")
 
-                        # 录入新交易
-                        st.markdown("**➕ 记录新交易**（手续费自动按上/深交所规则计算，无需手填）")
+                        # 录入新交易 — 按持仓的 venue 字段分发场内/场外
+                        _h_venue = h.get("venue", "onshore")
+                        _is_offshore_tx = (_h_venue == "offshore")
+                        _venue_icon = "💰 场外" if _is_offshore_tx else "🏛️ 场内"
+                        _venue_hint = ("手续费请按支付宝账单手填"
+                                       if _is_offshore_tx
+                                       else "手续费自动按上/深交所规则计算")
+                        st.markdown(f"**➕ 记录新交易**（{_venue_icon} · {_venue_hint}）")
 
                         # 为实时预览手续费，用表单外的 widget（变更会触发 rerun）
                         _f1, _f2, _f3, _f4 = st.columns(4)
@@ -2315,39 +2321,69 @@ with tab2:
                             _date = st.date_input("交易日", key=f"tx_date_{code}")
                         with _f3:
                             # BUG-025: ETF 实际价常是 4.9151 这种 4 位小数，2 位会丢精度
-                            _price_in = st.number_input("成交单价", min_value=0.0,
-                                                          value=float(_curr_price or 0),
-                                                          step=0.0001, format="%.4f",
-                                                          key=f"tx_price_{code}")
+                            _price_in = st.number_input(
+                                "成交单价/净值" if _is_offshore_tx else "成交单价",
+                                min_value=0.0,
+                                value=float(_curr_price or 0),
+                                step=0.0001, format="%.4f",
+                                key=f"tx_price_{code}")
                         with _f4:
-                            _shares_in = st.number_input("数量（股）", min_value=1,
-                                                           value=100, step=100,
-                                                           key=f"tx_shares_{code}")
+                            if _is_offshore_tx:
+                                # 场外份额支持小数
+                                _shares_in = st.number_input(
+                                    "份额", min_value=0.01,
+                                    value=100.0, step=0.01, format="%.2f",
+                                    key=f"tx_shares_{code}")
+                            else:
+                                _shares_in = st.number_input(
+                                    "股数", min_value=1,
+                                    value=100, step=100,
+                                    key=f"tx_shares_{code}")
 
-                        # 自动算手续费并实时显示
-                        try:
-                            import trade_fees as _tfees
-                            _fee_info = _tfees.calc_fees(code, _price_in or 0,
-                                                         int(_shares_in or 0), _act)
-                            _fee_auto = _fee_info["total"]
-                            _exch_label = "上交所" if _fee_info["exchange"] == "SH" else "深交所"
-                            _side_label = "买入" if _fee_info["side"] == "buy" else "卖出"
-                            _net_label = "总花费" if _fee_info["side"] == "buy" else "净收回"
-                            st.info(
-                                f"💰 **{_exch_label} · {_side_label}** · 成交金额 ¥{_fee_info['amount']:,.2f}"
-                                f" · 手续费 **¥{_fee_auto:,.2f}**（{_fee_info['breakdown']}）"
-                                f" · {_net_label} ¥{_fee_info['net']:,.2f}"
+                        # 手续费：场内自动算 + 实时展示，场外改为手填
+                        if _is_offshore_tx:
+                            _fee_auto = st.number_input(
+                                "手续费（场外手填）",
+                                min_value=0.0, value=0.0, step=0.01, format="%.2f",
+                                key=f"tx_fee_manual_{code}",
+                                help="支付宝账单里的申购费/赎回费金额。不确定先填 0。"
                             )
-                        except Exception as _fe:
-                            _fee_auto = 0.0
-                            st.caption(f"⚠ 手续费自动计算失败：{_fe}（将按 0 记录）")
+                            _gross = (_price_in or 0) * (_shares_in or 0)
+                            _side = "买入" if _act in ("buy", "buy_add", "dividend") else "卖出"
+                            _net = (_gross + _fee_auto) if _side == "买入" else (_gross - _fee_auto)
+                            _net_label = "总花费" if _side == "买入" else "净收回"
+                            st.info(
+                                f"💰 **场外 · {_side}** · 成交金额 ¥{_gross:,.2f}"
+                                f" · 手续费 **¥{_fee_auto:,.2f}**（手填）"
+                                f" · {_net_label} ¥{_net:,.2f}"
+                            )
+                        else:
+                            try:
+                                import trade_fees as _tfees
+                                _fee_info = _tfees.calc_fees(code, _price_in or 0,
+                                                             int(_shares_in or 0), _act)
+                                _fee_auto = _fee_info["total"]
+                                _exch_label = "上交所" if _fee_info["exchange"] == "SH" else "深交所"
+                                _side_label = "买入" if _fee_info["side"] == "buy" else "卖出"
+                                _net_label = "总花费" if _fee_info["side"] == "buy" else "净收回"
+                                st.info(
+                                    f"💰 **{_exch_label} · {_side_label}** · 成交金额 ¥{_fee_info['amount']:,.2f}"
+                                    f" · 手续费 **¥{_fee_auto:,.2f}**（{_fee_info['breakdown']}）"
+                                    f" · {_net_label} ¥{_fee_info['net']:,.2f}"
+                                )
+                            except Exception as _fe:
+                                _fee_auto = 0.0
+                                st.caption(f"⚠ 手续费自动计算失败：{_fe}（将按 0 记录）")
 
                         _note_in = st.text_input("备注（可选）", key=f"tx_note_{code}",
                                                   placeholder="如：达到买入目标价 / 触发止盈 / 分红再投")
                         if st.button("✅ 记录这笔交易", key=f"tx_submit_{code}", type="primary"):
+                            # 场外份额不做 int 截断
+                            _shares_val = (float(_shares_in) if _is_offshore_tx
+                                           else int(_shares_in))
                             ok, msg = _tlog.log_transaction(
                                 code, h.get('name', code), _act,
-                                _price_in, _shares_in,
+                                _price_in, _shares_val,
                                 date=_date.strftime('%Y-%m-%d'),
                                 fee=_fee_auto, note=_note_in
                             )
@@ -2458,14 +2494,44 @@ with tab2:
             st.divider()
 
     st.subheader("➕ 添加持仓")
+    # 2026-04-23 REQ-202：场内/场外单选必须放在 form 外
+    # 因为 Streamlit form 在 submit 前不触发 rerun，form 内 if/else 只会用首次渲染的分支
+    # 放在 form 外 → radio 变更立即 rerun → form 里的 shares/cost widget 重建为对应类型
+    new_venue = st.radio(
+        "📍 场内 / 场外（建仓时选一次，加减仓自动跟随）",
+        options=["onshore", "offshore"],
+        index=0,
+        format_func=lambda x: "🏛️ 场内（股票、ETF）—— 手续费自动算" if x == "onshore"
+                               else "💰 场外（场外基金）—— 手续费手填",
+        horizontal=True,
+        key="add_venue",
+    )
+    _is_offshore = (new_venue == "offshore")
+
     with st.form("add_holding", clear_on_submit=True):
         c1, c2 = st.columns(2)
         with c1:
-            new_code = st.text_input("股票代码", placeholder="600519")
-            new_shares = st.number_input("股数", min_value=1, value=100, step=100)
+            new_code = st.text_input(
+                "代码",
+                placeholder="场外：110020 / 场内：600519",
+                help="场外基金和场内股票代码可能撞车，这里仅作区分靠你选的场内/场外"
+            )
+            # 场外基金份额支持小数（如 123.45 份），场内股票只能整数
+            if _is_offshore:
+                new_shares = st.number_input("份额（场外）", min_value=0.01,
+                                              value=100.0, step=0.01, format="%.2f")
+            else:
+                new_shares = st.number_input("股数（场内）", min_value=1,
+                                              value=100, step=100)
         with c2:
-            new_name = st.text_input("名称", placeholder="贵州茅台")
-            new_cost = st.number_input("成本价", min_value=0.01, value=10.0, step=0.01, format="%.3f")
+            new_name = st.text_input("名称", placeholder="贵州茅台 / 易方达沪深300ETF联接A")
+            # 场外基金净值精度到 4 位小数常见
+            if _is_offshore:
+                new_cost = st.number_input("成本价/净值", min_value=0.0001,
+                                            value=1.0, step=0.0001, format="%.4f")
+            else:
+                new_cost = st.number_input("成本价", min_value=0.01,
+                                            value=10.0, step=0.01, format="%.3f")
         c3, c4 = st.columns(2)
         with c3:
             # REQ-151 规则 C 需要：买入日期字段（用于"持有 >3 年累计负收益"判定）
@@ -2497,6 +2563,16 @@ with tab2:
             )
         except Exception:
             new_attribution = 'pre_model'
+        # 场外建仓时让用户手填一次建仓手续费（申购费）
+        if _is_offshore:
+            new_offshore_fee = st.number_input(
+                "建仓手续费（场外）",
+                min_value=0.0, value=0.0, step=0.01, format="%.2f",
+                help="支付宝交易记录里的「申购费」金额。不确定先填 0，之后在交易明细里修改"
+            )
+        else:
+            new_offshore_fee = None  # 场内走自动计算
+
         if st.form_submit_button("添加", use_container_width=True, type="primary"):
             if not new_code or not new_code.strip():
                 st.error("⚠ 股票代码不能为空")
@@ -2504,10 +2580,12 @@ with tab2:
                 new_h = {
                     "code": new_code.strip(),
                     "name": new_name.strip() or new_code.strip(),
-                    "shares": int(new_shares),
+                    # 场外份额可能是小数，不做 int 截断
+                    "shares": float(new_shares) if _is_offshore else int(new_shares),
                     "cost": float(new_cost),
                     "buy_date": new_buy_date.strftime("%Y-%m-%d"),
                     "attribution": new_attribution,  # 2026-04-19 归因字段
+                    "venue": new_venue,              # 2026-04-23 REQ-202
                 }
                 if new_cat.strip():
                     new_h["category"] = new_cat.strip()
@@ -2521,21 +2599,24 @@ with tab2:
                     # 这样持仓 + 交易明细保持一致，无需用户手工补录
                     try:
                         import transaction_log as _tlog
-                        # 自动按上/深交所费率算建仓手续费
-                        try:
-                            import trade_fees as _tfees
-                            _auto_fee = _tfees.calc_fees(
-                                new_h["code"], float(new_cost),
-                                int(new_shares), "buy")["total"]
-                        except Exception:
-                            _auto_fee = 0.0
+                        # 场内自动按上/深交所费率算；场外用用户手填
+                        if _is_offshore:
+                            _auto_fee = float(new_offshore_fee or 0.0)
+                        else:
+                            try:
+                                import trade_fees as _tfees
+                                _auto_fee = _tfees.calc_fees(
+                                    new_h["code"], float(new_cost),
+                                    int(new_shares), "buy")["total"]
+                            except Exception:
+                                _auto_fee = 0.0
                         ok_tx, _ = _tlog.log_transaction(
                             new_h["code"], new_h["name"], "buy",
                             price=float(new_cost),
-                            shares=int(new_shares),
+                            shares=float(new_shares) if _is_offshore else int(new_shares),
                             date=new_buy_date.strftime("%Y-%m-%d"),
                             fee=_auto_fee,
-                            note="添加持仓时自动记录的建仓",
+                            note="添加持仓时自动记录的建仓" + (" · 场外" if _is_offshore else ""),
                         )
                         if ok_tx:
                             # 同步 transaction_log 到 GitHub

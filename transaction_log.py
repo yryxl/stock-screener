@@ -97,6 +97,8 @@ def log_transaction(code, name, action, price, shares, date=None,
       action: 'buy' / 'buy_add' / 'sell_partial' / 'sell_all' / 'dividend'
       price: 成交单价（元）
       shares: 数量（正数；卖出/分红用 action 类型区分方向）
+        · 场内股票/ETF 是整数股
+        · 场外基金份额常带小数（2026-04-23 起支持）
       date: 实际交易日（'YYYY-MM-DD'，默认今天）
       fee: 手续费（元，默认 0）
       note: 备注
@@ -112,9 +114,17 @@ def log_transaction(code, name, action, price, shares, date=None,
     if not date:
         date = datetime.now(_BEIJING).strftime('%Y-%m-%d')
 
+    # 2026-04-23 REQ-202：场外基金份额是小数，整数截断会失真
+    # 判定：shares 是整数或能转 int 不丢精度 → int；否则 float（场外）
+    shares_raw = float(shares)
+    if shares_raw == int(shares_raw):
+        shares_store = int(shares_raw)
+    else:
+        shares_store = round(shares_raw, 4)  # 场外份额保留 4 位小数
+
     # 现金变动方向：买/分红再投是花钱（负），卖是拿回（正）
     is_buy = action in ('buy', 'buy_add', 'dividend')
-    cash_change = -(price * shares + fee) if is_buy else (price * shares - fee)
+    cash_change = -(price * shares_raw + fee) if is_buy else (price * shares_raw - fee)
 
     rec = {
         'code': code,
@@ -122,7 +132,7 @@ def log_transaction(code, name, action, price, shares, date=None,
         'date': date,
         'action': action,
         'price': float(price),
-        'shares': int(shares),
+        'shares': shares_store,
         'cash_change': round(cash_change, 2),
         'fee': round(float(fee), 2),
         'note': note or '',
@@ -131,7 +141,7 @@ def log_transaction(code, name, action, price, shares, date=None,
     data = _load()
     data.append(rec)
     if _save(data):
-        return True, f'已记录 {ACTIONS[action]} {name} {shares} 股 @ ¥{price}'
+        return True, f'已记录 {ACTIONS[action]} {name} {shares_store} 份/股 @ ¥{price}'
     return False, '保存失败'
 
 
@@ -224,6 +234,10 @@ def get_summary(code, current_price=None):
             # 清仓后重置平均成本（再买入会从新算）
             avg_cost_running = 0
 
+    # 场外基金减法会产生 127.58000000000001 这种浮点噪声，按 4 位小数收敛
+    if isinstance(shares_held, float):
+        _rounded = round(shares_held, 4)
+        shares_held = int(_rounded) if _rounded == int(_rounded) else _rounded
     summary = {
         'shares_held': shares_held,
         'avg_cost': round(avg_cost_running, 4) if shares_held > 0 else 0,
