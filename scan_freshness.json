@@ -18,19 +18,19 @@
     "first_fail_at": null
   },
   "002946": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "002832": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": "buy_light",
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "600612": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -60,7 +60,7 @@
     "first_fail_at": null
   },
   "003006": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -72,13 +72,13 @@
     "first_fail_at": null
   },
   "603198": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": "buy_medium",
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "603402": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": "sell_light",
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -90,13 +90,13 @@
     "first_fail_at": null
   },
   "002028": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "300750": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -108,7 +108,7 @@
     "first_fail_at": null
   },
   "000048": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -120,7 +120,7 @@
     "first_fail_at": null
   },
   "002568": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -138,13 +138,13 @@
     "first_fail_at": null
   },
   "002088": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "600132": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -156,13 +156,13 @@
     "first_fail_at": null
   },
   "603444": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "002130": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -174,7 +174,7 @@
     "first_fail_at": null
   },
   "000408": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -192,13 +192,13 @@
     "first_fail_at": null
   },
   "600096": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "600660": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -210,7 +210,7 @@
     "first_fail_at": null
   },
   "600750": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -234,13 +234,13 @@
     "first_fail_at": null
   },
   "603210": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "300192": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -258,13 +258,13 @@
     "first_fail_at": null
   },
   "000426": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "301596": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -276,7 +276,7 @@
     "first_fail_at": null
   },
   "301680": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -288,7 +288,7 @@
     "first_fail_at": null
   },
   "001356": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -300,7 +300,7 @@
     "first_fail_at": null
   },
   "603360": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -330,7 +330,7 @@
     "first_fail_at": null
   },
   "300360": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -342,19 +342,19 @@
     "first_fail_at": null
   },
   "000786": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "301560": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "603606": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -372,7 +372,7 @@
     "first_fail_at": null
   },
   "603288": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": "buy_watch",
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -384,13 +384,13 @@
     "first_fail_at": null
   },
   "003000": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "002172": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -408,7 +408,7 @@
     "first_fail_at": null
   },
   "000858": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": "buy_heavy",
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -420,7 +420,7 @@
     "first_fail_at": null
   },
   "301662": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -432,13 +432,13 @@
     "first_fail_at": null
   },
   "002262": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "301668": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -468,7 +468,7 @@
     "first_fail_at": null
   },
   "600600": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -486,13 +486,13 @@
     "first_fail_at": null
   },
   "301602": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "301590": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -504,19 +504,19 @@
     "first_fail_at": null
   },
   "301584": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "600690": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "301626": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -528,7 +528,7 @@
     "first_fail_at": null
   },
   "300972": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -540,97 +540,97 @@
     "first_fail_at": null
   },
   "605166": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "600066": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "300498": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "300570": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "002052": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "600396": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "300354": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "002124": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "603408": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "605016": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "002970": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "600900": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": "sell_light",
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "300492": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "002532": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "603156": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": "sell_light",
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "301656": {
-    "last_scanned_at": "2026-04-23T18:26:53+08:00",
+    "last_scanned_at": "2026-04-23T17:44:34+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
