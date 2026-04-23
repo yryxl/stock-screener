@@ -175,13 +175,25 @@ def get_realtime_quotes():
     - em 代码格式："000001"（无前缀），sina 代码格式："sz000001"（带 sh/sz/bj）
     - 兜底时自动去前缀，保持 screener 调用端格式一致
     - BUG-041：timeout 30s + ConnectionError 立即切换（不重试同源浪费时间）
+
+    2026-04-23 加 Pytdx 作为第三兜底（通达信协议，走 TCP 直连券商行情服务器，
+    和 HTTP 爬虫完全不同路径，能对抗"东财+新浪同挂"的极端场景）。
+    Pytdx 返回的 A 股只有 ~1500 只（少于 akshare 5000+），够覆盖主流持仓/关注。
     """
+    # 懒加载 Pytdx 封装（避免启动时强依赖，装不上时仅失去这一层兜底）
+    def _pytdx_fetch():
+        try:
+            from data_source_pytdx import get_realtime_quotes_pytdx
+            return get_realtime_quotes_pytdx()
+        except ImportError:
+            return None
+
     df = batch_fetch_with_timeout(
         ak.stock_zh_a_spot_em,
         timeout_sec=30,
         retry=2,
         delay=3,
-        alt_funcs=[ak.stock_zh_a_spot],  # 新浪源兜底
+        alt_funcs=[ak.stock_zh_a_spot, _pytdx_fetch],  # 新浪源 → Pytdx 兜底
     )
     if df is None or df.empty:
         return pd.DataFrame()
@@ -371,6 +383,7 @@ def get_financial_indicator(stock_code):
     多数据源自动切换，确保拿到数据：
     源1: stock_financial_analysis_indicator（新浪，列名"净资产收益率(%)"等）
     源2: stock_financial_abstract_ths（同花顺，列名"净资产收益率"等）
+    源3: Baostock（2026-04-23 加，证券宝官方落库，前两源都挂时兜底）
 
     注意：以前同花顺版本列名是乱码需要按位置映射，当前版本直接返回中文
     列名，无需 col_map。银行股列数 17（没有毛利率/流动比率是正常的），
@@ -416,6 +429,19 @@ def get_financial_indicator(stock_code):
                 return df_ths
     except Exception as e:
         pass
+
+    # 源3: Baostock（2026-04-23 加）
+    # 证券宝自维护落库，前两个源（都是爬虫）同挂时兜底。
+    # 不给"资产负债率"字段（Baostock 2024/2025 数据脏），其它 ROE/毛利/
+    # 净利/同比增长等核心指标可用。
+    try:
+        from data_source_baostock import get_financial_analysis_via_baostock
+        df_bs = get_financial_analysis_via_baostock(stock_code, lookback_years=10)
+        if df_bs is not None and not df_bs.empty:
+            print(f"  [OK] baostock 兜底成功 {stock_code}: {len(df_bs)} 行", flush=True)
+            return df_bs
+    except Exception as e:
+        print(f"  [!] baostock 兜底异常 {stock_code}: {e}", flush=True)
 
     return None
 
