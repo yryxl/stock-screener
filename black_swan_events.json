@@ -60,6 +60,49 @@
     }
   ],
 
+  "_company_events_comment": "个股级黑天鹅（董事长被查/业绩暴雷/基本面急转直下等）。模型拉推荐时应硬熔断——即使打分高也跳过，标记 🚨。由 AI 舆情筛查 skill 发现后登记。",
+  "company_events": [
+    {
+      "code": "000858",
+      "name": "五粮液",
+      "start": "2026-04-23",
+      "end": "2026-10-31",
+      "type": "management_investigation",
+      "impact": "severe",
+      "desc": "董事长被立案调查（严重违纪违法）；2025 Q3 营收-52.66%/净利-65.62%；普五电商双11跌至640元/瓶。模型 2026-04-22 分段 p4 给 buy_heavy 是踩坑，AI 舆情校验发现。",
+      "action_suggested": "硬熔断禁止买入；持仓考虑清仓。等新管理层明朗 + 至少 1 个季度财报企稳后再重新评估。",
+      "source_url": "https://www.huxiu.com/article/4849838.html",
+      "added_at": "2026-04-24",
+      "added_by": "AI 舆情筛查（news_screen skill）"
+    },
+    {
+      "code": "603277",
+      "name": "银都股份",
+      "start": "2026-04-22",
+      "end": "2026-07-31",
+      "type": "earnings_collapse",
+      "impact": "major",
+      "desc": "2026 Q1 归母净利润同比暴降 79.27%（扣非 -51.54%）。海外关税+汇率双压，模型 buy_watch 信号时点未反映 Q1 数据。",
+      "action_suggested": "跳过买入；等 Q2 财报验证是否企稳。",
+      "source_url": "https://q.stock.sohu.com/cn/603277/index.shtml",
+      "added_at": "2026-04-24",
+      "added_by": "AI 舆情筛查（news_screen skill）"
+    },
+    {
+      "code": "603439",
+      "name": "三力制药",
+      "start": "2026-01-24",
+      "end": "2026-10-31",
+      "type": "earnings_collapse",
+      "impact": "major",
+      "desc": "2025 全年净利预减 50%+（前三季营收 -28.24%/净利 -58.39%）。核心产品开喉剑喷雾剂需求下滑 + 中成药行业周期下行。",
+      "action_suggested": "跳过买入；中药集采扩围后还有二次下探风险。",
+      "source_url": "http://xinpi.zqrb.cn/pdf/SH/603439/2026/0124/20604c78917e1b727c4aa7346d20ef91.pdf",
+      "added_at": "2026-04-24",
+      "added_by": "AI 舆情筛查（news_screen skill）"
+    }
+  ],
+
   "trigger_rules": {
     "_note": "如何检测当前是否处于黑天鹅期",
     "automatic_detection": [
