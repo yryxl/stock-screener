@@ -100,6 +100,68 @@ def send_msg(access_token, openid, template_id, text):
     return template_ok
 
 
+def send_urgent_alert(config, alerts, now):
+    """独立紧急通道（REQ-205，2026-04-24）
+
+    用于 must_sell / 个股黑天鹅等紧急事件。
+    与常规 send_daily_report 分开，不受 push_sent_date 幂等约束，
+    但同一事件指纹（fingerprint）只推一次（在调用方 _check_urgent_alerts 里去重）。
+
+    alerts: [
+      {type: 'must_sell'|'black_swan', code, name, ...}, ...
+    ]
+    """
+    if not alerts:
+        return False
+    if config is None:
+        config = load_config()
+    wx = config["wechat"]
+    if wx["appid"] == "YOUR_APPID":
+        print("微信未配置，跳过紧急推送")
+        return False
+    access_token = get_access_token(wx["appid"], wx["appsecret"])
+    if not access_token:
+        return False
+    openid = wx["openid"]
+    template_id = wx["template_id"]
+
+    # 组装消息
+    date_str = now.strftime("%m-%d %H:%M")
+    lines = [f"🚨🚨 持仓紧急警报 {date_str}", ""]
+    for a in alerts:
+        code = a.get("code", "?")
+        name = a.get("name", "?")
+        if a.get("type") == "must_sell":
+            lines.append(f"🔴🔴 {name}({code}) 必须卖出")
+            sig = a.get("signal", "")
+            adv = a.get("advice", "")
+            if sig:
+                lines.append(f"  信号：{sig}")
+            if adv:
+                lines.append(f"  建议：{adv[:120]}")
+        elif a.get("type") == "black_swan":
+            lines.append(f"🚨 {name}({code}) 个股黑天鹅")
+            lines.append(f"  发生：{a.get('event_start', '?')}")
+            desc = a.get("desc", "")
+            action = a.get("action", "")
+            if desc:
+                lines.append(f"  原因：{desc[:100]}")
+            if action:
+                lines.append(f"  建议：{action[:80]}")
+        lines.append("")
+
+    msg = "\n".join(lines).strip()
+    if len(msg) < 20:
+        print(f"  [紧急通道] 跳过：消息过短")
+        return False
+    sent = send_msg(access_token, openid, template_id, msg)
+    if sent:
+        print(f"  [紧急通道] ✅ 已推送 {len(alerts)} 条紧急警报")
+    else:
+        print(f"  [紧急通道] 🚨 推送失败")
+    return sent
+
+
 # 信号分组（用emoji区分紧急程度，从安全→危险）
 SIGNAL_GROUPS = [
     # 买入信号（绿色系，从深到浅）

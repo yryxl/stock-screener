@@ -32,7 +32,7 @@ from screener import (
     check_watchlist_financial_health, check_fundamental_health,
     check_position_sizes, compare_opportunity_cost,
 )
-from notifier import send_daily_report, send_msg, get_access_token
+from notifier import send_daily_report, send_msg, get_access_token, send_urgent_alert
 from market_temperature import get_realtime_market_temperature
 from etf_monitor import scan_and_update_holdings_etfs, classify_portfolio
 from data_fetcher import (
@@ -696,6 +696,97 @@ def _auto_add_to_watchlist_legacy(candidates, max_new_per_day=10):
             print(f"     ... 等共 {len(new_picks)} 只")
     else:
         print(f"  📌 自动加入关注表: 0 只（无新候选符合条件）")
+
+
+def _check_urgent_alerts(config, now, trading):
+    """独立紧急通道（REQ-205，2026-04-24）
+
+    F-4 把所有非 send_ai cron 的推送都禁了，代价是持仓紧急卖出信号不再
+    实时推。这个函数补上紧急通道：
+      - 持仓里 must_sell=True（基本面恶化/护城河松动）→ 立即推
+      - 持仓命中 black_swan_filter.company_events → 立即推
+
+    幂等：用 fingerprint 去重，同一事件只推一次
+      - must_sell:{code}
+      - black_swan:{code}:{event_start}
+    事件解除后自动清理（fingerprint 从 daily_results.urgent_pushed 移除）
+
+    任何 mode 跑完后调用（不受 push_sent_date 约束）
+    """
+    if not trading:
+        return False
+    holdings = load_json("holdings.json") or []
+    if not holdings:
+        return False
+    dr = load_json("daily_results.json") or {}
+    if not isinstance(dr, dict):
+        dr = {}
+    already_pushed = set(dr.get("urgent_pushed", []) or [])
+    holding_signals = dr.get("holding_signals", []) or []
+    sig_by_code = {str(s.get("code", "")).zfill(6): s for s in holding_signals if s.get("code")}
+
+    new_alerts = []          # [(fingerprint, alert_dict), ...]
+    active_fingerprints = set()  # 本次扫描到的所有活跃指纹
+
+    try:
+        from black_swan_filter import check_company_black_swan
+    except Exception as _e:
+        print(f"[紧急通道] 黑天鹅过滤器加载失败：{_e}")
+        check_company_black_swan = lambda c: None
+
+    for h in holdings:
+        code = str(h.get("code", "")).zfill(6)
+        name = h.get("name", code)
+        sig = sig_by_code.get(code, {})
+
+        # 触发 1：must_sell
+        if sig.get("must_sell"):
+            fp = f"must_sell:{code}"
+            active_fingerprints.add(fp)
+            if fp not in already_pushed:
+                new_alerts.append((fp, {
+                    "code": code, "name": name, "type": "must_sell",
+                    "signal": sig.get("signal", ""),
+                    "advice": sig.get("pnl_advice", "") or sig.get("signal_text", ""),
+                }))
+
+        # 触发 2：黑天鹅命中
+        event = check_company_black_swan(code, now)
+        if event:
+            fp = f"black_swan:{code}:{event.get('start', '')}"
+            active_fingerprints.add(fp)
+            if fp not in already_pushed:
+                new_alerts.append((fp, {
+                    "code": code, "name": name, "type": "black_swan",
+                    "desc": event.get("desc", ""),
+                    "action": event.get("action_suggested", ""),
+                    "event_start": event.get("start"),
+                }))
+
+    # 清理已解除的 fingerprint（不再活跃的）
+    updated_pushed = already_pushed & active_fingerprints
+
+    # 推送新紧急事件
+    if new_alerts:
+        try:
+            sent = send_urgent_alert(config, [a[1] for a in new_alerts], now)
+            if sent:
+                for fp, _ in new_alerts:
+                    updated_pushed.add(fp)
+        except Exception as _e:
+            print(f"[紧急通道] 推送异常：{_e}")
+    else:
+        print(f"[紧急通道] 无新紧急事件（活跃 {len(active_fingerprints)} 条已推过）")
+
+    # 写回 daily_results（即使无新推送，也可能有清理需要持久化）
+    if set(dr.get("urgent_pushed", []) or []) != updated_pushed:
+        dr["urgent_pushed"] = sorted(updated_pushed)
+        try:
+            save_json("daily_results.json", dr)
+        except Exception as _e:
+            print(f"[紧急通道] 写回 urgent_pushed 失败：{_e}")
+
+    return len(new_alerts) > 0
 
 
 def _ensure_daily_push_sent(config, now, trading, mode):
@@ -1542,6 +1633,14 @@ def main():
         _ensure_daily_push_sent(config, now, trading, mode)
     except Exception as _e:
         print(f"⚠ 推送兜底逻辑异常（不影响主流程）：{_e}")
+
+    # REQ-205（2026-04-24）：独立紧急通道
+    # 与常规推送分开，不受 push_sent_date 幂等约束
+    # 用 fingerprint 去重：同一紧急事件只推一次，事件解除后清理
+    try:
+        _check_urgent_alerts(config, now, trading)
+    except Exception as _e:
+        print(f"⚠ 紧急通道异常（不影响主流程）：{_e}")
 
     print(f"\n=== 完成 ===")
 
