@@ -168,6 +168,11 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
     # 合并所有信号（持仓优先去重，避免同一股票两条矛盾信号）
     # 优先级：holding_signals > candidates > watchlist_signals
     # 同一 code 只保留最优先的那条
+    #
+    # F-1（2026-04-24 用户反馈）：推送规则
+    #   - holding_signals 全发（持仓的买卖都要知道）
+    #   - candidates / watchlist_signals 只发买入信号（sell_* 是全市场扫出来的
+    #     非持仓股，推给用户没意义还添堵）
     all_signals = []
     seen_codes = set()
     for s in holding_signals:
@@ -178,12 +183,17 @@ def send_daily_report(watchlist_signals, candidates, holding_signals,
                 seen_codes.add(code)
     for s in candidates:
         code = s.get("code")
-        if code and code not in seen_codes and s.get("signal") and s["signal"] not in ("hold", None):
+        sig = s.get("signal") or ""
+        # 只保留买入信号（buy_heavy/buy_medium/buy_light/buy_watch/buy_add）
+        # 跳过 sell_* / hold / None
+        if code and code not in seen_codes and sig.startswith("buy"):
             all_signals.append(s)
             seen_codes.add(code)
     for s in watchlist_signals:
         code = s.get("code")
-        if code and code not in seen_codes and s.get("signal") and s["signal"] not in ("hold", None):
+        sig = s.get("signal") or ""
+        # 同 candidates，只保留买入信号
+        if code and code not in seen_codes and sig.startswith("buy"):
             all_signals.append(s)
             seen_codes.add(code)
 
