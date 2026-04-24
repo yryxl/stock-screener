@@ -2171,11 +2171,13 @@
   "etf_unmapped": [],
   "market_temperature": {
     "level": 0,
-    "label": "⚪正常",
-    "description": "温度计数据拉取失败",
-    "current_pe": null,
-    "percentile": null,
-    "as_of": "2026-04-24"
+    "label": "⚪ 正常·按节奏",
+    "description": "估值处于合理区间（历史 30%-70% 分位）。按自己的定投/选股节奏执行，不因估值做大调整。巴菲特大多数时候都处在这个状态。",
+    "current_pe_median": 21.33,
+    "percentile": 47.5,
+    "lookback_years": 10,
+    "as_of": "2026-04",
+    "data_points": 120
   },
   "position_warnings": [
     {
