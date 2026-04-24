@@ -1017,12 +1017,10 @@ def main():
         existing = load_json("daily_results.json")
         merged = merge_daily_data(existing if isinstance(existing, dict) else {}, new_data)
         save_json("daily_results.json", merged)
-        send_daily_report(
-            watchlist_signals=[],
-            candidates=[],
-            holding_signals=holding_signals,
-            config=config,
-        )
+        # F-4（2026-04-24 用户反馈）：holdings 模式不再直推微信
+        # 用户原意"晚上分段跑 + 早 9 点合并后一次性推"
+        # 12:30/15:10 的 holdings cron 只更新数据，不推送
+        # 紧急持仓卖出信号会通过次日 09:05 send_ai / D-007 兜底合并推送
 
     elif mode == "watchlist":
         watchlist_signals = run_watchlist(config)
@@ -1068,15 +1066,9 @@ def main():
         merged = merge_daily_data(existing if isinstance(existing, dict) else {}, new_data)
         save_json("daily_results.json", merged)
 
-        # 推送（用同一份 ai_recs，保证微信和Streamlit一致）
-        send_daily_report(
-            watchlist_signals=[],
-            candidates=ai_recs,
-            holding_signals=holding_signals,
-            position_warnings=position_warnings,
-            swap_suggestions=swap_suggestions,
-            config=config,
-        )
+        # F-4（2026-04-24）：watchlist 模式不再直推微信
+        # 18:00/22:00 的 watchlist cron 只更新数据，不推送
+        # 数据写到 daily_results.json，用户前端刷新看；紧急信号次日 09:05 合并推送
 
     elif mode == "full":
         ai_recs = run_full_scan(config)
