@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-24 11:42",
-  "mode": "merge_full_with_fallback_push",
+  "date": "2026-04-24 11:50",
+  "mode": "patch_round_with_fallback_push",
   "is_trading_day": true,
-  "data_source": "merge_full + 复用当天 cache",
+  "data_source": "patch_round + 复用当天 cache",
   "ai_recommendations": [
     {
       "code": "000858",
