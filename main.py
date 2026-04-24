@@ -785,6 +785,32 @@ def _ensure_daily_push_sent(config, now, trading, mode):
         print(f"  ✅ 补跑 merge 完成：{len(_all_recs)} 条推荐 / {len(_merged_files)} 个段文件")
     else:
         ai_recs = cache.get("ai_recommendations", []) if isinstance(cache, dict) else []
+        _merged_files = []  # 没补跑时 merged_files 为空
+
+    # D-009（2026-04-24）：不管是就地补跑 merge 还是用现成 cache，
+    # 都要把 ai_recs 合并回 daily_results.json
+    # 不然前端（读 daily_results）和微信（读 cache）内容不一致
+    # 04-24 11:08 实测：微信 29 条，前端只看到 1 条陈旧数据
+    if ai_recs:
+        try:
+            _existing = load_json("daily_results.json")
+            _src_label = (f"{mode} + 兜底合并 6 段（{len(_merged_files)} 个文件）"
+                          if _merged_files else f"{mode} + 复用当天 cache")
+            _new_data = {
+                "date": now.strftime("%Y-%m-%d %H:%M"),
+                "mode": f"{mode}_with_fallback_push",
+                "is_trading_day": trading,
+                "data_source": _src_label,
+                "ai_recommendations": ai_recs,
+            }
+            if _merged_files:
+                _new_data["merged_files"] = _merged_files
+            _merged_dr = merge_daily_data(
+                _existing if isinstance(_existing, dict) else {}, _new_data)
+            save_json("daily_results.json", _merged_dr)
+            print(f"[D-007] ✅ daily_results 已同步（{len(ai_recs)} 条 ai_recommendations）")
+        except Exception as _me:
+            print(f"[D-007] ⚠ daily_results 同步失败：{_me}")
 
     # 发推送
     today_md = now.strftime("%m-%d")
