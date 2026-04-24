@@ -698,6 +698,123 @@ def _auto_add_to_watchlist_legacy(candidates, max_new_per_day=10):
         print(f"  📌 自动加入关注表: 0 只（无新候选符合条件）")
 
 
+def _ensure_daily_push_sent(config, now, trading, mode):
+    """D-007（2026-04-24）：每日推送兜底。
+
+    GitHub Actions 经常跳过 08:55 send_ai / 09:05 备份 cron（实测已连续
+    两天发生），导致用户收不到当天推送。这个函数在 holdings / patch_round /
+    watchlist / merge_full 模式末尾调用，如果满足：
+      1. 是交易日
+      2. 当前北京时间在 9:00 ~ 12:00
+      3. 今天还没发过推送（查 last_push_log.json）
+    就读 market_scan_cache.json 发一次推送；如果 cache 日期不是今天，先
+    就地跑一次 merge 逻辑再发（复用 send_ai 兜底 merge 那套）。
+
+    幂等：成功发送后写 last_push_log.json，同一天其它 cron 再调用会直接跳过。
+
+    返回：True=发送了一次推送；False=跳过
+    """
+    if mode in ("send_ai", "reanalyze"):
+        return False  # send_ai 自己会发（且会写 last_push_log），reanalyze 调试模式不发
+    if not trading:
+        return False
+
+    bj_hour = now.hour
+    # 推送时间窗口：9:00 ~ 12:00 北京
+    # 留 3 小时窗口给 GitHub 跳过后的补救 cron
+    if bj_hour < 9 or bj_hour >= 12:
+        return False
+
+    today_str = now.strftime("%Y-%m-%d")
+    # 查今日是否发过
+    push_log = load_json("last_push_log.json")
+    if isinstance(push_log, dict) and push_log.get("date") == today_str:
+        print(f"[D-007] 今日已发过推送（{push_log.get('sent_at', '?')}），跳过补发")
+        return False
+
+    print(f"[D-007] 当前 {bj_hour}:xx 北京 · 今日未推送 → 准备补发")
+
+    # 读 cache；若非当天，就地补一次 merge
+    cache = load_json("market_scan_cache.json")
+    cache_date = cache.get("date", "") if isinstance(cache, dict) else ""
+
+    if cache_date != today_str:
+        print(f"  cache 日期={cache_date}，非当天 → 补跑 merge（读 6 段 + 当天 patch）")
+        import glob as _glob
+        _all_recs = []
+        _seen = set()
+        _merged_files = []
+        _today_yyyymmdd = now.strftime("%Y%m%d")
+        for _p in range(1, 7):
+            _f = os.path.join(os.path.dirname(__file__),
+                                f"market_scan_full_p{_p}.json")
+            if os.path.exists(_f):
+                try:
+                    _data = load_json(f"market_scan_full_p{_p}.json")
+                    if isinstance(_data, dict):
+                        for _s in _data.get("ai_recommendations", []):
+                            _c = str(_s.get("code", "")).zfill(6)
+                            if _c and _c not in _seen:
+                                _seen.add(_c)
+                                _s["source"] = f"段 {_p}"
+                                _all_recs.append(_s)
+                        _merged_files.append(f"p{_p}")
+                except Exception as _e:
+                    print(f"    段 {_p} 读取失败：{_e}")
+        _patch_pat = os.path.join(os.path.dirname(__file__),
+                                    f"market_scan_patch_{_today_yyyymmdd}_*.json")
+        for _pf in sorted(_glob.glob(_patch_pat)):
+            try:
+                _fname = os.path.basename(_pf)
+                _data = load_json(_fname)
+                if isinstance(_data, dict):
+                    for _s in _data.get("ai_recommendations", []):
+                        _c = str(_s.get("code", "")).zfill(6)
+                        if _c and _c not in _seen:
+                            _seen.add(_c)
+                            _s["source"] = "补漏"
+                            _all_recs.append(_s)
+            except Exception as _e:
+                print(f"    补漏文件 {_pf} 读取失败：{_e}")
+        # 写 cache 让下次模式能直接用
+        save_json("market_scan_cache.json", {
+            "date": today_str,
+            "ai_recommendations": _all_recs,
+        })
+        ai_recs = _all_recs
+        print(f"  ✅ 补跑 merge 完成：{len(_all_recs)} 条推荐 / {len(_merged_files)} 个段文件")
+    else:
+        ai_recs = cache.get("ai_recommendations", []) if isinstance(cache, dict) else []
+
+    # 发推送
+    today_md = now.strftime("%m-%d")
+    try:
+        if ai_recs:
+            send_daily_report(
+                watchlist_signals=[],
+                candidates=ai_recs,
+                holding_signals=[],
+                config=config,
+            )
+            _msg_summary = f"{len(ai_recs)} 条推荐"
+        else:
+            send_simple_msg(config, f"芒格选股 {today_md}\n\nAI全市场扫描暂无推荐\n继续观察")
+            _msg_summary = "无推荐"
+        # 写 push log 实现幂等
+        save_json("last_push_log.json", {
+            "date": today_str,
+            "sent_at": now.isoformat(timespec="seconds"),
+            "triggered_by": mode,  # 记录是哪个 cron 兜底发的
+            "recs_count": len(ai_recs),
+            "summary": _msg_summary,
+        })
+        print(f"[D-007] ✅ 兜底推送发送成功（{mode} · {_msg_summary}）")
+        return True
+    except Exception as _e:
+        print(f"[D-007] ⚠ 兜底推送失败：{_e}")
+        return False
+
+
 def _inject_market_temperature():
     """
     获取实时市场温度并注入 daily_results.json 的 market_temperature 字段
@@ -1001,15 +1118,17 @@ def main():
                         watchlist_codes.append(c)
 
             # 漏跑列表（按持仓优先 + fails 倒序）
-            # 2026-04-23：加 max_lag_hours=24 ——
-            # GitHub Actions 有时整段跳过 cron（如 2026-04-23 的 21:00/03:00 北京全段）
-            # 这批股 fails=0 进不了补漏名单 → 补时间兜底
+            # 2026-04-23：加 max_lag_hours=24 兜底整段被 GitHub 跳过的情况
+            # 2026-04-24 D-006：放宽到 30 小时
+            # 背景：04-24 00:28 北京 patch_round 用 24h 阈值拉起 136 只股花了 67 分钟
+            # 逼近 75 分钟 step timeout。30h 减少拉起量（24h 周期正常能覆盖，6h 缓冲）
+            # 配合 D-005 全局 socket timeout，防止某只股 hang 死整段
             stale = get_stale_stocks(
                 priority_holdings=non_etf_holdings,
                 priority_etf=etf_codes,
                 priority_watchlist=watchlist_codes,
                 max_count=1100,  # 单轮上限
-                max_lag_hours=24,
+                max_lag_hours=30,
             )
             stale_codes = [c for c, _, _ in stale]
 
@@ -1194,6 +1313,18 @@ def main():
         else:
             send_simple_msg(config, f"芒格选股 {today}\n\nAI全市场扫描暂无推荐\n继续观察")
 
+        # D-007（2026-04-24）：写 push log 让兜底逻辑知道"今天已发过"不重发
+        try:
+            save_json("last_push_log.json", {
+                "date": now.strftime("%Y-%m-%d"),
+                "sent_at": now.isoformat(timespec="seconds"),
+                "triggered_by": "send_ai",
+                "recs_count": len(ai_recs),
+                "summary": f"{len(ai_recs)} 条推荐" if ai_recs else "无推荐",
+            })
+        except Exception as _pe:
+            print(f"  ⚠ push log 写入失败：{_pe}")
+
         # TODO-022 第 4 批：freshness 报警单独推一条
         # 列出"持仓+ETF 红色 / 关注 红色 / 候选股聚合超阈值"的清单
         try:
@@ -1355,6 +1486,14 @@ def main():
     # 温度已在开头注入，这里只跑 ETF 监测（依赖已注入的 market_temp_level）
     if mode not in ("reanalyze",):
         _inject_etf_monitor()
+
+    # D-007（2026-04-24）：每日推送兜底
+    # 防 GitHub 跳过 08:55 send_ai / 09:05 备份（04-22 ~ 04-24 连续三天发生）
+    # 9-12 点任何 cron 跑完都会检查"今天有没有发过推送"，没发就补发
+    try:
+        _ensure_daily_push_sent(config, now, trading, mode)
+    except Exception as _e:
+        print(f"⚠ 推送兜底逻辑异常（不影响主流程）：{_e}")
 
     print(f"\n=== 完成 ===")
 

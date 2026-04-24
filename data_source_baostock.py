@@ -24,12 +24,21 @@ _LOGGED_IN = False
 
 
 def _ensure_login() -> bool:
-    """首次调用时登录 Baostock。已登录则直接返回 True。"""
+    """首次调用时登录 Baostock。已登录则直接返回 True。
+
+    D-008（2026-04-24）：临时收紧 socket timeout 到 10 秒保护 bs.login()
+    Baostock 的 login 走 TCP 直连证券宝服务器，如果服务器挂了 / GHA IP 被屏蔽，
+    默认可能 hang 好几分钟。临时设 10s 让 login 快速失败，外层 fallback 到
+    akshare 主源或直接返回 None。登录成功后恢复 data_fetcher 设置的 30s 默认值。
+    """
     global _LOGGED_IN
     if _LOGGED_IN:
         return True
+    import socket as _socket
+    _orig_timeout = _socket.getdefaulttimeout()
     try:
         import baostock as bs
+        _socket.setdefaulttimeout(10)  # login 限 10s
         r = bs.login()
         if r.error_code == "0":
             _LOGGED_IN = True
@@ -39,6 +48,8 @@ def _ensure_login() -> bool:
     except Exception as e:
         print(f"  [baostock] 登录异常: {e}", flush=True)
         return False
+    finally:
+        _socket.setdefaulttimeout(_orig_timeout)
 
 
 def _logout():

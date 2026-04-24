@@ -5,11 +5,22 @@
 
 import json
 import os
+import socket
 import time
 import platform
 import akshare as ak
 import pandas as pd
 import numpy as np
+
+# D-005（2026-04-24）：全局 socket 默认超时
+# BUG-037 外层 SIGALRM(60s) 在单股入口保护，但 CPython 的信号
+# 只在 Python 解释器可响应时才传递，akshare 底层 requests 走 C 扩展的
+# socket.recv() 没有 timeout 时，SIGALRM 会被延迟到 syscall 返回才处理。
+# 04-23 23:18 full_p4 实测日志里静默 45 分钟 = 卡在这种底层 socket 上。
+# 设 30s 全局 timeout，任何 socket.read() 超时会抛 socket.timeout
+# 被上层 try/except 捕获 → 走 retry / fallback，不会 hang 整段。
+# 副作用：正常的 ak 调用 < 10s，30s 足够宽松不会误伤。
+socket.setdefaulttimeout(30)
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _INDUSTRY_CACHE_FILE = os.path.join(_SCRIPT_DIR, "stock_industry_cache.json")
