@@ -1,0 +1,106 @@
+{
+  "_comment": "行业周期 vs 结构性判断（D-011 / REQ-204）。用于识别巴菲特式抄底时机：行业整体下行 + 十年王者 = 抄底候选（前提行业是周期性而非结构性）。",
+  "_usage": "industry_cycle_filter.classify_industry_trend(industry_str) 返回 cyclical/structural_decline/neutral",
+  "_source": "MODEL_RULES.md 第 373 行 TODO + 巴菲特 2008 买高盛/富国 + 芒格 inversion（问\"3 年后这个行业还在吗\"）",
+  "_version": "1.0",
+  "_created_at": "2026-04-24",
+
+  "_cyclical_comment": "周期性行业：需求端未被永久摧毁，技术未被颠覆，只是暂时疲软/估值压制。可以按'行业整体跌+十年王者'抄底。原则是'3 年后行业仍在且规模不退'",
+  "cyclical_industries": [
+    "白酒",
+    "酿酒",
+    "啤酒",
+    "其他酒",
+    "饮料",
+    "乳品",
+    "调味品",
+    "银行",
+    "股份制银行",
+    "城商行",
+    "保险",
+    "证券",
+    "家电",
+    "白色家电",
+    "小家电",
+    "厨卫电器",
+    "家用轻工",
+    "化工",
+    "基础化工",
+    "化学制品",
+    "石油化工",
+    "煤炭",
+    "煤炭开采",
+    "钢铁",
+    "普钢",
+    "特钢",
+    "有色金属",
+    "工业金属",
+    "汽车",
+    "汽车整车",
+    "汽车零部件",
+    "消费电子",
+    "半导体",
+    "航运港口",
+    "工程机械",
+    "专用设备",
+    "通用设备",
+    "水泥",
+    "玻璃",
+    "造纸",
+    "纺织服装",
+    "品牌服饰",
+    "家居",
+    "建材",
+    "房地产开发",
+    "物业管理"
+  ],
+
+  "_structural_decline_comment": "结构性衰退：需求永久萎缩 / 政策根本转向 / 技术颠覆 / 人口结构不可逆。即使便宜也不建议买入（Waumbec Mills 反例）",
+  "structural_decline_industries": [
+    "教育培训",
+    "K12教育",
+    "教培",
+    "学前教育",
+    "传统媒体",
+    "报业",
+    "出版印刷",
+    "传统照相",
+    "磁带光盘",
+    "景点门票"
+  ],
+
+  "_structural_decline_details_comment": "结构性衰退的详细判定依据（供未来追加到模型熔断规则的参考）",
+  "structural_decline_details": [
+    {
+      "industry": "教育培训",
+      "reason": "2021-07 双减政策，K12 学科培训全面转非营利",
+      "inversion": "3 年后 K12 学科培训会消失或规模缩至 5% 以下",
+      "since": "2021-07-24"
+    },
+    {
+      "industry": "传统媒体",
+      "reason": "数字广告替代纸媒广告，年轻人不看报纸杂志",
+      "inversion": "3 年后纸媒广告规模仍会萎缩",
+      "since": "2015-01-01"
+    }
+  ],
+
+  "_boundary_cases_comment": "模糊地带（暂归 neutral，不触发抄底也不拦截）",
+  "boundary_cases": [
+    {
+      "industry": "互联网平台",
+      "reason": "政策深远但行业仍在，周期+结构混合",
+      "recommendation": "neutral"
+    },
+    {
+      "industry": "医药",
+      "reason": "中药周期、创新药结构、仿制药被集采结构，内部差异大",
+      "recommendation": "neutral，按细分行业具体判断"
+    },
+    {
+      "industry": "新能源",
+      "reason": "补贴退坡是周期，技术路线分化是结构",
+      "recommendation": "neutral"
+    }
+  ]
+}

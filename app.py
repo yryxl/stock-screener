@@ -871,10 +871,18 @@ with tab1:
                             st.metric("评分", f"{score}/50" if score else "—")
                         with col4:
                             st.caption(s.get("signal_text", ""))
-                            # REQ-203：个股黑天鹅警示（红色条，保留在推荐列表但醒目提示）
+                            # REQ-203：个股黑天鹅警示（红色条）
                             _bs = s.get("black_swan_warning") or {}
                             if _bs:
                                 st.error(_bs.get("warning_text", ""))
+                            # REQ-204：行业周期抄底候选（金色⭐）
+                            _co = s.get("cycle_opportunity") or {}
+                            if _co:
+                                st.success(_co.get("text", ""))
+                            # REQ-204：行业结构性衰退警示（黄色⚠）
+                            _tw = s.get("industry_trend_warning") or {}
+                            if _tw:
+                                st.warning(_tw.get("text", ""))
                         with col5:
                             if code in watchlist_codes:
                                 st.button("已关注", key=f"ai_{code}", disabled=True)
@@ -2050,6 +2058,14 @@ with tab2:
                     _bs_warn = sig_data.get("black_swan_warning") or {}
                     if _bs_warn:
                         st.error(_bs_warn.get("warning_text", ""))
+                    # REQ-204：持仓里的行业周期抄底候选（鼓励加仓）
+                    _co = sig_data.get("cycle_opportunity") or {}
+                    if _co:
+                        st.success(_co.get("text", ""))
+                    # REQ-204：持仓里的行业结构性衰退警示（考虑减仓）
+                    _tw = sig_data.get("industry_trend_warning") or {}
+                    if _tw:
+                        st.warning(_tw.get("text", ""))
                 with col6:
                     _notes_btn = "📝" + ("🔔" if _has_alert else "")
                     if st.button(_notes_btn, key=f"notes_h_{i}", help="查看/编辑备注和提醒"):

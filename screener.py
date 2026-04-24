@@ -774,6 +774,17 @@ def screen_single_stock(code, config, quotes_df):
         # 过滤器失败不阻塞扫描主流程
         pass
 
+    # REQ-204（2026-04-24）：行业周期 vs 结构性判断
+    # 实现"行业整体跌 + 好公司（十年王者）= 巴菲特式抄底候选"
+    # 也识别"结构性衰退行业"（教培/传统地产式）即使便宜也不建议买入
+    # 数据源：industry_classification.json → cyclical / structural_decline / neutral
+    try:
+        from industry_cycle_filter import attach_industry_trend_to_result
+        attach_industry_trend_to_result(result, industry,
+                                         is_10y_king=result.get("is_10y_king", False))
+    except Exception as _ic_e:
+        pass
+
     # 提取核心财务指标原始值（前端展示用）
     if not df_annual.empty:
         _latest = df_annual.iloc[0]
