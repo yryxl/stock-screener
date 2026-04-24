@@ -2145,5 +2145,8 @@
       "tier": "普通标的",
       "text": "仓位40.4% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
-  ]
+  ],
+  "push_sent_date": "2026-04-24",
+  "push_sent_at": "2026-04-24T11:43:06+08:00",
+  "push_triggered_by": "merge_full_manual_fix"
 }

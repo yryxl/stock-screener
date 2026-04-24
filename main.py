@@ -726,10 +726,16 @@ def _ensure_daily_push_sent(config, now, trading, mode):
         return False
 
     today_str = now.strftime("%Y-%m-%d")
-    # 查今日是否发过
-    push_log = load_json("last_push_log.json")
-    if isinstance(push_log, dict) and push_log.get("date") == today_str:
-        print(f"[D-007] 今日已发过推送（{push_log.get('sent_at', '?')}），跳过补发")
+    # D-010（2026-04-24）：幂等状态改存 daily_results.json 里
+    # 原 last_push_log.json 未在 yml 的 commit 列表里，每次 run 开头
+    # `git reset --hard` 把它清掉 → D-007 每次都以为"今天没发过"
+    # 实测 04-24 11:42 merge_full run 又重复推了一次 29 条。
+    # 改用 daily_results.push_sent_date 字段（daily_results 已被 yml 备份+提交）
+    existing_dr = load_json("daily_results.json")
+    if (isinstance(existing_dr, dict)
+            and existing_dr.get("push_sent_date") == today_str):
+        _sent_at = existing_dr.get("push_sent_at", "?")
+        print(f"[D-007] 今日已发过推送（{_sent_at}），跳过补发")
         return False
 
     print(f"[D-007] 当前 {bj_hour}:xx 北京 · 今日未推送 → 准备补发")
@@ -787,10 +793,11 @@ def _ensure_daily_push_sent(config, now, trading, mode):
         ai_recs = cache.get("ai_recommendations", []) if isinstance(cache, dict) else []
         _merged_files = []  # 没补跑时 merged_files 为空
 
-    # D-009（2026-04-24）：不管是就地补跑 merge 还是用现成 cache，
-    # 都要把 ai_recs 合并回 daily_results.json
+    # D-009/010（2026-04-24）：不管是就地补跑 merge 还是用现成 cache，
+    # 都要把 ai_recs 合并回 daily_results.json + 写 push_sent_date 幂等标记
     # 不然前端（读 daily_results）和微信（读 cache）内容不一致
     # 04-24 11:08 实测：微信 29 条，前端只看到 1 条陈旧数据
+    _push_marker_written = False
     if ai_recs:
         try:
             _existing = load_json("daily_results.json")
@@ -802,12 +809,21 @@ def _ensure_daily_push_sent(config, now, trading, mode):
                 "is_trading_day": trading,
                 "data_source": _src_label,
                 "ai_recommendations": ai_recs,
+                # D-010 幂等标记（随 daily_results 自动提交到 GitHub）
+                "push_sent_date": today_str,
+                "push_sent_at": now.isoformat(timespec="seconds"),
+                "push_triggered_by": mode,
             }
             if _merged_files:
                 _new_data["merged_files"] = _merged_files
             _merged_dr = merge_daily_data(
                 _existing if isinstance(_existing, dict) else {}, _new_data)
+            # merge_daily_data 不认识 push_sent_date → 需要手动保留
+            _merged_dr["push_sent_date"] = today_str
+            _merged_dr["push_sent_at"] = _new_data["push_sent_at"]
+            _merged_dr["push_triggered_by"] = mode
             save_json("daily_results.json", _merged_dr)
+            _push_marker_written = True
             print(f"[D-007] ✅ daily_results 已同步（{len(ai_recs)} 条 ai_recommendations）")
         except Exception as _me:
             print(f"[D-007] ⚠ daily_results 同步失败：{_me}")
@@ -826,7 +842,20 @@ def _ensure_daily_push_sent(config, now, trading, mode):
         else:
             send_simple_msg(config, f"芒格选股 {today_md}\n\nAI全市场扫描暂无推荐\n继续观察")
             _msg_summary = "无推荐"
-        # 写 push log 实现幂等
+        # D-010 幂等：无 ai_recs 时上面 _push_marker_written=False，这里补写
+        # （有 ai_recs 时已在 daily_results 同步那里写过）
+        if not _push_marker_written:
+            try:
+                _dr2 = load_json("daily_results.json")
+                if not isinstance(_dr2, dict):
+                    _dr2 = {}
+                _dr2["push_sent_date"] = today_str
+                _dr2["push_sent_at"] = now.isoformat(timespec="seconds")
+                _dr2["push_triggered_by"] = mode
+                save_json("daily_results.json", _dr2)
+            except Exception as _me2:
+                print(f"[D-007] ⚠ 无推荐时 push 标记写入失败：{_me2}")
+        # 同时保留 last_push_log.json（冗余，单机调试用）
         save_json("last_push_log.json", {
             "date": today_str,
             "sent_at": now.isoformat(timespec="seconds"),
@@ -1339,17 +1368,18 @@ def main():
         else:
             send_simple_msg(config, f"芒格选股 {today}\n\nAI全市场扫描暂无推荐\n继续观察")
 
-        # D-007（2026-04-24）：写 push log 让兜底逻辑知道"今天已发过"不重发
+        # D-010（2026-04-24）：幂等标记写到 daily_results（yml 会自动提交）
+        # 原 last_push_log.json 未进 yml 提交列表，reset --hard 会擦掉
         try:
-            save_json("last_push_log.json", {
-                "date": now.strftime("%Y-%m-%d"),
-                "sent_at": now.isoformat(timespec="seconds"),
-                "triggered_by": "send_ai",
-                "recs_count": len(ai_recs),
-                "summary": f"{len(ai_recs)} 条推荐" if ai_recs else "无推荐",
-            })
+            _dr = load_json("daily_results.json")
+            if not isinstance(_dr, dict):
+                _dr = {}
+            _dr["push_sent_date"] = now.strftime("%Y-%m-%d")
+            _dr["push_sent_at"] = now.isoformat(timespec="seconds")
+            _dr["push_triggered_by"] = "send_ai"
+            save_json("daily_results.json", _dr)
         except Exception as _pe:
-            print(f"  ⚠ push log 写入失败：{_pe}")
+            print(f"  ⚠ push 标记写入失败：{_pe}")
 
         # TODO-022 第 4 批：freshness 报警单独推一条
         # 列出"持仓+ETF 红色 / 关注 红色 / 候选股聚合超阈值"的清单
