@@ -1,8 +1,8 @@
 {
-  "date": "2026-04-24 11:50",
-  "mode": "patch_round_with_fallback_push",
+  "date": "2026-04-24 12:14",
+  "mode": "holdings",
   "is_trading_day": true,
-  "data_source": "patch_round + 复用当天 cache",
+  "data_source": "持仓检查",
   "ai_recommendations": [
     {
       "code": "000858",
@@ -1963,13 +1963,13 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 54.39,
+      "price": 54.35,
       "pe": 18.79,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -3.5638297872340408,
-      "pnl_pct": -3.56,
+      "holding_pnl": -3.634751773049638,
+      "pnl_pct": -3.63,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
