@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-24 14:32",
+  "date": "2026-04-24 15:51",
   "mode": "holdings",
   "is_trading_day": true,
   "data_source": "持仓检查",
@@ -52,23 +52,7 @@
       "data_quality": "ok",
       "king_avg_roe": 22.131,
       "name": "五 粮 液",
-      "source": "段 1",
-      "industry": "白酒Ⅱ",
-      "black_swan_warning": {
-        "start": "2026-04-23",
-        "end": "2026-10-31",
-        "type": "management_investigation",
-        "impact": "severe",
-        "desc": "董事长被立案调查（严重违纪违法）；2025 Q3 营收-52.66%/净利-65.62%；普五电商双11跌至640元/瓶。模型 2026-04-22 分段 p4 给 buy_heavy 是踩坑，AI 舆情校验发现。",
-        "action_suggested": "硬熔断禁止买入；持仓考虑清仓。等新管理层明朗 + 至少 1 个季度财报企稳后再重新评估。",
-        "source_url": "https://www.huxiu.com/article/4849838.html",
-        "warning_text": "🚨🚨 **2026-04-23** 出现个股黑天鹅 | 董事长被立案调查（严重违纪违法）；2025 Q3 营收-52.66%/净利-65.62%；普五电商双11跌至640元/瓶。模型 2026-04-22 分段 p4 给 buy_heavy 是踩坑，AI 舆情校验发现。 | **建议：硬熔断禁止买入；持仓考虑清仓。等新管理层明朗 + 至少 1 个季度财报企稳后再重新评估。**"
-      },
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "白酒Ⅱ",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（白酒Ⅱ）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      }
+      "source": "段 1"
     },
     {
       "code": "603198",
@@ -121,13 +105,7 @@
       "data_quality": "ok",
       "king_avg_roe": 22.156,
       "name": "迎驾贡酒",
-      "source": "段 1",
-      "industry": "白酒Ⅱ",
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "白酒Ⅱ",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（白酒Ⅱ）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      }
+      "source": "段 1"
     },
     {
       "code": "002832",
@@ -180,8 +158,7 @@
       "data_quality": "ok",
       "king_avg_roe": 20.406,
       "name": "比音勒芬",
-      "source": "段 1",
-      "industry": "服装家纺"
+      "source": "段 1"
     },
     {
       "code": "603288",
@@ -229,8 +206,7 @@
       "data_quality": "ok",
       "king_avg_roe": 28.482000000000006,
       "name": "海天味业",
-      "source": "段 1",
-      "industry": "调味发酵品Ⅱ"
+      "source": "段 1"
     },
     {
       "code": "603156",
@@ -278,8 +254,7 @@
       "data_quality": "ok",
       "king_avg_roe": 26.589,
       "name": "养元饮品",
-      "source": "段 1",
-      "industry": "饮料乳品"
+      "source": "段 1"
     },
     {
       "code": "600900",
@@ -338,8 +313,7 @@
       "toll_class": "toll_bridge_utility",
       "king_avg_roe": 15.104000000000003,
       "name": "长江电力",
-      "source": "段 1",
-      "industry": "电力"
+      "source": "段 1"
     },
     {
       "code": "603402",
@@ -389,8 +363,7 @@
       "data_quality": "ok",
       "king_avg_roe": 27.695999999999998,
       "name": "陕西旅游",
-      "source": "段 1",
-      "industry": "旅游及景区"
+      "source": "段 1"
     },
     {
       "code": "603277",
@@ -438,17 +411,7 @@
       "data_quality": "ok",
       "king_avg_roe": 20.928000000000004,
       "name": "银都股份",
-      "source": "段 2",
-      "black_swan_warning": {
-        "start": "2026-04-22",
-        "end": "2026-07-31",
-        "type": "earnings_collapse",
-        "impact": "major",
-        "desc": "2026 Q1 归母净利润同比暴降 79.27%（扣非 -51.54%）。海外关税+汇率双压，模型 buy_watch 信号时点未反映 Q1 数据。",
-        "action_suggested": "跳过买入；等 Q2 财报验证是否企稳。",
-        "source_url": "https://q.stock.sohu.com/cn/603277/index.shtml",
-        "warning_text": "🚨 **2026-04-22** 出现个股黑天鹅 | 2026 Q1 归母净利润同比暴降 79.27%（扣非 -51.54%）。海外关税+汇率双压，模型 buy_watch 信号时点未反映 Q1 数据。 | **建议：跳过买入；等 Q2 财报验证是否企稳。**"
-      }
+      "source": "段 2"
     },
     {
       "code": "603439",
@@ -494,18 +457,7 @@
       "data_quality": "ok",
       "king_avg_roe": 20.538999999999998,
       "name": "三力制药",
-      "source": "段 2",
-      "industry": "中药Ⅱ",
-      "black_swan_warning": {
-        "start": "2026-01-24",
-        "end": "2026-10-31",
-        "type": "earnings_collapse",
-        "impact": "major",
-        "desc": "2025 全年净利预减 50%+（前三季营收 -28.24%/净利 -58.39%）。核心产品开喉剑喷雾剂需求下滑 + 中成药行业周期下行。",
-        "action_suggested": "跳过买入；中药集采扩围后还有二次下探风险。",
-        "source_url": "http://xinpi.zqrb.cn/pdf/SH/603439/2026/0124/20604c78917e1b727c4aa7346d20ef91.pdf",
-        "warning_text": "🚨 **2026-01-24** 出现个股黑天鹅 | 2025 全年净利预减 50%+（前三季营收 -28.24%/净利 -58.39%）。核心产品开喉剑喷雾剂需求下滑 + 中成药行业周期下行。 | **建议：跳过买入；中药集采扩围后还有二次下探风险。**"
-      }
+      "source": "段 2"
     },
     {
       "code": "301609",
@@ -601,8 +553,7 @@
       "data_quality": "ok",
       "king_avg_roe": 21.627,
       "name": "蓝宇股份",
-      "source": "段 2",
-      "industry": "化学制品"
+      "source": "段 2"
     },
     {
       "code": "603369",
@@ -648,13 +599,7 @@
       "data_quality": "ok",
       "king_avg_roe": 21.344,
       "name": "今世缘",
-      "source": "段 4",
-      "industry": "白酒Ⅱ",
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "白酒Ⅱ",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（白酒Ⅱ）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      }
+      "source": "段 4"
     },
     {
       "code": "600519",
@@ -706,13 +651,7 @@
       "data_quality": "ok",
       "king_avg_roe": 31.925,
       "name": "贵州茅台",
-      "source": "段 4",
-      "industry": "白酒Ⅱ",
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "白酒Ⅱ",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（白酒Ⅱ）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      }
+      "source": "段 4"
     },
     {
       "code": "603195",
@@ -762,13 +701,7 @@
       "data_quality": "ok",
       "king_avg_roe": 46.96999999999999,
       "name": "公牛集团",
-      "source": "段 4",
-      "industry": "家居用品",
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "家居用品",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（家居用品）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      }
+      "source": "段 4"
     },
     {
       "code": "300033",
@@ -818,8 +751,7 @@
       "data_quality": "ok",
       "king_avg_roe": 30.049,
       "name": "同花顺",
-      "source": "段 4",
-      "industry": "软件开发"
+      "source": "段 4"
     },
     {
       "code": "603207",
@@ -867,8 +799,7 @@
       "data_quality": "ok",
       "king_avg_roe": null,
       "name": "小方制药",
-      "source": "段 4",
-      "industry": "化学制药"
+      "source": "段 4"
     },
     {
       "code": "000429",
@@ -926,8 +857,7 @@
       "toll_class": "toll_bridge_utility",
       "king_avg_roe": 15.565999999999999,
       "name": "粤高速Ａ",
-      "source": "段 4",
-      "industry": "铁路公路"
+      "source": "段 4"
     },
     {
       "code": "300627",
@@ -980,8 +910,7 @@
       "data_quality": "ok",
       "king_avg_roe": 18.901000000000003,
       "name": "华测导航",
-      "source": "段 4",
-      "industry": "通信设备"
+      "source": "段 4"
     },
     {
       "code": "605499",
@@ -1035,8 +964,7 @@
       "data_quality": "ok",
       "king_avg_roe": 39.64888888888889,
       "name": "东鹏饮料",
-      "source": "段 4",
-      "industry": "饮料乳品"
+      "source": "段 4"
     },
     {
       "code": "300693",
@@ -1084,8 +1012,7 @@
       "data_quality": "ok",
       "king_avg_roe": 19.514999999999997,
       "name": "盛弘股份",
-      "source": "段 4",
-      "industry": "其他电源设备Ⅱ"
+      "source": "段 4"
     },
     {
       "code": "301611",
@@ -1133,8 +1060,7 @@
       "data_quality": "ok",
       "king_avg_roe": null,
       "name": "珂玛科技",
-      "source": "段 4",
-      "industry": "半导体"
+      "source": "段 4"
     },
     {
       "code": "301449",
@@ -1189,8 +1115,7 @@
       "data_quality": "ok",
       "king_avg_roe": 35.004000000000005,
       "name": "天溯计量",
-      "source": "段 4",
-      "industry": "专业服务"
+      "source": "段 4"
     },
     {
       "code": "000568",
@@ -1246,13 +1171,7 @@
       "data_quality": "ok",
       "king_avg_roe": 25.839,
       "name": "泸州老窖",
-      "source": "段 5",
-      "industry": "白酒Ⅱ",
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "白酒Ⅱ",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（白酒Ⅱ）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      }
+      "source": "段 5"
     },
     {
       "code": "300628",
@@ -1408,8 +1327,7 @@
       "data_quality": "ok",
       "king_avg_roe": 33.905,
       "name": "行动教育",
-      "source": "段 5",
-      "industry": "教育"
+      "source": "段 5"
     },
     {
       "code": "600436",
@@ -1461,8 +1379,7 @@
       "data_quality": "ok",
       "king_avg_roe": 21.966,
       "name": "片仔癀",
-      "source": "段 5",
-      "industry": "中药Ⅱ"
+      "source": "段 5"
     },
     {
       "code": "300394",
@@ -1515,8 +1432,7 @@
       "data_quality": "ok",
       "king_avg_roe": 21.740000000000002,
       "name": "天孚通信",
-      "source": "段 5",
-      "industry": "通信设备"
+      "source": "段 5"
     },
     {
       "code": "603868",
@@ -2047,13 +1963,13 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 54.51,
+      "price": 54.43,
       "pe": 18.79,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -3.3510638297872375,
-      "pnl_pct": -3.35,
+      "holding_pnl": -3.4929078014184323,
+      "pnl_pct": -3.49,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
@@ -2071,10 +1987,10 @@
       "name": "沪深300ETF华夏",
       "shares": 700,
       "cost": 4.915,
-      "current_price": 4.994,
-      "pnl_pct": 1.61,
+      "current_price": 4.975,
+      "pnl_pct": 1.22,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +1.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +1.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -2093,7 +2009,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位100.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 4
     },
     {
@@ -2101,10 +2017,10 @@
       "name": "中证500ETF",
       "shares": 100,
       "cost": 8.502,
-      "current_price": 8.372,
-      "pnl_pct": -1.53,
+      "current_price": 8.323,
+      "pnl_pct": -2.11,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.1%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -2123,7 +2039,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位89.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -1.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位89.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.1%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 4
     },
     {
@@ -2131,10 +2047,10 @@
       "name": "红利低波ETF华泰柏瑞",
       "shares": 3300,
       "cost": 1.221,
-      "current_price": 1.199,
-      "pnl_pct": -1.8,
+      "current_price": 1.198,
+      "pnl_pct": -1.88,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -2153,7 +2069,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位91.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -1.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位91.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -1.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 4
     }
   ],
