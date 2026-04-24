@@ -871,6 +871,10 @@ with tab1:
                             st.metric("评分", f"{score}/50" if score else "—")
                         with col4:
                             st.caption(s.get("signal_text", ""))
+                            # REQ-203：个股黑天鹅警示（红色条，保留在推荐列表但醒目提示）
+                            _bs = s.get("black_swan_warning") or {}
+                            if _bs:
+                                st.error(_bs.get("warning_text", ""))
                         with col5:
                             if code in watchlist_codes:
                                 st.button("已关注", key=f"ai_{code}", disabled=True)
@@ -2042,6 +2046,10 @@ with tab2:
                 with col5:
                     st.markdown(f"{signal_label}")
                     st.caption(signal_text[:120])
+                    # REQ-203：持仓里的个股黑天鹅警示
+                    _bs_warn = sig_data.get("black_swan_warning") or {}
+                    if _bs_warn:
+                        st.error(_bs_warn.get("warning_text", ""))
                 with col6:
                     _notes_btn = "📝" + ("🔔" if _has_alert else "")
                     if st.button(_notes_btn, key=f"notes_h_{i}", help="查看/编辑备注和提醒"):

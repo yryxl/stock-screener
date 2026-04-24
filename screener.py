@@ -763,6 +763,17 @@ def screen_single_stock(code, config, quotes_df):
             result["signal"] = signal
             result["signal_text"] = signal_text
 
+    # REQ-203（2026-04-24）：个股黑天鹅警示
+    # signal 不改（保留模型基本面评分），只叠加 black_swan_warning 字段
+    # 前端展示时用红色警示条提醒用户：哪天出现什么问题，不建议买入
+    # 数据源：black_swan_events.json → company_events
+    try:
+        from black_swan_filter import attach_warning_to_result
+        attach_warning_to_result(result, code)
+    except Exception as _bs_e:
+        # 过滤器失败不阻塞扫描主流程
+        pass
+
     # 提取核心财务指标原始值（前端展示用）
     if not df_annual.empty:
         _latest = df_annual.iloc[0]
