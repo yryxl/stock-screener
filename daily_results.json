@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-28 18:26",
+  "date": "2026-04-28 18:51",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -2421,16 +2421,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 99.9,
-        "current_pe": 18.01,
+        "percentile": 99.8,
+        "current_pe": 17.96,
         "current_dividend_yield": 2.32,
-        "as_of": "2026-04-27",
+        "as_of": "2026-04-28",
         "data_points": 2427,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位99.9%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 6
+      "signal_text": "PE分位99.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 7
     },
     {
       "code": "510500",
@@ -2451,16 +2451,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 89.4,
-        "current_pe": 32.52,
-        "current_dividend_yield": 1.2,
-        "as_of": "2026-04-27",
+        "percentile": 88.0,
+        "current_pe": 32.18,
+        "current_dividend_yield": 1.21,
+        "as_of": "2026-04-28",
         "data_points": 2427,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位89.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 6
+      "signal_text": "PE分位88.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 7
     },
     {
       "code": "512890",
@@ -2481,16 +2481,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 87.3,
-        "current_pe": 8.17,
-        "current_dividend_yield": 4.93,
-        "as_of": "2026-04-27",
-        "data_points": 1223,
+        "percentile": 88.8,
+        "current_pe": 8.2,
+        "current_dividend_yield": 4.91,
+        "as_of": "2026-04-28",
+        "data_points": 1224,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位87.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 6
+      "signal_text": "PE分位88.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 7
     }
   ],
   "portfolio_classification": {
