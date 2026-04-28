@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-28 13:53",
+  "date": "2026-04-28 15:12",
   "mode": "holdings",
   "is_trading_day": true,
   "data_source": "持仓检查",
@@ -2383,13 +2383,13 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 54.29,
+      "price": 54.84,
       "pe": 18.8,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -3.7411347517730453,
-      "pnl_pct": -3.74,
+      "holding_pnl": -2.765957446808498,
+      "pnl_pct": -2.77,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
@@ -2407,10 +2407,10 @@
       "name": "沪深300ETF华夏",
       "shares": 700,
       "cost": 4.915,
-      "current_price": 4.96,
-      "pnl_pct": 0.92,
+      "current_price": 4.965,
+      "pnl_pct": 1.02,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +0.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -2429,7 +2429,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位99.9%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +0.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位99.9%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 6
     },
     {
@@ -2437,10 +2437,10 @@
       "name": "中证500ETF",
       "shares": 100,
       "cost": 8.502,
-      "current_price": 8.264,
-      "pnl_pct": -2.8,
+      "current_price": 8.273,
+      "pnl_pct": -2.69,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -2459,7 +2459,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位89.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位89.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 6
     },
     {
@@ -2467,10 +2467,10 @@
       "name": "红利低波ETF华泰柏瑞",
       "shares": 3300,
       "cost": 1.221,
-      "current_price": 1.187,
-      "pnl_pct": -2.78,
+      "current_price": 1.192,
+      "pnl_pct": -2.38,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -2489,7 +2489,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位87.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位87.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 6
     }
   ],
