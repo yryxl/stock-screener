@@ -1,5 +1,5 @@
 {
-  "date": "2026-04-29 18:45",
+  "date": "2026-04-29 20:38",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -2055,12 +2055,12 @@
         "ROE质量": {
           "score": 6,
           "max": 10,
-          "detail": "均值23.2%优秀 | 从未破15% | 下滑"
+          "detail": "均值22.9%优秀 | 从未破15% | 下滑"
         },
         "财务健康": {
           "score": 4,
           "max": 10,
-          "detail": "负债63%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
+          "detail": "负债62%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
         },
         "盈利能力": {
           "score": 5,
@@ -2160,48 +2160,6 @@
           "score": 5,
           "max": 10,
           "detail": "PE=38.2合理偏高 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
-      "code": "601006",
-      "name": "大秦铁路",
-      "category": "铁路公路",
-      "note": "西煤东运主通道独家",
-      "price": 5.4,
-      "pe": 16.34,
-      "signal": "hold",
-      "signal_text": "PE=16.3，超出合理区间10-16，等待回落",
-      "total_score": 24,
-      "dividend_yield": 6.47,
-      "dimensions": {
-        "ROE质量": {
-          "score": 3,
-          "max": 10,
-          "detail": "均值10.6%一般 | 最低6.1%曾破线 | 下滑 | 低杠杆18%"
-        },
-        "财务健康": {
-          "score": 8,
-          "max": 10,
-          "detail": "负债18%极低 | 流动比率4.9 | 现金流优 | 利润率下滑"
-        },
-        "盈利能力": {
-          "score": 4,
-          "max": 10,
-          "detail": "毛利率22%偏低 | 10年数据"
-        },
-        "股息率": {
-          "score": 6,
-          "max": 10,
-          "detail": "股息率6.5%极高"
-        },
-        "估值": {
-          "score": 3,
-          "max": 10,
-          "detail": "PE=16.3偏高 | 中等复杂"
         }
       },
       "roe": null,
@@ -2328,6 +2286,48 @@
           "score": 7,
           "max": 10,
           "detail": "PE=7.5合理偏低 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
+      "code": "601006",
+      "name": "大秦铁路",
+      "category": "铁路公路",
+      "note": "西煤东运主通道独家",
+      "price": 5.4,
+      "pe": 16.34,
+      "signal": "hold",
+      "signal_text": "PE=16.3，超出合理区间10-16，等待回落",
+      "total_score": 22,
+      "dividend_yield": 6.47,
+      "dimensions": {
+        "ROE质量": {
+          "score": 1,
+          "max": 10,
+          "detail": "均值9.5%不足 | 最低3.6% | 下滑 | 低杠杆15%"
+        },
+        "财务健康": {
+          "score": 8,
+          "max": 10,
+          "detail": "负债15%极低 | 流动比率3.1 | 现金流优 | 利润率下滑"
+        },
+        "盈利能力": {
+          "score": 4,
+          "max": 10,
+          "detail": "毛利率20%偏低 | 10年数据"
+        },
+        "股息率": {
+          "score": 6,
+          "max": 10,
+          "detail": "股息率6.5%极高"
+        },
+        "估值": {
+          "score": 3,
+          "max": 10,
+          "detail": "PE=16.3偏高 | 中等复杂"
         }
       },
       "roe": null,
