@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-07 18:18",
+  "date": "2026-05-07 18:57",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -2594,8 +2594,8 @@
     "level": 0,
     "label": "⚪ 正常·按节奏",
     "description": "估值处于合理区间（历史 30%-70% 分位）。按自己的定投/选股节奏执行，不因估值做大调整。巴菲特大多数时候都处在这个状态。",
-    "current_pe_median": 21.67,
-    "percentile": 53.3,
+    "current_pe_median": 21.59,
+    "percentile": 51.7,
     "lookback_years": 10,
     "as_of": "2026-05",
     "data_points": 120
