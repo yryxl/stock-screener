@@ -1,95 +1,9 @@
 {
-  "date": "2026-05-06 20:38",
-  "mode": "watchlist",
+  "date": "2026-05-07 08:04",
+  "mode": "send_ai_with_fallback_merge",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "分段扫描合并 兜底（含 6 个文件）",
   "ai_recommendations": [
-    {
-      "code": "000538",
-      "name": "云南白药",
-      "category": "中药Ⅱ",
-      "note": "国家绝密配方+百年品牌",
-      "price": 52.65,
-      "pe": 17.87,
-      "signal": "buy_watch",
-      "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 30,
-      "dividend_yield": 4.94,
-      "dimensions": {
-        "ROE质量": {
-          "score": 3,
-          "max": 10,
-          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债26%极低 | 流动比率2.6 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率29% | 10年数据"
-        },
-        "股息率": {
-          "score": 5,
-          "max": 10,
-          "detail": "股息率4.9%高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=17.9低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
-    {
-      "code": "600887",
-      "name": "伊利股份",
-      "category": "饮料乳品",
-      "note": "乳业双寡头",
-      "price": 27.45,
-      "pe": 14.37,
-      "signal": "buy_light",
-      "signal_text": "PE=14.4，低于行业合理区间15-25→可以轻仓买入",
-      "total_score": 28,
-      "dividend_yield": 5.03,
-      "dimensions": {
-        "ROE质量": {
-          "score": 6,
-          "max": 10,
-          "detail": "均值22.9%优秀 | 从未破15% | 下滑"
-        },
-        "财务健康": {
-          "score": 4,
-          "max": 10,
-          "detail": "负债62%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率35% | 10年数据"
-        },
-        "股息率": {
-          "score": 5,
-          "max": 10,
-          "detail": "股息率5.0%高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=14.4低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
     {
       "code": "000858",
       "passed": true,
@@ -2610,7 +2524,7 @@
       "text": "仓位40.4% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ],
-  "push_sent_date": "2026-04-24",
-  "push_sent_at": "2026-04-24T11:43:06+08:00",
-  "push_triggered_by": "merge_full_manual_fix"
+  "push_sent_date": "2026-05-07",
+  "push_sent_at": "2026-05-07T08:04:38+08:00",
+  "push_triggered_by": "send_ai"
 }
