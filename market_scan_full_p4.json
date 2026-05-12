@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-08 23:13",
+  "date": "2026-05-12 23:42",
   "mode": "full_p4",
   "p_idx": 3,
   "candidates_count": 12,
@@ -29,15 +29,15 @@
           "detail": "毛利率73.2%"
         }
       },
-      "signal": "buy_heavy",
-      "signal_text": "PE=15.0，远低于行业底部15→可以重仓买入",
-      "pe": 14.96,
-      "price": 28.13,
+      "signal": "buy_medium",
+      "signal_text": "PE=15.3，明显低于合理区间→可以中仓买入",
+      "pe": 15.32,
+      "price": 28.8,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥28.13 高于安全边际价 ¥16.10（超 75%）"
+        "10% 回报锚超限：当前 ¥28.80 高于安全边际价 ¥16.10（超 79%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -60,10 +60,6 @@
       "code": "600519",
       "passed": true,
       "checks": {
-        "v3_cashcow": {
-          "passed": true,
-          "detail": "🌟卓越印钞机 近3年 CapEx/净利=4.1%（<10% 喜诗糖果级）"
-        },
         "roe": {
           "passed": true,
           "detail": "ROE均值31.5%"
@@ -86,18 +82,18 @@
         }
       },
       "signal": "buy_light",
-      "signal_text": "十年王者合理价（PE=20.8）→ 轻仓买入",
-      "pe": 20.79,
-      "price": 1372.99,
+      "signal_text": "十年王者合理价（PE=20.5）→ 轻仓买入",
+      "pe": 20.51,
+      "price": 1354.55,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥1372.99 高于安全边际价 ¥829.26（超 66%）"
+        "10% 回报锚超限：当前 ¥1354.55 高于安全边际价 ¥829.26（超 63%）"
       ],
-      "cashcow_label": "cashcow_elite",
-      "cashcow_tier": "🌟卓越印钞机",
-      "cashcow_detail": "近3年 CapEx/净利=4.1%（<10% 喜诗糖果级）",
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
       "max_buy_price_rr10": 829.255899409295,
       "rr10_detail": "按 10% required return 倒推：当前 EPS 65.66元，3 年 EPS CAGR 5.1%（capped 5%），10 年后 EPS 107.54元，退出 PE 20，最高合理买入价 ¥829.26",
       "mgmt_score": 100,
@@ -142,14 +138,14 @@
         }
       },
       "signal": "buy_light",
-      "signal_text": "十年王者合理价（PE=19.5）→ 轻仓买入",
-      "pe": 19.5,
-      "price": 44.8,
+      "signal_text": "十年王者合理价（PE=19.0）→ 轻仓买入",
+      "pe": 18.99,
+      "price": 43.64,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥44.80 高于安全边际价 ¥13.07（超 243%）"
+        "10% 回报锚超限：当前 ¥43.64 高于安全边际价 ¥13.07（超 234%）"
       ],
       "cashcow_label": "cashcow",
       "cashcow_tier": "✅印钞机",
@@ -163,117 +159,7 @@
       ],
       "data_quality": "ok",
       "king_avg_roe": 41.92100000000001,
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "家居用品",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（家居用品）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      },
       "name": "公牛集团"
-    },
-    {
-      "code": "605499",
-      "passed": true,
-      "checks": {
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值39.6%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "⚠负债率64.7%（消费档警告 >60%） 流动比率0.92"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值15.8%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率45.2%"
-        },
-        "v3_roe_leverage": {
-          "passed": true,
-          "detail": "高 ROE 杠杆化警告：ROE 40.5% + 负债率 64.7%（权益乘数约 2.8x）→ ROE 可能靠杠杆撑起"
-        }
-      },
-      "signal": "buy_watch",
-      "signal_text": "十年王者（PE=24.1 合理偏高）→ 关注买入",
-      "pe": 24.07,
-      "price": 199.98,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "杠杆预警：⚠负债率64.7%（消费档警告 >60%） 流动比率0.92",
-        "高 ROE 杠杆化警告：ROE 40.5% + 负债率 64.7%（权益乘数约 2.8x）→ ROE 可能靠杠杆撑起",
-        "10% 回报锚超限：当前 ¥199.98 高于安全边际价 ¥152.51（超 31%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 152.50642144462256,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 8.49元，3 年 EPS CAGR 47.1%（capped 12%），10 年后 EPS 26.37元，退出 PE 15，最高合理买入价 ¥152.51",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 39.64888888888889,
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "饮料乳品",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（饮料乳品）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      },
-      "name": "东鹏饮料"
-    },
-    {
-      "code": "603207",
-      "passed": true,
-      "checks": {
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值48.3%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率11.8%（制造档健康） 流动比率5.88"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值40.2%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率63.8%"
-        }
-      },
-      "signal": "buy_watch",
-      "signal_text": "十年王者（PE=21.0 合理偏高）→ 关注买入",
-      "pe": 21.04,
-      "price": 26.64,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥26.64 高于安全边际价 ¥7.46（超 257%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 7.460262650461433,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.29元，3 年 EPS CAGR -12.9%（capped 0%），10 年后 EPS 1.29元，退出 PE 15，最高合理买入价 ¥7.46",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 48.34428571428571,
-      "name": "小方制药"
     },
     {
       "code": "300033",
@@ -305,9 +191,9 @@
         }
       },
       "signal": "buy_watch",
-      "signal_text": "十年王者（PE=55.1 合理偏高）→ 关注买入",
-      "pe": 55.1,
-      "price": 244.56,
+      "signal_text": "十年王者（PE=56.8 合理偏高）→ 关注买入",
+      "pe": 56.76,
+      "price": 251.92,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
@@ -323,6 +209,111 @@
       "data_quality": "ok",
       "king_avg_roe": 30.049,
       "name": "同花顺"
+    },
+    {
+      "code": "603207",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值48.3%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率11.8%（制造档健康） 流动比率5.88"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值40.2%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率63.8%"
+        }
+      },
+      "signal": "buy_watch",
+      "signal_text": "十年王者（PE=20.9 合理偏高）→ 关注买入",
+      "pe": 20.95,
+      "price": 26.53,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥26.53 高于安全边际价 ¥7.46（超 256%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 7.460262650461433,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.29元，3 年 EPS CAGR -12.9%（capped 0%），10 年后 EPS 1.29元，退出 PE 15，最高合理买入价 ¥7.46",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 48.34428571428571,
+      "name": "小方制药"
+    },
+    {
+      "code": "605499",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值39.6%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "⚠负债率64.7%（消费档警告 >60%） 流动比率0.92"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值15.8%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率45.2%"
+        },
+        "v3_roe_leverage": {
+          "passed": true,
+          "detail": "高 ROE 杠杆化警告：ROE 40.5% + 负债率 64.7%（权益乘数约 2.8x）→ ROE 可能靠杠杆撑起"
+        }
+      },
+      "signal": "buy_watch",
+      "signal_text": "十年王者（PE=23.4 合理偏高）→ 关注买入",
+      "pe": 23.43,
+      "price": 194.72,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "杠杆预警：⚠负债率64.7%（消费档警告 >60%） 流动比率0.92",
+        "高 ROE 杠杆化警告：ROE 40.5% + 负债率 64.7%（权益乘数约 2.8x）→ ROE 可能靠杠杆撑起",
+        "10% 回报锚超限：当前 ¥194.72 高于安全边际价 ¥152.51（超 28%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 152.50642144462256,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 8.49元，3 年 EPS CAGR 47.1%（capped 12%），10 年后 EPS 26.37元，退出 PE 15，最高合理买入价 ¥152.51",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 39.64888888888889,
+      "cycle_opportunity": {
+        "type": "cyclical_opportunity",
+        "industry": "饮料乳品",
+        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（饮料乳品）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
+      },
+      "name": "东鹏饮料"
     },
     {
       "code": "000429",
@@ -358,15 +349,15 @@
         }
       },
       "signal": "sell_light",
-      "signal_text": "PE=16.6，高于合理区间→可以适当卖出",
-      "pe": 16.63,
-      "price": 12.69,
+      "signal_text": "PE=17.1，高于合理区间→可以适当卖出",
+      "pe": 17.12,
+      "price": 13.07,
       "is_10y_king": false,
       "is_good_quality": false,
       "is_toll_bridge": true,
       "china_v3_risks": [
         "⚠ 数据真实性: 存货周转天数恶化：0 → 0 天（+100%），可能渠道压货",
-        "10% 回报锚超限：当前 ¥12.69 高于安全边际价 ¥5.40（超 135%）"
+        "10% 回报锚超限：当前 ¥13.07 高于安全边际价 ¥5.40（超 142%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -415,25 +406,27 @@
         }
       },
       "signal": "sell_light",
-      "signal_text": "PE=24.0，高于合理区间→可以适当卖出",
-      "pe": 24.04,
-      "price": 60.78,
+      "signal_text": "PE=23.7，高于合理区间→可以适当卖出",
+      "pe": 23.73,
+      "price": 60.0,
       "is_10y_king": false,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 应收账款周转天数恶化：从 61 天 → 122 天（3 年 +100%），康美式造假特征（应收虚增）",
         "⚠ 数据真实性: 毛利率反常：44.2% 远高于行业基准（15%，超 195%）。东方纸业式信号——可能虚增收入或关联交易。建议核实",
-        "10% 回报锚超限：当前 ¥60.78 高于安全边际价 ¥21.05（超 189%）"
+        "10% 回报锚超限：当前 ¥60.00 高于安全边际价 ¥21.05（超 185%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
       "cashcow_detail": "",
       "max_buy_price_rr10": 21.050663602852413,
       "rr10_detail": "按 10% required return 倒推：当前 EPS 3.90元，3 年 EPS CAGR -8.8%（capped 0%），10 年后 EPS 3.90元，退出 PE 14，最高合理买入价 ¥21.05",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
+      "mgmt_score": null,
+      "mgmt_tier": "数据不足",
+      "mgmt_flags": [
+        "管理层评分：5 个维度全部无数据，无法判定"
+      ],
       "data_quality": "ok",
       "king_avg_roe": null,
       "name": "海安集团"
@@ -468,15 +461,15 @@
         }
       },
       "signal": "sell_light",
-      "signal_text": "PE=39.6，高于合理区间→可以适当卖出",
-      "pe": 39.59,
-      "price": 33.61,
+      "signal_text": "PE=38.3，高于合理区间→可以适当卖出",
+      "pe": 38.29,
+      "price": 32.51,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 毛利率反常：61.0% 远高于行业基准（30%，超 103%）。东方纸业式信号——可能虚增收入或关联交易。建议核实",
-        "10% 回报锚超限：当前 ¥33.61 高于安全边际价 ¥8.94（超 276%）"
+        "10% 回报锚超限：当前 ¥32.51 高于安全边际价 ¥8.94（超 264%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -489,53 +482,6 @@
       "data_quality": "ok",
       "king_avg_roe": 18.901000000000003,
       "name": "华测导航"
-    },
-    {
-      "code": "300693",
-      "passed": true,
-      "checks": {
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值22.2%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率47.8%（制造档健康） 流动比率1.36"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值13.3%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率47.4%"
-        }
-      },
-      "signal": "sell_medium",
-      "signal_text": "PE=34.0，明显高于合理区间→可以中仓卖出",
-      "pe": 34.01,
-      "price": 53.11,
-      "is_10y_king": false,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥53.11 高于安全边际价 ¥19.50（超 172%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 19.500304066237618,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.53元，3 年 EPS CAGR 8.2%（capped 8%），10 年后 EPS 3.37元，退出 PE 15，最高合理买入价 ¥19.50",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 19.514999999999997,
-      "name": "盛弘股份"
     },
     {
       "code": "301611",
@@ -563,14 +509,14 @@
         }
       },
       "signal": "sell_heavy",
-      "signal_text": "PE=182.2，远高于行业上限35→可以大量卖出",
-      "pe": 182.22,
-      "price": 103.6,
+      "signal_text": "PE=197.7，远高于行业上限35→可以大量卖出",
+      "pe": 197.68,
+      "price": 112.39,
       "is_10y_king": false,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥103.60 高于安全边际价 ¥11.85（超 774%）"
+        "10% 回报锚超限：当前 ¥112.39 高于安全边际价 ¥11.85（超 848%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -614,27 +560,76 @@
         }
       },
       "signal": "sell_heavy",
-      "signal_text": "PE=50.8，远高于行业上限35→可以大量卖出",
-      "pe": 50.77,
-      "price": 72.3,
+      "signal_text": "PE=50.2，远高于行业上限35→可以大量卖出",
+      "pe": 50.17,
+      "price": 71.45,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 存货周转天数恶化：5 → 8 天（+67%），可能渠道压货",
-        "10% 回报锚超限：当前 ¥72.30 高于安全边际价 ¥13.43（超 438%）"
+        "10% 回报锚超限：当前 ¥71.45 高于安全边际价 ¥13.43（超 432%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
       "cashcow_detail": "",
       "max_buy_price_rr10": 13.42787877904398,
       "rr10_detail": "按 10% required return 倒推：当前 EPS 2.11元，3 年 EPS CAGR 1.0%（capped 1%），10 年后 EPS 2.32元，退出 PE 15，最高合理买入价 ¥13.43",
+      "mgmt_score": null,
+      "mgmt_tier": "数据不足",
+      "mgmt_flags": [
+        "管理层评分：5 个维度全部无数据，无法判定"
+      ],
+      "data_quality": "ok",
+      "king_avg_roe": 33.339000000000006,
+      "name": "天溯计量"
+    },
+    {
+      "code": "300693",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值22.2%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率47.8%（制造档健康） 流动比率1.36"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值13.3%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率47.4%"
+        }
+      },
+      "signal": "sell_heavy",
+      "signal_text": "PE=40.1，远高于行业上限35→可以大量卖出",
+      "pe": 40.07,
+      "price": 62.57,
+      "is_10y_king": false,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥62.57 高于安全边际价 ¥19.50（超 221%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 19.500304066237618,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.53元，3 年 EPS CAGR 8.2%（capped 8%），10 年后 EPS 3.37元，退出 PE 15，最高合理买入价 ¥19.50",
       "mgmt_score": 100,
       "mgmt_tier": "优秀",
       "mgmt_flags": [],
       "data_quality": "ok",
-      "king_avg_roe": 33.339000000000006,
-      "name": "天溯计量"
+      "king_avg_roe": 19.514999999999997,
+      "name": "盛弘股份"
     }
   ]
 }
