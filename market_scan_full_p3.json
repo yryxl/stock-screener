@@ -1,9 +1,66 @@
 {
-  "date": "2026-05-11 21:36",
+  "date": "2026-05-12 21:00",
   "mode": "full_p3",
   "p_idx": 2,
   "candidates_count": 4,
   "ai_recommendations": [
+    {
+      "code": "300770",
+      "passed": true,
+      "checks": {
+        "v3_authenticity_receivable_anomaly": {
+          "passed": true,
+          "detail": "应收账款周转天数恶化：从 22 天 → 35 天（3 年 +57%），康美式造假特征（应收虚增）"
+        },
+        "v3_authenticity_inventory_anomaly": {
+          "passed": true,
+          "detail": "存货周转天数恶化：0 → 2 天（+1043%），可能渠道压货"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值20.7%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率22.4%（制造档健康） 流动比率2.85"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值34.5%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率51.2%"
+        }
+      },
+      "signal": "buy_light",
+      "signal_text": "PE=13.8，低于行业合理区间15-25→可以轻仓买入",
+      "pe": 13.77,
+      "price": 38.84,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "⚠ 数据真实性: 应收账款周转天数恶化：从 22 天 → 35 天（3 年 +57%），康美式造假特征（应收虚增）",
+        "⚠ 数据真实性: 存货周转天数恶化：0 → 2 天（+1043%），可能渠道压货",
+        "10% 回报锚超限：当前 ¥38.84 高于安全边际价 ¥16.71（超 132%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 16.713301596770187,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 2.89元，3 年 EPS CAGR -3.3%（capped 0%），10 年后 EPS 2.89元，退出 PE 15，最高合理买入价 ¥16.71",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 22.345999999999997,
+      "name": "新媒股份"
+    },
     {
       "code": "300866",
       "passed": true,
@@ -34,14 +91,14 @@
         }
       },
       "signal": "buy_light",
-      "signal_text": "十年王者合理价（PE=27.5）→ 轻仓买入",
-      "pe": 27.46,
-      "price": 129.1,
+      "signal_text": "十年王者合理价（PE=26.9）→ 轻仓买入",
+      "pe": 26.86,
+      "price": 126.3,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥129.10 高于安全边际价 ¥125.70（超 3%）"
+        "10% 回报锚超限：当前 ¥126.30 高于安全边际价 ¥125.70（超 0%）"
       ],
       "cashcow_label": "cashcow",
       "cashcow_tier": "✅印钞机",
@@ -87,13 +144,13 @@
       },
       "signal": "buy_light",
       "signal_text": "PE=14.0，低于行业合理区间15-25→可以轻仓买入",
-      "pe": 13.98,
-      "price": 9.05,
+      "pe": 14.02,
+      "price": 9.07,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥9.05 高于安全边际价 ¥3.47（超 161%）"
+        "10% 回报锚超限：当前 ¥9.07 高于安全边际价 ¥3.47（超 161%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -113,70 +170,9 @@
       "name": "承德露露"
     },
     {
-      "code": "300770",
-      "passed": true,
-      "checks": {
-        "v3_authenticity_receivable_anomaly": {
-          "passed": true,
-          "detail": "应收账款周转天数恶化：从 22 天 → 35 天（3 年 +57%），康美式造假特征（应收虚增）"
-        },
-        "v3_authenticity_inventory_anomaly": {
-          "passed": true,
-          "detail": "存货周转天数恶化：0 → 2 天（+1043%），可能渠道压货"
-        },
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值20.7%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率22.4%（制造档健康） 流动比率2.85"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值34.5%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率51.2%"
-        }
-      },
-      "signal": "buy_light",
-      "signal_text": "PE=14.1，低于行业合理区间15-25→可以轻仓买入",
-      "pe": 14.07,
-      "price": 39.69,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "⚠ 数据真实性: 应收账款周转天数恶化：从 22 天 → 35 天（3 年 +57%），康美式造假特征（应收虚增）",
-        "⚠ 数据真实性: 存货周转天数恶化：0 → 2 天（+1043%），可能渠道压货",
-        "10% 回报锚超限：当前 ¥39.69 高于安全边际价 ¥16.71（超 137%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 16.713301596770187,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 2.89元，3 年 EPS CAGR -3.3%（capped 0%），10 年后 EPS 2.89元，退出 PE 15，最高合理买入价 ¥16.71",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 22.345999999999997,
-      "name": "新媒股份"
-    },
-    {
       "code": "300896",
       "passed": true,
       "checks": {
-        "v3_cashcow": {
-          "passed": true,
-          "detail": "🌟卓越印钞机 近3年 CapEx/净利=9.3%（<10% 喜诗糖果级）"
-        },
         "roe": {
           "passed": true,
           "detail": "ROE均值28.1%"
@@ -199,18 +195,18 @@
         }
       },
       "signal": "sell_medium",
-      "signal_text": "PE=31.3，明显高于合理区间→可以中仓卖出",
-      "pe": 31.3,
-      "price": 118.49,
+      "signal_text": "PE=30.5，明显高于合理区间→可以中仓卖出",
+      "pe": 30.46,
+      "price": 115.3,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥118.49 高于安全边际价 ¥24.75（超 379%）"
+        "10% 回报锚超限：当前 ¥115.30 高于安全边际价 ¥24.75（超 366%）"
       ],
-      "cashcow_label": "cashcow_elite",
-      "cashcow_tier": "🌟卓越印钞机",
-      "cashcow_detail": "近3年 CapEx/净利=9.3%（<10% 喜诗糖果级）",
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
       "max_buy_price_rr10": 24.751879181375916,
       "rr10_detail": "按 10% required return 倒推：当前 EPS 4.28元，3 年 EPS CAGR -16.6%（capped 0%），10 年后 EPS 4.28元，退出 PE 15，最高合理买入价 ¥24.75",
       "mgmt_score": 100,
