@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-13 19:23",
+  "date": "2026-05-12 19:09",
   "mode": "full_p2",
   "p_idx": 1,
   "candidates_count": 2,
@@ -30,14 +30,14 @@
         }
       },
       "signal": "buy_watch",
-      "signal_text": "十年王者（PE=24.4 合理偏高）→ 关注买入",
-      "pe": 24.43,
-      "price": 13.07,
+      "signal_text": "十年王者（PE=24.7 合理偏高）→ 关注买入",
+      "pe": 24.69,
+      "price": 13.21,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥13.07 高于安全边际价 ¥4.63（超 183%）"
+        "10% 回报锚超限：当前 ¥13.21 高于安全边际价 ¥4.63（超 186%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -91,14 +91,14 @@
         }
       },
       "signal": "sell_heavy",
-      "signal_text": "PE=63.1，远高于行业上限35→可以大量卖出",
-      "pe": 63.11,
-      "price": 52.25,
+      "signal_text": "PE=59.9，远高于行业上限35→可以大量卖出",
+      "pe": 59.86,
+      "price": 49.56,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥52.25 高于安全边际价 ¥13.02（超 301%）"
+        "10% 回报锚超限：当前 ¥49.56 高于安全边际价 ¥13.02（超 281%）"
       ],
       "cashcow_label": "cashcow",
       "cashcow_tier": "✅印钞机",
