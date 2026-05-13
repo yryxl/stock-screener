@@ -1868,16 +1868,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 99.4,
-        "current_pe": 17.8,
-        "current_dividend_yield": 2.25,
-        "as_of": "2026-05-12",
-        "data_points": 2427,
+        "percentile": 99.6,
+        "current_pe": 17.98,
+        "current_dividend_yield": 2.22,
+        "as_of": "2026-05-13",
+        "data_points": 2428,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位99.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +6.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 16
+      "signal_text": "PE分位99.6%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +6.3%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 17
     },
     {
       "code": "510500",
@@ -1898,16 +1898,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 90.8,
-        "current_pe": 33.43,
-        "current_dividend_yield": 1.14,
-        "as_of": "2026-05-12",
-        "data_points": 2427,
+        "percentile": 90.9,
+        "current_pe": 33.94,
+        "current_dividend_yield": 1.12,
+        "as_of": "2026-05-13",
+        "data_points": 2428,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位90.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +6.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 16
+      "signal_text": "PE分位90.9%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +6.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 17
     },
     {
       "code": "512890",
@@ -1928,16 +1928,16 @@
         "level": 1,
         "label": "🔥 偏热·暂停加仓",
         "description": "估值处于历史 70%-85% 分位，还没到极端泡沫，但安全边际已经很薄。处置建议：停止往高估标的加钱，新钱转向仍然便宜的品种（红利/低估行业）；老仓位继续持有不动。巴菲特原则：不在偏贵时加码，等便宜了再重仓。",
-        "percentile": 77.8,
+        "percentile": 77.7,
         "current_pe": 7.99,
-        "current_dividend_yield": 4.72,
-        "as_of": "2026-05-12",
-        "data_points": 1233,
+        "current_dividend_yield": 4.71,
+        "as_of": "2026-05-13",
+        "data_points": 1234,
         "lookback_years": 10
       },
       "signal": "sell_light",
-      "signal_text": "PE分位77.8%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但持仓浮盈仅 -3.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 16
+      "signal_text": "PE分位77.7%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但持仓浮盈仅 -3.6%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 17
     }
   ],
   "portfolio_classification": {
@@ -1997,8 +1997,8 @@
     "level": 0,
     "label": "⚪ 正常·按节奏",
     "description": "估值处于合理区间（历史 30%-70% 分位）。按自己的定投/选股节奏执行，不因估值做大调整。巴菲特大多数时候都处在这个状态。",
-    "current_pe_median": 21.18,
-    "percentile": 45.0,
+    "current_pe_median": 21.39,
+    "percentile": 50.0,
     "lookback_years": 10,
     "as_of": "2026-05",
     "data_points": 120
