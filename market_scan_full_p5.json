@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-14 01:02",
+  "date": "2026-05-14 01:43",
   "mode": "full_p5",
   "p_idx": 4,
   "candidates_count": 4,
@@ -8,6 +8,10 @@
       "code": "000568",
       "passed": true,
       "checks": {
+        "v3_cashcow": {
+          "passed": true,
+          "detail": "✅印钞机 近3年 CapEx/净利=12.3%（<20% 印钞机）"
+        },
         "roe": {
           "passed": true,
           "detail": "ROE均值24.1%"
@@ -39,9 +43,9 @@
       "china_v3_risks": [
         "10% 回报锚超限：当前 ¥92.70 高于安全边际价 ¥56.75（超 63%）"
       ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
+      "cashcow_label": "cashcow",
+      "cashcow_tier": "✅印钞机",
+      "cashcow_detail": "近3年 CapEx/净利=12.3%（<20% 印钞机）",
       "max_buy_price_rr10": 56.75197220402703,
       "rr10_detail": "按 10% required return 倒推：当前 EPS 7.36元，3 年 EPS CAGR -9.7%（capped 0%），10 年后 EPS 7.36元，退出 PE 20，最高合理买入价 ¥56.75",
       "mgmt_score": 100,
