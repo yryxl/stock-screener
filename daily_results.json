@@ -1,20 +1,20 @@
 {
-  "date": "2026-05-15 15:40",
-  "mode": "holdings",
+  "date": "2026-05-15 18:16",
+  "mode": "watchlist",
   "is_trading_day": true,
-  "data_source": "持仓检查",
+  "data_source": "关注表+持仓",
   "ai_recommendations": [
     {
       "code": "000538",
       "name": "云南白药",
       "category": "中药Ⅱ",
       "note": "国家绝密配方+百年品牌",
-      "price": 51.5,
-      "pe": 17.48,
+      "price": 50.9,
+      "pe": 17.28,
       "signal": "buy_watch",
       "signal_text": "PE偏低，ROE限制最高关注",
       "total_score": 30,
-      "dividend_yield": 5.05,
+      "dividend_yield": 5.11,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -34,12 +34,12 @@
         "股息率": {
           "score": 5,
           "max": 10,
-          "detail": "股息率5.0%高"
+          "detail": "股息率5.1%高"
         },
         "估值": {
           "score": 8,
           "max": 10,
-          "detail": "PE=17.5低估 | 简单生意"
+          "detail": "PE=17.3低估 | 简单生意"
         }
       },
       "roe": null,
@@ -52,12 +52,12 @@
       "name": "伊利股份",
       "category": "饮料乳品",
       "note": "乳业双寡头",
-      "price": 27.78,
-      "pe": 14.54,
+      "price": 27.61,
+      "pe": 14.45,
       "signal": "buy_light",
-      "signal_text": "PE=14.5，低于行业合理区间15-25→可以轻仓买入",
+      "signal_text": "PE=14.4，低于行业合理区间15-25→可以轻仓买入",
       "total_score": 28,
-      "dividend_yield": 4.97,
+      "dividend_yield": 5.0,
       "dimensions": {
         "ROE质量": {
           "score": 6,
@@ -82,7 +82,7 @@
         "估值": {
           "score": 8,
           "max": 10,
-          "detail": "PE=14.5低估 | 简单生意"
+          "detail": "PE=14.4低估 | 简单生意"
         }
       },
       "roe": null,
@@ -1528,12 +1528,12 @@
       "name": "海天味业",
       "category": "调味发酵品Ⅱ",
       "note": "酱油市占30%+",
-      "price": 37.35,
-      "pe": 30.02,
+      "price": 36.81,
+      "pe": 29.59,
       "signal": "hold",
-      "signal_text": "PE=30.0，处于合理区间22-35，等待更低点",
+      "signal_text": "PE=29.6，处于合理区间22-35，等待更低点",
       "total_score": 31,
-      "dividend_yield": 2.95,
+      "dividend_yield": 2.99,
       "dimensions": {
         "ROE质量": {
           "score": 8,
@@ -1558,7 +1558,7 @@
         "估值": {
           "score": 5,
           "max": 10,
-          "detail": "PE=30.0合理偏高 | 简单生意"
+          "detail": "PE=29.6合理偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -1570,12 +1570,12 @@
       "name": "云南白药",
       "category": "中药Ⅱ",
       "note": "国家绝密配方+百年品牌",
-      "price": 51.5,
-      "pe": 17.48,
+      "price": 50.9,
+      "pe": 17.28,
       "signal": "buy_watch",
       "signal_text": "PE偏低，ROE限制最高关注",
       "total_score": 30,
-      "dividend_yield": 5.05,
+      "dividend_yield": 5.11,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -1595,12 +1595,12 @@
         "股息率": {
           "score": 5,
           "max": 10,
-          "detail": "股息率5.0%高"
+          "detail": "股息率5.1%高"
         },
         "估值": {
           "score": 8,
           "max": 10,
-          "detail": "PE=17.5低估 | 简单生意"
+          "detail": "PE=17.3低估 | 简单生意"
         }
       },
       "roe": null,
@@ -1613,12 +1613,12 @@
       "name": "伊利股份",
       "category": "饮料乳品",
       "note": "乳业双寡头",
-      "price": 27.78,
-      "pe": 14.54,
+      "price": 27.61,
+      "pe": 14.45,
       "signal": "buy_light",
-      "signal_text": "PE=14.5，低于行业合理区间15-25→可以轻仓买入",
+      "signal_text": "PE=14.4，低于行业合理区间15-25→可以轻仓买入",
       "total_score": 28,
-      "dividend_yield": 4.97,
+      "dividend_yield": 5.0,
       "dimensions": {
         "ROE质量": {
           "score": 6,
@@ -1643,7 +1643,7 @@
         "估值": {
           "score": 8,
           "max": 10,
-          "detail": "PE=14.5低估 | 简单生意"
+          "detail": "PE=14.4低估 | 简单生意"
         }
       },
       "roe": null,
@@ -1656,12 +1656,12 @@
       "name": "中国中免",
       "category": "旅游零售Ⅱ",
       "note": "国内唯一免税全牌照",
-      "price": 60.8,
-      "pe": 31.61,
+      "price": 59.0,
+      "pe": 30.67,
       "signal": "hold",
-      "signal_text": "PE=31.6，处于合理区间25-40，等待更低点",
+      "signal_text": "PE=30.7，处于合理区间25-40，等待更低点",
       "total_score": 26,
-      "dividend_yield": 1.15,
+      "dividend_yield": 1.19,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -1681,12 +1681,12 @@
         "股息率": {
           "score": 2,
           "max": 10,
-          "detail": "股息率1.1%偏低"
+          "detail": "股息率1.2%偏低"
         },
         "估值": {
           "score": 7,
           "max": 10,
-          "detail": "PE=31.6合理偏低 | 简单生意"
+          "detail": "PE=30.7合理偏低 | 简单生意"
         }
       },
       "roe": null,
@@ -1698,12 +1698,12 @@
       "name": "中国移动",
       "category": "通信服务",
       "note": "9亿用户+通信牌照",
-      "price": 98.53,
-      "pe": 15.72,
+      "price": 97.97,
+      "pe": 15.63,
       "signal": "hold",
       "signal_text": "PE偏低但ROE不达标，继续观望",
       "total_score": 26,
-      "dividend_yield": 4.85,
+      "dividend_yield": 4.88,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -1723,12 +1723,12 @@
         "股息率": {
           "score": 5,
           "max": 10,
-          "detail": "股息率4.8%高"
+          "detail": "股息率4.9%高"
         },
         "估值": {
           "score": 7,
           "max": 10,
-          "detail": "PE=15.7低估 | 中等复杂"
+          "detail": "PE=15.6低估 | 中等复杂"
         }
       },
       "roe": null,
@@ -1740,12 +1740,12 @@
       "name": "同仁堂",
       "category": "中药Ⅱ",
       "note": "350年国药老字号",
-      "price": 27.56,
-      "pe": 35.05,
+      "price": 27.3,
+      "pe": 34.72,
       "signal": "hold",
-      "signal_text": "PE=35.0，超出合理区间20-30，等待回落",
+      "signal_text": "PE=34.7，超出合理区间20-30，等待回落",
       "total_score": 25,
-      "dividend_yield": 3.63,
+      "dividend_yield": 3.66,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -1765,12 +1765,12 @@
         "股息率": {
           "score": 3,
           "max": 10,
-          "detail": "股息率3.6%"
+          "detail": "股息率3.7%"
         },
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=35.0偏高 | 简单生意"
+          "detail": "PE=34.7偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -1782,12 +1782,12 @@
       "name": "长江电力",
       "category": "电力",
       "note": "长江6大梯级电站独家运营",
-      "price": 26.94,
-      "pe": 18.27,
+      "price": 27.03,
+      "pe": 18.33,
       "signal": "hold",
       "signal_text": "PE=18.3，超出合理区间10-18，等待回落",
       "total_score": 23,
-      "dividend_yield": 4.49,
+      "dividend_yield": 4.48,
       "dimensions": {
         "ROE质量": {
           "score": 5,
@@ -1824,12 +1824,12 @@
       "name": "京沪高铁",
       "category": "铁路公路",
       "note": "最黄金高铁线路独家",
-      "price": 4.95,
-      "pe": 18.14,
+      "price": 4.96,
+      "pe": 18.18,
       "signal": "hold",
-      "signal_text": "PE=18.1，超出合理区间10-16，等待回落",
+      "signal_text": "PE=18.2，超出合理区间10-16，等待回落",
       "total_score": 23,
-      "dividend_yield": 5.09,
+      "dividend_yield": 5.08,
       "dimensions": {
         "ROE质量": {
           "score": 2,
@@ -1854,7 +1854,7 @@
         "估值": {
           "score": 3,
           "max": 10,
-          "detail": "PE=18.1偏高 | 中等复杂"
+          "detail": "PE=18.2偏高 | 中等复杂"
         }
       },
       "roe": null,
@@ -1866,12 +1866,12 @@
       "name": "工商银行",
       "category": "银行Ⅱ",
       "note": "国家信用+金融压舱石",
-      "price": 7.3,
-      "pe": 7.24,
+      "price": 7.24,
+      "pe": 7.18,
       "signal": "hold",
       "signal_text": "PE=7.2，处于合理区间6-9，等待更低点",
       "total_score": 23,
-      "dividend_yield": 6.51,
+      "dividend_yield": 6.56,
       "dimensions": {
         "ROE质量": {
           "score": 2,
@@ -1891,7 +1891,7 @@
         "股息率": {
           "score": 6,
           "max": 10,
-          "detail": "股息率6.5%极高"
+          "detail": "股息率6.6%极高"
         },
         "估值": {
           "score": 7,
@@ -1908,12 +1908,12 @@
       "name": "大秦铁路",
       "category": "铁路公路",
       "note": "西煤东运主通道独家",
-      "price": 5.35,
-      "pe": 18.87,
+      "price": 5.42,
+      "pe": 19.11,
       "signal": "hold",
-      "signal_text": "PE=18.9，超出合理区间10-16，等待回落",
+      "signal_text": "PE=19.1，超出合理区间10-16，等待回落",
       "total_score": 22,
-      "dividend_yield": 6.73,
+      "dividend_yield": 6.64,
       "dimensions": {
         "ROE质量": {
           "score": 1,
@@ -1933,12 +1933,12 @@
         "股息率": {
           "score": 6,
           "max": 10,
-          "detail": "股息率6.7%极高"
+          "detail": "股息率6.6%极高"
         },
         "估值": {
           "score": 3,
           "max": 10,
-          "detail": "PE=18.9偏高 | 中等复杂"
+          "detail": "PE=19.1偏高 | 中等复杂"
         }
       },
       "roe": null,
@@ -1950,12 +1950,12 @@
       "name": "长春高新",
       "category": "生物制品",
       "note": "生长激素国内市占70%+",
-      "price": 85.29,
-      "pe": -828.59,
+      "price": 84.15,
+      "pe": -817.51,
       "signal": null,
       "signal_text": "PE为负（亏损），不适用PE估值",
       "total_score": 22,
-      "dividend_yield": 3.24,
+      "dividend_yield": 3.28,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -1975,7 +1975,7 @@
         "股息率": {
           "score": 3,
           "max": 10,
-          "detail": "股息率3.2%"
+          "detail": "股息率3.3%"
         },
         "估值": {
           "score": 0,
@@ -1995,7 +1995,7 @@
       "shares": 100,
       "cost": 56.4,
       "price": 50.9,
-      "pe": 17.48,
+      "pe": 17.28,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
