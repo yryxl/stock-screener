@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-15 01:49",
+  "date": "2026-05-18 01:56",
   "mode": "full_p5",
   "p_idx": 4,
   "candidates_count": 4,
@@ -34,14 +34,14 @@
         }
       },
       "signal": "buy_heavy",
-      "signal_text": "PE=14.0，远低于行业底部15→可以重仓买入",
-      "pe": 13.96,
-      "price": 94.35,
+      "signal_text": "PE=13.5，远低于行业底部15→可以重仓买入",
+      "pe": 13.47,
+      "price": 91.0,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥94.35 高于安全边际价 ¥56.75（超 66%）"
+        "10% 回报锚超限：当前 ¥91.00 高于安全边际价 ¥56.75（超 60%）"
       ],
       "cashcow_label": "cashcow",
       "cashcow_tier": "✅印钞机",
@@ -90,14 +90,14 @@
         }
       },
       "signal": "buy_light",
-      "signal_text": "十年王者合理价（PE=18.3）→ 轻仓买入",
-      "pe": 18.27,
-      "price": 38.85,
+      "signal_text": "十年王者合理价（PE=17.9）→ 轻仓买入",
+      "pe": 17.92,
+      "price": 38.11,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥38.85 高于安全边际价 ¥36.91（超 5%）"
+        "10% 回报锚超限：当前 ¥38.11 高于安全边际价 ¥36.91（超 3%）"
       ],
       "cashcow_label": "cashcow_elite",
       "cashcow_tier": "🌟卓越印钞机",
@@ -141,14 +141,14 @@
         }
       },
       "signal": "buy_watch",
-      "signal_text": "十年王者（PE=22.1 合理偏高）→ 关注买入",
-      "pe": 22.14,
-      "price": 61.41,
+      "signal_text": "十年王者（PE=21.7 合理偏高）→ 关注买入",
+      "pe": 21.74,
+      "price": 60.3,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥61.41 高于安全边际价 ¥48.14（超 28%）"
+        "10% 回报锚超限：当前 ¥60.30 高于安全边际价 ¥48.14（超 25%）"
       ],
       "cashcow_label": "cashcow_elite",
       "cashcow_tier": "🌟卓越印钞机",
@@ -192,15 +192,15 @@
         }
       },
       "signal": "sell_heavy",
-      "signal_text": "PE=140.6，远高于行业上限50→可以大量卖出",
-      "pe": 140.63,
-      "price": 392.0,
+      "signal_text": "PE=143.5，远高于行业上限50→可以大量卖出",
+      "pe": 143.5,
+      "price": 399.99,
       "is_10y_king": false,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 毛利率反常：54.0% 远高于行业基准（30%，超 80%）。东方纸业式信号——可能虚增收入或关联交易。建议核实",
-        "10% 回报锚超限：当前 ¥392.00 高于安全边际价 ¥62.17（超 531%）"
+        "10% 回报锚超限：当前 ¥399.99 高于安全边际价 ¥62.17（超 543%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
