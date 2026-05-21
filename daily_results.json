@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-21 18:47",
+  "date": "2026-05-21 18:58",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -1096,11 +1096,11 @@
   },
   "etf_unmapped": [],
   "market_temperature": {
-    "level": 0,
-    "label": "⚪ 正常·按节奏",
-    "description": "估值处于合理区间（历史 30%-70% 分位）。按自己的定投/选股节奏执行，不因估值做大调整。巴菲特大多数时候都处在这个状态。",
-    "current_pe_median": 20.42,
-    "percentile": 30.8,
+    "level": -1,
+    "label": "🧊 偏冷·重点加仓",
+    "description": "估值进入历史 15%-30% 分位，机会开始显现。处置建议：把手里闲钱和新工资重点投向被低估的好公司和宽基，适当超配股票。芒格原则：便宜是硬道理。",
+    "current_pe_median": 20.08,
+    "percentile": 25.0,
     "lookback_years": 10,
     "as_of": "2026-05",
     "data_points": 120
