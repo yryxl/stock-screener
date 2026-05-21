@@ -1950,7 +1950,7 @@
     "first_fail_at": null
   },
   "003013": {
-    "last_scanned_at": "2026-05-20T19:53:10+08:00",
+    "last_scanned_at": "2026-05-22T03:00:44+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2280,7 +2280,7 @@
     "first_fail_at": null
   },
   "003025": {
-    "last_scanned_at": "2026-05-20T19:53:10+08:00",
+    "last_scanned_at": "2026-05-22T03:00:44+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
