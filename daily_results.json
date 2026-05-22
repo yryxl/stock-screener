@@ -1,52 +1,9 @@
 {
-  "date": "2026-05-21 20:49",
-  "mode": "watchlist",
+  "date": "2026-05-22 08:00",
+  "mode": "send_ai_with_fallback_merge",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "分段扫描合并 兜底（含 10 个文件）",
   "ai_recommendations": [
-    {
-      "code": "000538",
-      "name": "云南白药",
-      "category": "中药Ⅱ",
-      "note": "国家绝密配方+百年品牌",
-      "price": 50.13,
-      "pe": 17.02,
-      "signal": "buy_watch",
-      "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 25,
-      "dividend_yield": 0,
-      "dimensions": {
-        "ROE质量": {
-          "score": 3,
-          "max": 10,
-          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债26%极低 | 流动比率2.6 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率29% | 10年数据"
-        },
-        "股息率": {
-          "score": 0,
-          "max": 10,
-          "detail": "无股息数据"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=17.0低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
     {
       "code": "301611",
       "passed": true,
@@ -178,14 +135,14 @@
         }
       },
       "signal": "buy_heavy",
-      "signal_text": "PE=13.6，远低于行业底部15→可以重仓买入",
-      "pe": 13.64,
-      "price": 92.2,
+      "signal_text": "PE=13.5，远低于行业底部15→可以重仓买入",
+      "pe": 13.53,
+      "price": 91.42,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥92.20 高于安全边际价 ¥56.75（超 62%）"
+        "10% 回报锚超限：当前 ¥91.42 高于安全边际价 ¥56.75（超 61%）"
       ],
       "cashcow_label": "cashcow",
       "cashcow_tier": "✅印钞机",
@@ -364,20 +321,28 @@
       "source": "段 6"
     },
     {
-      "code": "000848",
+      "code": "000429",
       "passed": true,
       "checks": {
+        "v3_toll_bridge": {
+          "passed": true,
+          "detail": "归属'高速公路'—受管制的过路费生意"
+        },
+        "v3_authenticity_inventory_anomaly": {
+          "passed": true,
+          "detail": "存货周转天数恶化：0 → 0 天（+100%），可能渠道压货"
+        },
         "roe": {
           "passed": true,
-          "detail": "ROE均值24.4%"
+          "detail": "ROE均值14.3%"
         },
         "debt": {
           "passed": true,
-          "detail": "负债率34.3%（消费档健康） 流动比率3.44"
+          "detail": "负债率47.0%（基建档健康） 流动比率5.76"
         },
         "opm": {
           "passed": true,
-          "detail": "利润率均值20.1%稳定"
+          "detail": "利润率均值44.7%稳定"
         },
         "fcf": {
           "passed": true,
@@ -385,35 +350,90 @@
         },
         "gross_margin": {
           "passed": true,
-          "detail": "毛利率45.7%"
+          "detail": "毛利率57.5%"
         }
       },
-      "signal": "buy_light",
-      "signal_text": "PE=13.7，低于行业合理区间15-25→可以轻仓买入",
-      "pe": 13.68,
-      "price": 8.85,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
+      "signal": "sell_light",
+      "signal_text": "PE=17.4，高于合理区间→可以适当卖出",
+      "pe": 17.35,
+      "price": 13.24,
+      "is_10y_king": false,
+      "is_good_quality": false,
+      "is_toll_bridge": true,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥8.85 高于安全边际价 ¥3.47（超 155%）"
+        "⚠ 数据真实性: 存货周转天数恶化：0 → 0 天（+100%），可能渠道压货",
+        "10% 回报锚超限：当前 ¥13.24 高于安全边际价 ¥5.40（超 145%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
       "cashcow_detail": "",
-      "max_buy_price_rr10": 3.4698896048657826,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.60元，3 年 EPS CAGR -0.8%（capped 0%），10 年后 EPS 0.60元，退出 PE 15，最高合理买入价 ¥3.47",
+      "max_buy_price_rr10": 5.402451073219833,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.86元，3 年 EPS CAGR 5.0%（capped 5%），10 年后 EPS 1.40元，退出 PE 10，最高合理买入价 ¥5.40",
       "mgmt_score": 100,
       "mgmt_tier": "优秀",
       "mgmt_flags": [],
       "data_quality": "ok",
-      "king_avg_roe": 22.367,
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "饮料乳品",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（饮料乳品）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
+      "toll_class": "toll_bridge_utility",
+      "king_avg_roe": 15.565999999999999,
+      "name": "粤高速Ａ",
+      "source": "补漏"
+    },
+    {
+      "code": "001233",
+      "passed": true,
+      "checks": {
+        "v3_authenticity_receivable_anomaly": {
+          "passed": true,
+          "detail": "应收账款周转天数恶化：从 61 天 → 122 天（3 年 +100%），康美式造假特征（应收虚增）"
+        },
+        "v3_authenticity_gm_anomaly": {
+          "passed": true,
+          "detail": "毛利率反常：44.2% 远高于行业基准（15%，超 195%）。东方纸业式信号——可能虚增收入或关联交易。建议核实"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值28.1%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率23.7%（制造档健康） 流动比率3.46"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值21.1%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率40.5%"
+        }
       },
-      "name": "承德露露",
+      "signal": "sell_light",
+      "signal_text": "PE=22.1，高于合理区间→可以适当卖出",
+      "pe": 22.11,
+      "price": 55.9,
+      "is_10y_king": false,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "⚠ 数据真实性: 应收账款周转天数恶化：从 61 天 → 122 天（3 年 +100%），康美式造假特征（应收虚增）",
+        "⚠ 数据真实性: 毛利率反常：44.2% 远高于行业基准（15%，超 195%）。东方纸业式信号——可能虚增收入或关联交易。建议核实",
+        "10% 回报锚超限：当前 ¥55.90 高于安全边际价 ¥21.05（超 166%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 21.050663602852413,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 3.90元，3 年 EPS CAGR -8.8%（capped 0%），10 年后 EPS 3.90元，退出 PE 14，最高合理买入价 ¥21.05",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": null,
+      "name": "海安集团",
       "source": "补漏"
     }
   ],
@@ -534,11 +554,11 @@
       "name": "沪深300ETF华夏",
       "shares": 700,
       "cost": 4.915,
-      "current_price": null,
-      "pnl_pct": null,
-      "pnl_label": "",
-      "pnl_advice": "",
-      "pnl_override": false,
+      "current_price": 5.007,
+      "pnl_pct": 1.87,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +1.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
       "index_code": "000300",
@@ -556,7 +576,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位99.0%·泡沫区·卖盈利部分·保留底仓",
+      "signal_text": "PE分位99.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +1.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 20
     },
     {
@@ -564,11 +584,11 @@
       "name": "中证500ETF",
       "shares": 100,
       "cost": 8.502,
-      "current_price": null,
-      "pnl_pct": null,
-      "pnl_label": "",
-      "pnl_advice": "",
-      "pnl_override": false,
+      "current_price": 8.503,
+      "pnl_pct": 0.01,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +0.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
       "index_code": "000905",
@@ -586,7 +606,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位87.4%·泡沫区·卖盈利部分·保留底仓",
+      "signal_text": "PE分位87.4%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +0.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 20
     },
     {
@@ -594,11 +614,11 @@
       "name": "红利低波ETF华泰柏瑞",
       "shares": 3300,
       "cost": 1.221,
-      "current_price": null,
-      "pnl_pct": null,
-      "pnl_label": "",
-      "pnl_advice": "",
-      "pnl_override": false,
+      "current_price": 1.161,
+      "pnl_pct": -4.91,
+      "pnl_label": "几乎平本",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -4.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
       "index_code": "H30269",
@@ -616,7 +636,7 @@
         "lookback_years": 10
       },
       "signal": "sell_light",
-      "signal_text": "PE分位71.4%·偏热·暂停加仓·新钱转便宜标的",
+      "signal_text": "PE分位71.4%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但持仓浮盈仅 -4.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 20
     }
   ],
@@ -693,7 +713,7 @@
       "text": "仓位40.4% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ],
-  "push_sent_date": "2026-05-21",
-  "push_sent_at": "2026-05-21T08:03:27+08:00",
+  "push_sent_date": "2026-05-22",
+  "push_sent_at": "2026-05-22T08:00:25+08:00",
   "push_triggered_by": "send_ai"
 }
