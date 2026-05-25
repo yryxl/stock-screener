@@ -34,5 +34,14 @@
     "buy_date": "2026-03-20",
     "attribution": "pre_model",
     "venue": "onshore"
+  },
+  {
+    "code": "000568",
+    "name": "泸州老窖",
+    "shares": 100,
+    "cost": 89.95,
+    "buy_date": "2026-05-22",
+    "attribution": "model",
+    "venue": "onshore"
   }
 ]
