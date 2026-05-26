@@ -2370,7 +2370,7 @@
     "first_fail_at": null
   },
   "002615": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2412,7 +2412,7 @@
     "first_fail_at": null
   },
   "002003": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2424,7 +2424,7 @@
     "first_fail_at": null
   },
   "002315": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2454,13 +2454,13 @@
     "first_fail_at": null
   },
   "000953": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "001337": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": "sell_heavy",
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2508,7 +2508,7 @@
     "first_fail_at": null
   },
   "002891": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2520,7 +2520,7 @@
     "first_fail_at": null
   },
   "002867": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2562,7 +2562,7 @@
     "first_fail_at": null
   },
   "002351": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2592,7 +2592,7 @@
     "first_fail_at": null
   },
   "000995": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2646,7 +2646,7 @@
     "first_fail_at": null
   },
   "002837": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2712,7 +2712,7 @@
     "first_fail_at": null
   },
   "002027": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": "buy_watch",
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2724,7 +2724,7 @@
     "first_fail_at": null
   },
   "002555": {
-    "last_scanned_at": "2026-05-25T04:07:48+08:00",
+    "last_scanned_at": "2026-05-26T14:49:47+08:00",
     "last_signal": "buy_light",
     "consecutive_fails": 0,
     "first_fail_at": null
