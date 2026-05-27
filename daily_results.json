@@ -1,9 +1,95 @@
 {
-  "date": "2026-05-27 13:44",
-  "mode": "holdings",
+  "date": "2026-05-27 20:08",
+  "mode": "watchlist",
   "is_trading_day": true,
-  "data_source": "持仓检查",
+  "data_source": "关注表+持仓",
   "ai_recommendations": [
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "category": "中药Ⅱ",
+      "note": "国家绝密配方+百年品牌",
+      "price": 49.73,
+      "pe": 16.88,
+      "signal": "buy_watch",
+      "signal_text": "PE偏低，ROE限制最高关注",
+      "total_score": 30,
+      "dividend_yield": 5.23,
+      "dimensions": {
+        "ROE质量": {
+          "score": 3,
+          "max": 10,
+          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
+        },
+        "财务健康": {
+          "score": 9,
+          "max": 10,
+          "detail": "负债26%极低 | 流动比率2.6 | 现金流优 | 利润率稳定"
+        },
+        "盈利能力": {
+          "score": 5,
+          "max": 10,
+          "detail": "毛利率29% | 10年数据"
+        },
+        "股息率": {
+          "score": 5,
+          "max": 10,
+          "detail": "股息率5.2%高"
+        },
+        "估值": {
+          "score": 8,
+          "max": 10,
+          "detail": "PE=16.9低估 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null,
+      "source": "关注表"
+    },
+    {
+      "code": "600887",
+      "name": "伊利股份",
+      "category": "饮料乳品",
+      "note": "乳业双寡头",
+      "price": 26.62,
+      "pe": 13.93,
+      "signal": "buy_light",
+      "signal_text": "PE=13.9，低于行业合理区间15-25→可以轻仓买入",
+      "total_score": 23,
+      "dividend_yield": 0,
+      "dimensions": {
+        "ROE质量": {
+          "score": 6,
+          "max": 10,
+          "detail": "均值22.9%优秀 | 从未破15% | 下滑"
+        },
+        "财务健康": {
+          "score": 4,
+          "max": 10,
+          "detail": "负债62%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
+        },
+        "盈利能力": {
+          "score": 5,
+          "max": 10,
+          "detail": "毛利率35% | 10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
+        },
+        "估值": {
+          "score": 8,
+          "max": 10,
+          "detail": "PE=13.9低估 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null,
+      "source": "关注表"
+    },
     {
       "code": "000848",
       "passed": true,
@@ -391,101 +477,16 @@
   ],
   "watchlist_signals": [
     {
-      "code": "603288",
-      "name": "海天味业",
-      "category": "调味发酵品Ⅱ",
-      "note": "酱油市占30%+",
-      "price": 35.63,
-      "pe": 28.64,
-      "signal": "hold",
-      "signal_text": "PE=28.6，处于合理区间22-35，等待更低点",
-      "total_score": 31,
-      "dividend_yield": 3.09,
-      "dimensions": {
-        "ROE质量": {
-          "score": 8,
-          "max": 10,
-          "detail": "均值28.5%卓越 | 从未破15% | 下滑 | 低杠杆20%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债20%极低 | 流动比率3.9 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 6,
-          "max": 10,
-          "detail": "毛利率41%强 | 10年数据"
-        },
-        "股息率": {
-          "score": 3,
-          "max": 10,
-          "detail": "股息率3.1%"
-        },
-        "估值": {
-          "score": 5,
-          "max": 10,
-          "detail": "PE=28.6合理偏高 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
-      "code": "600887",
-      "name": "伊利股份",
-      "category": "饮料乳品",
-      "note": "乳业双寡头",
-      "price": 26.58,
-      "pe": 13.91,
-      "signal": "buy_light",
-      "signal_text": "PE=13.9，低于行业合理区间15-25→可以轻仓买入",
-      "total_score": 28,
-      "dividend_yield": 5.19,
-      "dimensions": {
-        "ROE质量": {
-          "score": 6,
-          "max": 10,
-          "detail": "均值22.9%优秀 | 从未破15% | 下滑"
-        },
-        "财务健康": {
-          "score": 4,
-          "max": 10,
-          "detail": "负债62%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率35% | 10年数据"
-        },
-        "股息率": {
-          "score": 5,
-          "max": 10,
-          "detail": "股息率5.2%高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=13.9低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
-    {
       "code": "000538",
       "name": "云南白药",
       "category": "中药Ⅱ",
       "note": "国家绝密配方+百年品牌",
-      "price": 48.85,
-      "pe": 16.58,
+      "price": 49.73,
+      "pe": 16.88,
       "signal": "buy_watch",
       "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 25,
-      "dividend_yield": 0,
+      "total_score": 30,
+      "dividend_yield": 5.23,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -503,14 +504,14 @@
           "detail": "毛利率29% | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 5,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率5.2%高"
         },
         "估值": {
           "score": 8,
           "max": 10,
-          "detail": "PE=16.6低估 | 简单生意"
+          "detail": "PE=16.9低估 | 简单生意"
         }
       },
       "roe": null,
@@ -519,14 +520,56 @@
       "source": "关注表"
     },
     {
+      "code": "603288",
+      "name": "海天味业",
+      "category": "调味发酵品Ⅱ",
+      "note": "酱油市占30%+",
+      "price": 35.85,
+      "pe": 28.82,
+      "signal": "hold",
+      "signal_text": "PE=28.8，处于合理区间22-35，等待更低点",
+      "total_score": 28,
+      "dividend_yield": 0,
+      "dimensions": {
+        "ROE质量": {
+          "score": 8,
+          "max": 10,
+          "detail": "均值28.5%卓越 | 从未破15% | 下滑 | 低杠杆20%"
+        },
+        "财务健康": {
+          "score": 9,
+          "max": 10,
+          "detail": "负债20%极低 | 流动比率3.9 | 现金流优 | 利润率稳定"
+        },
+        "盈利能力": {
+          "score": 6,
+          "max": 10,
+          "detail": "毛利率41%强 | 10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
+        },
+        "估值": {
+          "score": 5,
+          "max": 10,
+          "detail": "PE=28.8合理偏高 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
       "code": "601888",
       "name": "中国中免",
       "category": "旅游零售Ⅱ",
       "note": "国内唯一免税全牌照",
-      "price": 56.53,
-      "pe": 29.39,
+      "price": 56.23,
+      "pe": 29.23,
       "signal": "hold",
-      "signal_text": "PE=29.4，处于合理区间25-40，等待更低点",
+      "signal_text": "财务风险(仅5年数据、ROE=15.8% 负债率18%、利润率持续下滑)，继续观望",
       "total_score": 24,
       "dividend_yield": 0,
       "dimensions": {
@@ -553,7 +596,7 @@
         "估值": {
           "score": 7,
           "max": 10,
-          "detail": "PE=29.4合理偏低 | 简单生意"
+          "detail": "PE=29.2合理偏低 | 简单生意"
         }
       },
       "roe": null,
@@ -561,98 +604,57 @@
       "debt_ratio": null
     },
     {
-      "code": "601816",
-      "name": "京沪高铁",
-      "category": "铁路公路",
-      "note": "最黄金高铁线路独家",
-      "price": 4.86,
-      "pe": 17.81,
-      "signal": "hold",
-      "signal_text": "PE=17.8，超出合理区间10-16，等待回落",
+      "code": "600887",
+      "name": "伊利股份",
+      "category": "饮料乳品",
+      "note": "乳业双寡头",
+      "price": 26.62,
+      "pe": 13.93,
+      "signal": "buy_light",
+      "signal_text": "PE=13.9，低于行业合理区间15-25→可以轻仓买入",
       "total_score": 23,
-      "dividend_yield": 5.19,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
-          "score": 2,
-          "max": 10,
-          "detail": "均值5.0%不足 | 最低-0.3% | 稳定 | 低杠杆20%"
-        },
-        "财务健康": {
-          "score": 7,
-          "max": 10,
-          "detail": "负债20%极低 | 流动比率1.8 | 现金流优 | 利润率下滑"
-        },
-        "盈利能力": {
           "score": 6,
           "max": 10,
-          "detail": "毛利率41%强 | 10年数据"
+          "detail": "均值22.9%优秀 | 从未破15% | 下滑"
         },
-        "股息率": {
+        "财务健康": {
+          "score": 4,
+          "max": 10,
+          "detail": "负债62%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
+        },
+        "盈利能力": {
           "score": 5,
           "max": 10,
-          "detail": "股息率5.2%高"
+          "detail": "毛利率35% | 10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
         },
         "估值": {
-          "score": 3,
+          "score": 8,
           "max": 10,
-          "detail": "PE=17.8偏高 | 中等复杂"
+          "detail": "PE=13.9低估 | 简单生意"
         }
       },
       "roe": null,
       "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
-      "code": "601398",
-      "name": "工商银行",
-      "category": "银行Ⅱ",
-      "note": "国家信用+金融压舱石",
-      "price": 7.18,
-      "pe": 7.12,
-      "signal": "hold",
-      "signal_text": "PE=7.1，处于合理区间6-9，等待更低点",
-      "total_score": 23,
-      "dividend_yield": 6.61,
-      "dimensions": {
-        "ROE质量": {
-          "score": 2,
-          "max": 10,
-          "detail": "均值12.2%一般 | 最低9.4%曾破线 | 下滑"
-        },
-        "财务健康": {
-          "score": 5,
-          "max": 10,
-          "detail": "负债92%高 | 现金流优 | 利润率上升"
-        },
-        "盈利能力": {
-          "score": 3,
-          "max": 10,
-          "detail": "10年数据"
-        },
-        "股息率": {
-          "score": 6,
-          "max": 10,
-          "detail": "股息率6.6%极高"
-        },
-        "估值": {
-          "score": 7,
-          "max": 10,
-          "detail": "PE=7.1合理偏低 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
+      "debt_ratio": null,
+      "source": "关注表"
     },
     {
       "code": "600085",
       "name": "同仁堂",
       "category": "中药Ⅱ",
       "note": "350年国药老字号",
-      "price": 25.23,
-      "pe": 32.09,
+      "price": 25.3,
+      "pe": 32.18,
       "signal": "hold",
-      "signal_text": "PE=32.1，超出合理区间20-30，等待回落",
+      "signal_text": "PE=32.2，超出合理区间20-30，等待回落",
       "total_score": 22,
       "dividend_yield": 0,
       "dimensions": {
@@ -679,91 +681,7 @@
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=32.1偏高 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
-      "code": "601006",
-      "name": "大秦铁路",
-      "category": "铁路公路",
-      "note": "西煤东运主通道独家",
-      "price": 5.26,
-      "pe": 18.55,
-      "signal": "hold",
-      "signal_text": "PE=18.6，超出合理区间10-16，等待回落",
-      "total_score": 22,
-      "dividend_yield": 6.84,
-      "dimensions": {
-        "ROE质量": {
-          "score": 1,
-          "max": 10,
-          "detail": "均值9.5%不足 | 最低3.6% | 下滑 | 低杠杆15%"
-        },
-        "财务健康": {
-          "score": 8,
-          "max": 10,
-          "detail": "负债15%极低 | 流动比率3.1 | 现金流优 | 利润率下滑"
-        },
-        "盈利能力": {
-          "score": 4,
-          "max": 10,
-          "detail": "毛利率20%偏低 | 10年数据"
-        },
-        "股息率": {
-          "score": 6,
-          "max": 10,
-          "detail": "股息率6.8%极高"
-        },
-        "估值": {
-          "score": 3,
-          "max": 10,
-          "detail": "PE=18.6偏高 | 中等复杂"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
-      "code": "000661",
-      "name": "长春高新",
-      "category": "生物制品",
-      "note": "生长激素国内市占70%+",
-      "price": 77.76,
-      "pe": -755.43,
-      "signal": null,
-      "signal_text": "PE为负（亏损），不适用PE估值",
-      "total_score": 22,
-      "dividend_yield": 3.55,
-      "dimensions": {
-        "ROE质量": {
-          "score": 4,
-          "max": 10,
-          "detail": "均值20.2%优秀 | 最低0.7% | 下滑 | 低杠杆17%"
-        },
-        "财务健康": {
-          "score": 8,
-          "max": 10,
-          "detail": "负债17%极低 | 流动比率3.8 | 现金流优 | 利润率下滑"
-        },
-        "盈利能力": {
-          "score": 7,
-          "max": 10,
-          "detail": "毛利率85%极强 | 10年数据"
-        },
-        "股息率": {
-          "score": 3,
-          "max": 10,
-          "detail": "股息率3.5%"
-        },
-        "估值": {
-          "score": 0,
-          "max": 10,
-          "detail": "PE异常"
+          "detail": "PE=32.2偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -775,8 +693,8 @@
       "name": "中国移动",
       "category": "通信服务",
       "note": "9亿用户+通信牌照",
-      "price": 97.19,
-      "pe": 15.51,
+      "price": 97.58,
+      "pe": 15.57,
       "signal": "hold",
       "signal_text": "PE偏低但ROE不达标，继续观望",
       "total_score": 21,
@@ -805,7 +723,49 @@
         "估值": {
           "score": 7,
           "max": 10,
-          "detail": "PE=15.5低估 | 中等复杂"
+          "detail": "PE=15.6低估 | 中等复杂"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
+      "code": "000661",
+      "name": "长春高新",
+      "category": "生物制品",
+      "note": "生长激素国内市占70%+",
+      "price": 75.81,
+      "pe": -736.49,
+      "signal": null,
+      "signal_text": "PE为负（亏损），不适用PE估值",
+      "total_score": 19,
+      "dividend_yield": 0,
+      "dimensions": {
+        "ROE质量": {
+          "score": 4,
+          "max": 10,
+          "detail": "均值20.2%优秀 | 最低0.7% | 下滑 | 低杠杆17%"
+        },
+        "财务健康": {
+          "score": 8,
+          "max": 10,
+          "detail": "负债17%极低 | 流动比率3.8 | 现金流优 | 利润率下滑"
+        },
+        "盈利能力": {
+          "score": 7,
+          "max": 10,
+          "detail": "毛利率85%极强 | 10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
+        },
+        "估值": {
+          "score": 0,
+          "max": 10,
+          "detail": "PE异常"
         }
       },
       "roe": null,
@@ -817,10 +777,10 @@
       "name": "长江电力",
       "category": "电力",
       "note": "长江6大梯级电站独家运营",
-      "price": 27.14,
-      "pe": 18.4,
+      "price": 27.24,
+      "pe": 18.47,
       "signal": "hold",
-      "signal_text": "PE=18.4，超出合理区间10-18，等待回落",
+      "signal_text": "PE=18.5，超出合理区间10-18，等待回落",
       "total_score": 18,
       "dividend_yield": 0,
       "dimensions": {
@@ -847,7 +807,133 @@
         "估值": {
           "score": 3,
           "max": 10,
-          "detail": "PE=18.4偏高 | 中等复杂"
+          "detail": "PE=18.5偏高 | 中等复杂"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
+      "code": "601816",
+      "name": "京沪高铁",
+      "category": "铁路公路",
+      "note": "最黄金高铁线路独家",
+      "price": 4.88,
+      "pe": 17.88,
+      "signal": "hold",
+      "signal_text": "PE=17.9，超出合理区间10-16，等待回落",
+      "total_score": 18,
+      "dividend_yield": 0,
+      "dimensions": {
+        "ROE质量": {
+          "score": 2,
+          "max": 10,
+          "detail": "均值5.0%不足 | 最低-0.3% | 稳定 | 低杠杆20%"
+        },
+        "财务健康": {
+          "score": 7,
+          "max": 10,
+          "detail": "负债20%极低 | 流动比率1.8 | 现金流优 | 利润率下滑"
+        },
+        "盈利能力": {
+          "score": 6,
+          "max": 10,
+          "detail": "毛利率41%强 | 10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
+        },
+        "估值": {
+          "score": 3,
+          "max": 10,
+          "detail": "PE=17.9偏高 | 中等复杂"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
+      "code": "601398",
+      "name": "工商银行",
+      "category": "银行Ⅱ",
+      "note": "国家信用+金融压舱石",
+      "price": 7.12,
+      "pe": 7.06,
+      "signal": "hold",
+      "signal_text": "PE=7.1，处于合理区间6-9，等待更低点",
+      "total_score": 17,
+      "dividend_yield": 0,
+      "dimensions": {
+        "ROE质量": {
+          "score": 2,
+          "max": 10,
+          "detail": "均值12.2%一般 | 最低9.4%曾破线 | 下滑"
+        },
+        "财务健康": {
+          "score": 5,
+          "max": 10,
+          "detail": "负债92%高 | 现金流优 | 利润率上升"
+        },
+        "盈利能力": {
+          "score": 3,
+          "max": 10,
+          "detail": "10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
+        },
+        "估值": {
+          "score": 7,
+          "max": 10,
+          "detail": "PE=7.1合理偏低 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
+      "code": "601006",
+      "name": "大秦铁路",
+      "category": "铁路公路",
+      "note": "西煤东运主通道独家",
+      "price": 5.17,
+      "pe": 18.23,
+      "signal": "hold",
+      "signal_text": "PE=18.2，超出合理区间10-16，等待回落",
+      "total_score": 16,
+      "dividend_yield": 0,
+      "dimensions": {
+        "ROE质量": {
+          "score": 1,
+          "max": 10,
+          "detail": "均值9.5%不足 | 最低3.6% | 下滑 | 低杠杆15%"
+        },
+        "财务健康": {
+          "score": 8,
+          "max": 10,
+          "detail": "负债15%极低 | 流动比率3.1 | 现金流优 | 利润率下滑"
+        },
+        "盈利能力": {
+          "score": 4,
+          "max": 10,
+          "detail": "毛利率20%偏低 | 10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
+        },
+        "估值": {
+          "score": 3,
+          "max": 10,
+          "detail": "PE=18.2偏高 | 中等复杂"
         }
       },
       "roe": null,
@@ -861,13 +947,13 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 56.4,
-      "price": 49.44,
-      "pe": 16.58,
+      "price": 49.73,
+      "pe": 16.88,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -12.3404255319149,
-      "pnl_pct": -12.34,
+      "holding_pnl": -11.82624113475178,
+      "pnl_pct": -11.83,
       "pnl_label": "浮亏中",
       "pnl_advice": "",
       "must_sell": false,
@@ -883,13 +969,13 @@
       "name": "泸州老窖",
       "shares": 100,
       "cost": 89.95,
-      "price": 93.4,
-      "pe": 13.43,
+      "price": 91.98,
+      "pe": 13.61,
       "signal": "buy_add",
-      "signal_text": "十年王者 + PE偏低→可加仓 | PE=13.4，远低于行业底部15→可以重仓买入",
+      "signal_text": "十年王者 + PE偏低→可加仓 | PE=13.6，远低于行业底部15→可以重仓买入",
       "industry": "白酒Ⅱ",
-      "holding_pnl": 3.835464146748202,
-      "pnl_pct": 3.84,
+      "holding_pnl": 2.2568093385213928,
+      "pnl_pct": 2.26,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
