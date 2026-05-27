@@ -1,95 +1,9 @@
 {
-  "date": "2026-05-26 20:42",
-  "mode": "watchlist",
+  "date": "2026-05-27 08:00",
+  "mode": "send_ai_with_fallback_merge",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "分段扫描合并 兜底（含 10 个文件）",
   "ai_recommendations": [
-    {
-      "code": "600887",
-      "name": "伊利股份",
-      "category": "饮料乳品",
-      "note": "乳业双寡头",
-      "price": 26.58,
-      "pe": 13.91,
-      "signal": "buy_light",
-      "signal_text": "PE=13.9，低于行业合理区间15-25→可以轻仓买入",
-      "total_score": 28,
-      "dividend_yield": 5.19,
-      "dimensions": {
-        "ROE质量": {
-          "score": 6,
-          "max": 10,
-          "detail": "均值22.9%优秀 | 从未破15% | 下滑"
-        },
-        "财务健康": {
-          "score": 4,
-          "max": 10,
-          "detail": "负债62%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率35% | 10年数据"
-        },
-        "股息率": {
-          "score": 5,
-          "max": 10,
-          "detail": "股息率5.2%高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=13.9低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
-    {
-      "code": "000538",
-      "name": "云南白药",
-      "category": "中药Ⅱ",
-      "note": "国家绝密配方+百年品牌",
-      "price": 48.85,
-      "pe": 16.58,
-      "signal": "buy_watch",
-      "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 25,
-      "dividend_yield": 0,
-      "dimensions": {
-        "ROE质量": {
-          "score": 3,
-          "max": 10,
-          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债26%极低 | 流动比率2.6 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率29% | 10年数据"
-        },
-        "股息率": {
-          "score": 0,
-          "max": 10,
-          "detail": "无股息数据"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=16.6低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
     {
       "code": "000848",
       "passed": true,
@@ -115,15 +29,15 @@
           "detail": "毛利率45.7%"
         }
       },
-      "signal": "buy_medium",
-      "signal_text": "PE=13.2，明显低于合理区间→可以中仓买入",
-      "pe": 13.24,
-      "price": 8.57,
+      "signal": "buy_light",
+      "signal_text": "PE=13.6，低于行业合理区间15-25→可以轻仓买入",
+      "pe": 13.57,
+      "price": 8.78,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥8.57 高于安全边际价 ¥3.47（超 147%）"
+        "10% 回报锚超限：当前 ¥8.78 高于安全边际价 ¥3.47（超 153%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -289,14 +203,14 @@
         }
       },
       "signal": "buy_heavy",
-      "signal_text": "PE=13.6，远低于行业底部15→可以重仓买入",
-      "pe": 13.59,
-      "price": 91.85,
+      "signal_text": "PE=13.4，远低于行业底部15→可以重仓买入",
+      "pe": 13.43,
+      "price": 90.78,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥91.85 高于安全边际价 ¥56.75（超 62%）"
+        "10% 回报锚超限：当前 ¥90.78 高于安全边际价 ¥56.75（超 60%）"
       ],
       "cashcow_label": "cashcow",
       "cashcow_tier": "✅印钞机",
@@ -347,14 +261,14 @@
       },
       "signal": "buy_light",
       "signal_text": "PE=13.5，低于行业合理区间15-25→可以轻仓买入",
-      "pe": 13.51,
-      "price": 19.69,
+      "pe": 13.48,
+      "price": 19.65,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 存货周转天数恶化：13 → 44 天（+244%），可能渠道压货",
-        "10% 回报锚超限：当前 ¥19.69 高于安全边际价 ¥12.29（超 60%）"
+        "10% 回报锚超限：当前 ¥19.65 高于安全边际价 ¥12.29（超 60%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -403,15 +317,15 @@
         }
       },
       "signal": "buy_watch",
-      "signal_text": "十年王者（PE=22.1 合理偏高）→ 关注买入",
-      "pe": 22.1,
-      "price": 5.51,
+      "signal_text": "十年王者（PE=22.2 合理偏高）→ 关注买入",
+      "pe": 22.18,
+      "price": 5.53,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 应收账款周转天数恶化：从 50 天 → 83 天（3 年 +67%），康美式造假特征（应收虚增）",
-        "10% 回报锚超限：当前 ¥5.51 高于安全边际价 ¥1.18（超 367%）"
+        "10% 回报锚超限：当前 ¥5.53 高于安全边际价 ¥1.18（超 369%）"
       ],
       "cashcow_label": "cashcow_elite",
       "cashcow_tier": "🌟卓越印钞机",
@@ -452,14 +366,14 @@
         }
       },
       "signal": "sell_heavy",
-      "signal_text": "PE=36.7，远高于行业上限35→可以大量卖出",
-      "pe": 36.73,
-      "price": 55.57,
+      "signal_text": "PE=37.8，远高于行业上限35→可以大量卖出",
+      "pe": 37.79,
+      "price": 57.17,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥55.57 高于安全边际价 ¥19.94（超 179%）"
+        "10% 回报锚超限：当前 ¥57.17 高于安全边际价 ¥19.94（超 187%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -1165,7 +1079,7 @@
       "text": "仓位39.2% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ],
-  "push_sent_date": "2026-05-26",
-  "push_sent_at": "2026-05-26T08:01:27+08:00",
+  "push_sent_date": "2026-05-27",
+  "push_sent_at": "2026-05-27T08:00:09+08:00",
   "push_triggered_by": "send_ai"
 }
