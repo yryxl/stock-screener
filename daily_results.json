@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-27 20:56",
+  "date": "2026-05-27 22:16",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -56,8 +56,8 @@
       "pe": 13.93,
       "signal": "buy_light",
       "signal_text": "PE=13.9，低于行业合理区间15-25→可以轻仓买入",
-      "total_score": 23,
-      "dividend_yield": 0,
+      "total_score": 28,
+      "dividend_yield": 5.18,
       "dimensions": {
         "ROE质量": {
           "score": 6,
@@ -75,9 +75,9 @@
           "detail": "毛利率35% | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 5,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率5.2%高"
         },
         "估值": {
           "score": 8,
@@ -477,6 +477,48 @@
   ],
   "watchlist_signals": [
     {
+      "code": "603288",
+      "name": "海天味业",
+      "category": "调味发酵品Ⅱ",
+      "note": "酱油市占30%+",
+      "price": 35.85,
+      "pe": 28.82,
+      "signal": "hold",
+      "signal_text": "PE=28.8，处于合理区间22-35，等待更低点",
+      "total_score": 31,
+      "dividend_yield": 3.07,
+      "dimensions": {
+        "ROE质量": {
+          "score": 8,
+          "max": 10,
+          "detail": "均值28.5%卓越 | 从未破15% | 下滑 | 低杠杆20%"
+        },
+        "财务健康": {
+          "score": 9,
+          "max": 10,
+          "detail": "负债20%极低 | 流动比率3.9 | 现金流优 | 利润率稳定"
+        },
+        "盈利能力": {
+          "score": 6,
+          "max": 10,
+          "detail": "毛利率41%强 | 10年数据"
+        },
+        "股息率": {
+          "score": 3,
+          "max": 10,
+          "detail": "股息率3.1%"
+        },
+        "估值": {
+          "score": 5,
+          "max": 10,
+          "detail": "PE=28.8合理偏高 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
       "code": "000538",
       "name": "云南白药",
       "category": "中药Ⅱ",
@@ -520,90 +562,6 @@
       "source": "关注表"
     },
     {
-      "code": "603288",
-      "name": "海天味业",
-      "category": "调味发酵品Ⅱ",
-      "note": "酱油市占30%+",
-      "price": 35.85,
-      "pe": 28.82,
-      "signal": "hold",
-      "signal_text": "PE=28.8，处于合理区间22-35，等待更低点",
-      "total_score": 28,
-      "dividend_yield": 0,
-      "dimensions": {
-        "ROE质量": {
-          "score": 8,
-          "max": 10,
-          "detail": "均值28.5%卓越 | 从未破15% | 下滑 | 低杠杆20%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债20%极低 | 流动比率3.9 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 6,
-          "max": 10,
-          "detail": "毛利率41%强 | 10年数据"
-        },
-        "股息率": {
-          "score": 0,
-          "max": 10,
-          "detail": "无股息数据"
-        },
-        "估值": {
-          "score": 5,
-          "max": 10,
-          "detail": "PE=28.8合理偏高 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
-      "code": "601888",
-      "name": "中国中免",
-      "category": "旅游零售Ⅱ",
-      "note": "国内唯一免税全牌照",
-      "price": 56.23,
-      "pe": 29.23,
-      "signal": "hold",
-      "signal_text": "财务风险(仅5年数据、ROE=15.8% 负债率18%、利润率持续下滑)，继续观望",
-      "total_score": 24,
-      "dividend_yield": 0,
-      "dimensions": {
-        "ROE质量": {
-          "score": 4,
-          "max": 10,
-          "detail": "均值18.9%良好 | 最低6.5%曾破线 | 下滑 | 低杠杆18%"
-        },
-        "财务健康": {
-          "score": 8,
-          "max": 10,
-          "detail": "负债18%极低 | 流动比率5.8 | 现金流良 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率35% | 10年数据"
-        },
-        "股息率": {
-          "score": 0,
-          "max": 10,
-          "detail": "无股息数据"
-        },
-        "估值": {
-          "score": 7,
-          "max": 10,
-          "detail": "PE=29.2合理偏低 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
       "code": "600887",
       "name": "伊利股份",
       "category": "饮料乳品",
@@ -612,8 +570,8 @@
       "pe": 13.93,
       "signal": "buy_light",
       "signal_text": "PE=13.9，低于行业合理区间15-25→可以轻仓买入",
-      "total_score": 23,
-      "dividend_yield": 0,
+      "total_score": 28,
+      "dividend_yield": 5.18,
       "dimensions": {
         "ROE质量": {
           "score": 6,
@@ -631,9 +589,9 @@
           "detail": "毛利率35% | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 5,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率5.2%高"
         },
         "估值": {
           "score": 8,
@@ -647,41 +605,41 @@
       "source": "关注表"
     },
     {
-      "code": "600085",
-      "name": "同仁堂",
-      "category": "中药Ⅱ",
-      "note": "350年国药老字号",
-      "price": 25.3,
-      "pe": 32.18,
+      "code": "601888",
+      "name": "中国中免",
+      "category": "旅游零售Ⅱ",
+      "note": "国内唯一免税全牌照",
+      "price": 56.23,
+      "pe": 29.23,
       "signal": "hold",
-      "signal_text": "PE=32.2，超出合理区间20-30，等待回落",
-      "total_score": 22,
-      "dividend_yield": 0,
+      "signal_text": "财务风险(仅5年数据、ROE=15.8% 负债率18%、利润率持续下滑)，继续观望",
+      "total_score": 26,
+      "dividend_yield": 1.24,
       "dimensions": {
         "ROE质量": {
           "score": 4,
           "max": 10,
-          "detail": "均值11.8%一般 | 最低8.9%曾破线 | 稳定 | 低杠杆30%"
+          "detail": "均值18.9%良好 | 最低6.5%曾破线 | 下滑 | 低杠杆18%"
         },
         "财务健康": {
           "score": 8,
           "max": 10,
-          "detail": "负债30%健康 | 流动比率3.6 | 现金流优 | 利润率稳定"
+          "detail": "负债18%极低 | 流动比率5.8 | 现金流良 | 利润率稳定"
         },
         "盈利能力": {
-          "score": 6,
+          "score": 5,
           "max": 10,
-          "detail": "毛利率46%强 | 10年数据"
+          "detail": "毛利率35% | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 2,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率1.2%偏低"
         },
         "估值": {
-          "score": 4,
+          "score": 7,
           "max": 10,
-          "detail": "PE=32.2偏高 | 简单生意"
+          "detail": "PE=29.2合理偏低 | 简单生意"
         }
       },
       "roe": null,
@@ -697,8 +655,8 @@
       "pe": 15.57,
       "signal": "hold",
       "signal_text": "PE偏低但ROE不达标，继续观望",
-      "total_score": 21,
-      "dividend_yield": 0,
+      "total_score": 26,
+      "dividend_yield": 4.9,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -716,9 +674,9 @@
           "detail": "毛利率30%"
         },
         "股息率": {
-          "score": 0,
+          "score": 5,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率4.9%高"
         },
         "估值": {
           "score": 7,
@@ -731,41 +689,41 @@
       "debt_ratio": null
     },
     {
-      "code": "000661",
-      "name": "长春高新",
-      "category": "生物制品",
-      "note": "生长激素国内市占70%+",
-      "price": 75.81,
-      "pe": -736.49,
-      "signal": null,
-      "signal_text": "PE为负（亏损），不适用PE估值",
-      "total_score": 19,
-      "dividend_yield": 0,
+      "code": "600085",
+      "name": "同仁堂",
+      "category": "中药Ⅱ",
+      "note": "350年国药老字号",
+      "price": 25.3,
+      "pe": 32.18,
+      "signal": "hold",
+      "signal_text": "PE=32.2，超出合理区间20-30，等待回落",
+      "total_score": 25,
+      "dividend_yield": 3.95,
       "dimensions": {
         "ROE质量": {
           "score": 4,
           "max": 10,
-          "detail": "均值20.2%优秀 | 最低0.7% | 下滑 | 低杠杆17%"
+          "detail": "均值11.8%一般 | 最低8.9%曾破线 | 稳定 | 低杠杆30%"
         },
         "财务健康": {
           "score": 8,
           "max": 10,
-          "detail": "负债17%极低 | 流动比率3.8 | 现金流优 | 利润率下滑"
+          "detail": "负债30%健康 | 流动比率3.6 | 现金流优 | 利润率稳定"
         },
         "盈利能力": {
-          "score": 7,
+          "score": 6,
           "max": 10,
-          "detail": "毛利率85%极强 | 10年数据"
+          "detail": "毛利率46%强 | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 3,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率4.0%"
         },
         "估值": {
-          "score": 0,
+          "score": 4,
           "max": 10,
-          "detail": "PE异常"
+          "detail": "PE=32.2偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -781,8 +739,8 @@
       "pe": 18.47,
       "signal": "hold",
       "signal_text": "PE=18.5，超出合理区间10-18，等待回落",
-      "total_score": 18,
-      "dividend_yield": 0,
+      "total_score": 23,
+      "dividend_yield": 4.44,
       "dimensions": {
         "ROE质量": {
           "score": 5,
@@ -800,9 +758,9 @@
           "detail": "毛利率61%极强 | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 5,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率4.4%高"
         },
         "估值": {
           "score": 3,
@@ -823,8 +781,8 @@
       "pe": 17.88,
       "signal": "hold",
       "signal_text": "PE=17.9，超出合理区间10-16，等待回落",
-      "total_score": 18,
-      "dividend_yield": 0,
+      "total_score": 23,
+      "dividend_yield": 5.17,
       "dimensions": {
         "ROE质量": {
           "score": 2,
@@ -842,9 +800,9 @@
           "detail": "毛利率41%强 | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 5,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率5.2%高"
         },
         "估值": {
           "score": 3,
@@ -865,8 +823,8 @@
       "pe": 7.06,
       "signal": "hold",
       "signal_text": "PE=7.1，处于合理区间6-9，等待更低点",
-      "total_score": 17,
-      "dividend_yield": 0,
+      "total_score": 23,
+      "dividend_yield": 6.67,
       "dimensions": {
         "ROE质量": {
           "score": 2,
@@ -884,9 +842,9 @@
           "detail": "10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 6,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率6.7%极高"
         },
         "估值": {
           "score": 7,
@@ -907,8 +865,8 @@
       "pe": 18.23,
       "signal": "hold",
       "signal_text": "PE=18.2，超出合理区间10-16，等待回落",
-      "total_score": 16,
-      "dividend_yield": 0,
+      "total_score": 22,
+      "dividend_yield": 6.96,
       "dimensions": {
         "ROE质量": {
           "score": 1,
@@ -926,14 +884,56 @@
           "detail": "毛利率20%偏低 | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 6,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率7.0%极高"
         },
         "估值": {
           "score": 3,
           "max": 10,
           "detail": "PE=18.2偏高 | 中等复杂"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
+      "code": "000661",
+      "name": "长春高新",
+      "category": "生物制品",
+      "note": "生长激素国内市占70%+",
+      "price": 75.81,
+      "pe": -736.49,
+      "signal": null,
+      "signal_text": "PE为负（亏损），不适用PE估值",
+      "total_score": 22,
+      "dividend_yield": 3.64,
+      "dimensions": {
+        "ROE质量": {
+          "score": 4,
+          "max": 10,
+          "detail": "均值20.2%优秀 | 最低0.7% | 下滑 | 低杠杆17%"
+        },
+        "财务健康": {
+          "score": 8,
+          "max": 10,
+          "detail": "负债17%极低 | 流动比率3.8 | 现金流优 | 利润率下滑"
+        },
+        "盈利能力": {
+          "score": 7,
+          "max": 10,
+          "detail": "毛利率85%极强 | 10年数据"
+        },
+        "股息率": {
+          "score": 3,
+          "max": 10,
+          "detail": "股息率3.6%"
+        },
+        "估值": {
+          "score": 0,
+          "max": 10,
+          "detail": "PE异常"
         }
       },
       "roe": null,
