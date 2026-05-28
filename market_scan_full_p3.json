@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-26 21:44",
+  "date": "2026-05-28 21:56",
   "mode": "full_p3",
   "p_idx": 2,
   "candidates_count": 1,
@@ -29,15 +29,15 @@
           "detail": "毛利率45.7%"
         }
       },
-      "signal": "buy_light",
-      "signal_text": "PE=13.6，低于行业合理区间15-25→可以轻仓买入",
-      "pe": 13.57,
-      "price": 8.78,
+      "signal": "buy_medium",
+      "signal_text": "PE=13.3，明显低于合理区间→可以中仓买入",
+      "pe": 13.27,
+      "price": 8.59,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥8.78 高于安全边际价 ¥3.47（超 153%）"
+        "10% 回报锚超限：当前 ¥8.59 高于安全边际价 ¥3.47（超 148%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
