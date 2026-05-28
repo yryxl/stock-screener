@@ -564,7 +564,7 @@
     "first_fail_at": null
   },
   "002052": {
-    "last_scanned_at": "2026-05-26T17:10:20+08:00",
+    "last_scanned_at": "2026-05-28T14:57:51+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -582,7 +582,7 @@
     "first_fail_at": null
   },
   "002124": {
-    "last_scanned_at": "2026-05-26T17:10:20+08:00",
+    "last_scanned_at": "2026-05-28T14:57:51+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -600,7 +600,7 @@
     "first_fail_at": null
   },
   "002970": {
-    "last_scanned_at": "2026-05-26T17:10:20+08:00",
+    "last_scanned_at": "2026-05-28T14:57:51+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -618,7 +618,7 @@
     "first_fail_at": null
   },
   "002532": {
-    "last_scanned_at": "2026-05-26T17:10:20+08:00",
+    "last_scanned_at": "2026-05-28T14:57:51+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2766,13 +2766,13 @@
     "first_fail_at": null
   },
   "002714": {
-    "last_scanned_at": "2026-05-26T21:57:18+08:00",
+    "last_scanned_at": "2026-05-28T14:57:51+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
   },
   "002552": {
-    "last_scanned_at": "2026-05-26T21:57:18+08:00",
+    "last_scanned_at": "2026-05-28T14:57:51+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -2886,7 +2886,7 @@
     "first_fail_at": null
   },
   "002420": {
-    "last_scanned_at": "2026-05-26T21:57:18+08:00",
+    "last_scanned_at": "2026-05-28T14:57:51+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -3024,7 +3024,7 @@
     "first_fail_at": null
   },
   "002564": {
-    "last_scanned_at": "2026-05-26T21:57:18+08:00",
+    "last_scanned_at": "2026-05-28T14:57:51+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
@@ -3096,7 +3096,7 @@
     "first_fail_at": null
   },
   "002264": {
-    "last_scanned_at": "2026-05-26T21:57:18+08:00",
+    "last_scanned_at": "2026-05-28T14:57:51+08:00",
     "last_signal": null,
     "consecutive_fails": 0,
     "first_fail_at": null
