@@ -907,10 +907,10 @@
       "name": "沪深300ETF华夏",
       "shares": 700,
       "cost": 4.915,
-      "current_price": 5.179,
-      "pnl_pct": 5.37,
+      "current_price": 5.114,
+      "pnl_pct": 4.05,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +5.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +4.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -929,7 +929,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位99.5%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +5.4%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位99.5%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +4.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 20
     },
     {
@@ -937,10 +937,10 @@
       "name": "中证500ETF",
       "shares": 100,
       "cost": 8.502,
-      "current_price": 8.578,
-      "pnl_pct": 0.89,
+      "current_price": 8.41,
+      "pnl_pct": -1.08,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +0.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.1%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -959,7 +959,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位89.5%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +0.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位89.5%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -1.1%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 20
     },
     {
@@ -967,8 +967,8 @@
       "name": "红利低波ETF华泰柏瑞",
       "shares": 3300,
       "cost": 1.221,
-      "current_price": 1.166,
-      "pnl_pct": -4.5,
+      "current_price": 1.167,
+      "pnl_pct": -4.42,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "pnl_override": false,
