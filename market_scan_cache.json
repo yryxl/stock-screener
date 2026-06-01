@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-29",
+  "date": "2026-06-01",
   "ai_recommendations": [
     {
       "code": "000848",
@@ -200,14 +200,14 @@
         }
       },
       "signal": "buy_heavy",
-      "signal_text": "PE=13.2，远低于行业底部15→可以重仓买入",
-      "pe": 13.17,
-      "price": 89.02,
+      "signal_text": "PE=13.5，远低于行业底部15→可以重仓买入",
+      "pe": 13.47,
+      "price": 91.04,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥89.02 高于安全边际价 ¥56.75（超 57%）"
+        "10% 回报锚超限：当前 ¥91.04 高于安全边际价 ¥56.75（超 60%）"
       ],
       "cashcow_label": "cashcow",
       "cashcow_tier": "✅印钞机",

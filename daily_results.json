@@ -1,95 +1,9 @@
 {
-  "date": "2026-05-29 22:05",
-  "mode": "watchlist",
+  "date": "2026-06-01 08:02",
+  "mode": "send_ai_with_fallback_merge",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "分段扫描合并 兜底（含 11 个文件）",
   "ai_recommendations": [
-    {
-      "code": "000538",
-      "name": "云南白药",
-      "category": "中药Ⅱ",
-      "note": "国家绝密配方+百年品牌",
-      "price": 49.94,
-      "pe": 16.95,
-      "signal": "buy_watch",
-      "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 30,
-      "dividend_yield": 5.21,
-      "dimensions": {
-        "ROE质量": {
-          "score": 3,
-          "max": 10,
-          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债26%极低 | 流动比率2.6 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率29% | 10年数据"
-        },
-        "股息率": {
-          "score": 5,
-          "max": 10,
-          "detail": "股息率5.2%高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=16.9低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
-    {
-      "code": "600887",
-      "name": "伊利股份",
-      "category": "饮料乳品",
-      "note": "乳业双寡头",
-      "price": 26.92,
-      "pe": 14.09,
-      "signal": "buy_light",
-      "signal_text": "PE=14.1，低于行业合理区间15-25→可以轻仓买入",
-      "total_score": 23,
-      "dividend_yield": 0,
-      "dimensions": {
-        "ROE质量": {
-          "score": 6,
-          "max": 10,
-          "detail": "均值22.9%优秀 | 从未破15% | 下滑"
-        },
-        "财务健康": {
-          "score": 4,
-          "max": 10,
-          "detail": "负债62%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率35% | 10年数据"
-        },
-        "股息率": {
-          "score": 0,
-          "max": 10,
-          "detail": "无股息数据"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=14.1低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
     {
       "code": "000848",
       "passed": true,
@@ -289,14 +203,14 @@
         }
       },
       "signal": "buy_heavy",
-      "signal_text": "PE=13.2，远低于行业底部15→可以重仓买入",
-      "pe": 13.17,
-      "price": 89.02,
+      "signal_text": "PE=13.5，远低于行业底部15→可以重仓买入",
+      "pe": 13.47,
+      "price": 91.04,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥89.02 高于安全边际价 ¥56.75（超 57%）"
+        "10% 回报锚超限：当前 ¥91.04 高于安全边际价 ¥56.75（超 60%）"
       ],
       "cashcow_label": "cashcow",
       "cashcow_tier": "✅印钞机",
@@ -1165,7 +1079,7 @@
       "text": "仓位39.2% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ],
-  "push_sent_date": "2026-05-29",
-  "push_sent_at": "2026-05-29T08:06:55+08:00",
+  "push_sent_date": "2026-06-01",
+  "push_sent_at": "2026-06-01T08:02:32+08:00",
   "push_triggered_by": "send_ai"
 }
