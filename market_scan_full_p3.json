@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-28 21:56",
+  "date": "2026-06-01 21:27",
   "mode": "full_p3",
   "p_idx": 2,
   "candidates_count": 1,
@@ -30,14 +30,14 @@
         }
       },
       "signal": "buy_medium",
-      "signal_text": "PE=13.3，明显低于合理区间→可以中仓买入",
-      "pe": 13.27,
-      "price": 8.59,
+      "signal_text": "PE=12.8，明显低于合理区间→可以中仓买入",
+      "pe": 12.75,
+      "price": 8.25,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥8.59 高于安全边际价 ¥3.47（超 148%）"
+        "10% 回报锚超限：当前 ¥8.25 高于安全边际价 ¥3.47（超 138%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
