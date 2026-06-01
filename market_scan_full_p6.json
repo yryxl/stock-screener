@@ -1,5 +1,5 @@
 {
-  "date": "2026-05-29 03:33",
+  "date": "2026-06-02 03:15",
   "mode": "full_p6",
   "p_idx": 5,
   "candidates_count": 3,
@@ -34,15 +34,15 @@
         }
       },
       "signal": "buy_light",
-      "signal_text": "PE=13.3，低于行业合理区间15-25→可以轻仓买入",
-      "pe": 13.3,
-      "price": 19.39,
+      "signal_text": "PE=13.7，低于行业合理区间15-25→可以轻仓买入",
+      "pe": 13.69,
+      "price": 19.95,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 存货周转天数恶化：13 → 44 天（+244%），可能渠道压货",
-        "10% 回报锚超限：当前 ¥19.39 高于安全边际价 ¥12.29（超 58%）"
+        "10% 回报锚超限：当前 ¥19.95 高于安全边际价 ¥12.29（超 62%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -90,15 +90,15 @@
         }
       },
       "signal": "buy_watch",
-      "signal_text": "十年王者（PE=21.7 合理偏高）→ 关注买入",
-      "pe": 21.7,
-      "price": 5.41,
+      "signal_text": "十年王者（PE=22.8 合理偏高）→ 关注买入",
+      "pe": 22.78,
+      "price": 5.68,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 应收账款周转天数恶化：从 50 天 → 83 天（3 年 +67%），康美式造假特征（应收虚增）",
-        "10% 回报锚超限：当前 ¥5.41 高于安全边际价 ¥1.18（超 359%）"
+        "10% 回报锚超限：当前 ¥5.68 高于安全边际价 ¥1.18（超 381%）"
       ],
       "cashcow_label": "cashcow_elite",
       "cashcow_tier": "🌟卓越印钞机",
@@ -138,14 +138,14 @@
         }
       },
       "signal": "sell_medium",
-      "signal_text": "PE=33.3，明显高于合理区间→可以中仓卖出",
-      "pe": 33.31,
-      "price": 50.4,
+      "signal_text": "PE=32.5，明显高于合理区间→可以中仓卖出",
+      "pe": 32.47,
+      "price": 49.12,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥50.40 高于安全边际价 ¥19.94（超 153%）"
+        "10% 回报锚超限：当前 ¥49.12 高于安全边际价 ¥19.94（超 146%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
