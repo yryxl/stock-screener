@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-01 20:47",
+  "date": "2026-06-01 22:44",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -13,8 +13,8 @@
       "pe": 16.91,
       "signal": "buy_watch",
       "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 25,
-      "dividend_yield": 0,
+      "total_score": 30,
+      "dividend_yield": 5.22,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -32,9 +32,9 @@
           "detail": "毛利率29% | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 5,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率5.2%高"
         },
         "估值": {
           "score": 8,
@@ -477,6 +477,49 @@
   ],
   "watchlist_signals": [
     {
+      "code": "000538",
+      "name": "云南白药",
+      "category": "中药Ⅱ",
+      "note": "国家绝密配方+百年品牌",
+      "price": 49.82,
+      "pe": 16.91,
+      "signal": "buy_watch",
+      "signal_text": "PE偏低，ROE限制最高关注",
+      "total_score": 30,
+      "dividend_yield": 5.22,
+      "dimensions": {
+        "ROE质量": {
+          "score": 3,
+          "max": 10,
+          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
+        },
+        "财务健康": {
+          "score": 9,
+          "max": 10,
+          "detail": "负债26%极低 | 流动比率2.6 | 现金流优 | 利润率稳定"
+        },
+        "盈利能力": {
+          "score": 5,
+          "max": 10,
+          "detail": "毛利率29% | 10年数据"
+        },
+        "股息率": {
+          "score": 5,
+          "max": 10,
+          "detail": "股息率5.2%高"
+        },
+        "估值": {
+          "score": 8,
+          "max": 10,
+          "detail": "PE=16.9低估 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null,
+      "source": "关注表"
+    },
+    {
       "code": "603288",
       "name": "海天味业",
       "category": "调味发酵品Ⅱ",
@@ -517,49 +560,6 @@
       "roe": null,
       "gross_margin": null,
       "debt_ratio": null
-    },
-    {
-      "code": "000538",
-      "name": "云南白药",
-      "category": "中药Ⅱ",
-      "note": "国家绝密配方+百年品牌",
-      "price": 49.82,
-      "pe": 16.91,
-      "signal": "buy_watch",
-      "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 25,
-      "dividend_yield": 0,
-      "dimensions": {
-        "ROE质量": {
-          "score": 3,
-          "max": 10,
-          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债26%极低 | 流动比率2.6 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率29% | 10年数据"
-        },
-        "股息率": {
-          "score": 0,
-          "max": 10,
-          "detail": "无股息数据"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=16.9低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
     },
     {
       "code": "601888",
