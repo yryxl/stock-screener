@@ -1055,10 +1055,10 @@
     "level": -1,
     "label": "🧊 偏冷·重点加仓",
     "description": "估值进入历史 15%-30% 分位，机会开始显现。处置建议：把手里闲钱和新工资重点投向被低估的好公司和宽基，适当超配股票。芒格原则：便宜是硬道理。",
-    "current_pe_median": 19.79,
-    "percentile": 20.0,
+    "current_pe_median": 19.96,
+    "percentile": 23.3,
     "lookback_years": 10,
-    "as_of": "2026-05",
+    "as_of": "2026-06",
     "data_points": 120
   },
   "position_warnings": [
