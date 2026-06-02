@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-02 20:32",
+  "date": "2026-06-02 22:11",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -765,6 +765,48 @@
       "debt_ratio": null
     },
     {
+      "code": "600085",
+      "name": "同仁堂",
+      "category": "中药Ⅱ",
+      "note": "350年国药老字号",
+      "price": 25.66,
+      "pe": 32.64,
+      "signal": "hold",
+      "signal_text": "PE=32.6，超出合理区间20-30，等待回落",
+      "total_score": 25,
+      "dividend_yield": 3.9,
+      "dimensions": {
+        "ROE质量": {
+          "score": 4,
+          "max": 10,
+          "detail": "均值11.8%一般 | 最低8.9%曾破线 | 稳定 | 低杠杆30%"
+        },
+        "财务健康": {
+          "score": 8,
+          "max": 10,
+          "detail": "负债30%健康 | 流动比率3.6 | 现金流优 | 利润率稳定"
+        },
+        "盈利能力": {
+          "score": 6,
+          "max": 10,
+          "detail": "毛利率46%强 | 10年数据"
+        },
+        "股息率": {
+          "score": 3,
+          "max": 10,
+          "detail": "股息率3.9%"
+        },
+        "估值": {
+          "score": 4,
+          "max": 10,
+          "detail": "PE=32.6偏高 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
       "code": "601888",
       "name": "中国中免",
       "category": "旅游零售Ⅱ",
@@ -800,6 +842,48 @@
           "score": 7,
           "max": 10,
           "detail": "PE=29.6合理偏低 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
+      "code": "600900",
+      "name": "长江电力",
+      "category": "电力",
+      "note": "长江6大梯级电站独家运营",
+      "price": 27.96,
+      "pe": 18.96,
+      "signal": "hold",
+      "signal_text": "PE=19.0，超出合理区间10-18，等待回落",
+      "total_score": 23,
+      "dividend_yield": 4.33,
+      "dimensions": {
+        "ROE质量": {
+          "score": 5,
+          "max": 10,
+          "detail": "均值15.3%良好 | 最低11.7% | 稳定"
+        },
+        "财务健康": {
+          "score": 3,
+          "max": 10,
+          "detail": "负债58%高 | 流动比率0.1偏紧 | 现金流优 | 利润率下滑"
+        },
+        "盈利能力": {
+          "score": 7,
+          "max": 10,
+          "detail": "毛利率61%极强 | 10年数据"
+        },
+        "股息率": {
+          "score": 5,
+          "max": 10,
+          "detail": "股息率4.3%高"
+        },
+        "估值": {
+          "score": 3,
+          "max": 10,
+          "detail": "PE=19.0偏高 | 中等复杂"
         }
       },
       "roe": null,
@@ -850,41 +934,41 @@
       "source": "关注表"
     },
     {
-      "code": "600085",
-      "name": "同仁堂",
-      "category": "中药Ⅱ",
-      "note": "350年国药老字号",
-      "price": 25.66,
-      "pe": 32.64,
-      "signal": "hold",
-      "signal_text": "PE=32.6，超出合理区间20-30，等待回落",
+      "code": "000661",
+      "name": "长春高新",
+      "category": "生物制品",
+      "note": "生长激素国内市占70%+",
+      "price": 71.66,
+      "pe": -696.17,
+      "signal": null,
+      "signal_text": "PE为负（亏损），不适用PE估值",
       "total_score": 22,
-      "dividend_yield": 0,
+      "dividend_yield": 3.85,
       "dimensions": {
         "ROE质量": {
           "score": 4,
           "max": 10,
-          "detail": "均值11.8%一般 | 最低8.9%曾破线 | 稳定 | 低杠杆30%"
+          "detail": "均值20.2%优秀 | 最低0.7% | 下滑 | 低杠杆17%"
         },
         "财务健康": {
           "score": 8,
           "max": 10,
-          "detail": "负债30%健康 | 流动比率3.6 | 现金流优 | 利润率稳定"
+          "detail": "负债17%极低 | 流动比率3.8 | 现金流优 | 利润率下滑"
         },
         "盈利能力": {
-          "score": 6,
+          "score": 7,
           "max": 10,
-          "detail": "毛利率46%强 | 10年数据"
+          "detail": "毛利率85%极强 | 10年数据"
         },
         "股息率": {
-          "score": 0,
+          "score": 3,
           "max": 10,
-          "detail": "无股息数据"
+          "detail": "股息率3.9%"
         },
         "估值": {
-          "score": 4,
+          "score": 0,
           "max": 10,
-          "detail": "PE=32.6偏高 | 简单生意"
+          "detail": "PE异常"
         }
       },
       "roe": null,
@@ -927,90 +1011,6 @@
           "score": 7,
           "max": 10,
           "detail": "PE=16.0低估 | 中等复杂"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
-      "code": "000661",
-      "name": "长春高新",
-      "category": "生物制品",
-      "note": "生长激素国内市占70%+",
-      "price": 71.66,
-      "pe": -696.17,
-      "signal": null,
-      "signal_text": "PE为负（亏损），不适用PE估值",
-      "total_score": 19,
-      "dividend_yield": 0,
-      "dimensions": {
-        "ROE质量": {
-          "score": 4,
-          "max": 10,
-          "detail": "均值20.2%优秀 | 最低0.7% | 下滑 | 低杠杆17%"
-        },
-        "财务健康": {
-          "score": 8,
-          "max": 10,
-          "detail": "负债17%极低 | 流动比率3.8 | 现金流优 | 利润率下滑"
-        },
-        "盈利能力": {
-          "score": 7,
-          "max": 10,
-          "detail": "毛利率85%极强 | 10年数据"
-        },
-        "股息率": {
-          "score": 0,
-          "max": 10,
-          "detail": "无股息数据"
-        },
-        "估值": {
-          "score": 0,
-          "max": 10,
-          "detail": "PE异常"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
-      "code": "600900",
-      "name": "长江电力",
-      "category": "电力",
-      "note": "长江6大梯级电站独家运营",
-      "price": 27.96,
-      "pe": 18.96,
-      "signal": "hold",
-      "signal_text": "PE=19.0，超出合理区间10-18，等待回落",
-      "total_score": 18,
-      "dividend_yield": 0,
-      "dimensions": {
-        "ROE质量": {
-          "score": 5,
-          "max": 10,
-          "detail": "均值15.3%良好 | 最低11.7% | 稳定"
-        },
-        "财务健康": {
-          "score": 3,
-          "max": 10,
-          "detail": "负债58%高 | 流动比率0.1偏紧 | 现金流优 | 利润率下滑"
-        },
-        "盈利能力": {
-          "score": 7,
-          "max": 10,
-          "detail": "毛利率61%极强 | 10年数据"
-        },
-        "股息率": {
-          "score": 0,
-          "max": 10,
-          "detail": "无股息数据"
-        },
-        "估值": {
-          "score": 3,
-          "max": 10,
-          "detail": "PE=19.0偏高 | 中等复杂"
         }
       },
       "roe": null,
