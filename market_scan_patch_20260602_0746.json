@@ -1,0 +1,124 @@
+{
+  "date": "2026-06-02 07:46",
+  "mode": "patch_round",
+  "stale_count_input": 404,
+  "candidates_count": 2,
+  "ai_recommendations": [
+    {
+      "code": "001233",
+      "passed": true,
+      "checks": {
+        "v3_authenticity_receivable_anomaly": {
+          "passed": true,
+          "detail": "应收账款周转天数恶化：从 61 天 → 122 天（3 年 +100%），康美式造假特征（应收虚增）"
+        },
+        "v3_authenticity_gm_anomaly": {
+          "passed": true,
+          "detail": "毛利率反常：44.2% 远高于行业基准（15%，超 195%）。东方纸业式信号——可能虚增收入或关联交易。建议核实"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值28.1%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率23.7%（制造档健康） 流动比率3.46"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值21.1%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率40.5%"
+        }
+      },
+      "signal": "buy_watch",
+      "signal_text": "好公司（PE=20.6 合理偏高）→ 关注买入",
+      "pe": 20.63,
+      "price": 52.16,
+      "is_10y_king": false,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "⚠ 数据真实性: 应收账款周转天数恶化：从 61 天 → 122 天（3 年 +100%），康美式造假特征（应收虚增）",
+        "⚠ 数据真实性: 毛利率反常：44.2% 远高于行业基准（15%，超 195%）。东方纸业式信号——可能虚增收入或关联交易。建议核实",
+        "10% 回报锚超限：当前 ¥52.16 高于安全边际价 ¥21.05（超 148%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 21.050663602852413,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 3.90元，3 年 EPS CAGR -8.8%（capped 0%），10 年后 EPS 3.90元，退出 PE 14，最高合理买入价 ¥21.05",
+      "mgmt_score": null,
+      "mgmt_tier": "数据不足",
+      "mgmt_flags": [
+        "管理层评分：5 个维度全部无数据，无法判定"
+      ],
+      "data_quality": "ok",
+      "king_avg_roe": null,
+      "name": "海安集团"
+    },
+    {
+      "code": "000429",
+      "passed": true,
+      "checks": {
+        "v3_toll_bridge": {
+          "passed": true,
+          "detail": "归属'高速公路'—受管制的过路费生意"
+        },
+        "v3_authenticity_inventory_anomaly": {
+          "passed": true,
+          "detail": "存货周转天数恶化：0 → 0 天（+100%），可能渠道压货"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值14.3%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率47.0%（基建档健康） 流动比率5.76"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值44.7%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率57.5%"
+        }
+      },
+      "signal": "sell_medium",
+      "signal_text": "PE=18.6，明显高于合理区间→可以中仓卖出",
+      "pe": 18.55,
+      "price": 14.16,
+      "is_10y_king": false,
+      "is_good_quality": false,
+      "is_toll_bridge": true,
+      "china_v3_risks": [
+        "⚠ 数据真实性: 存货周转天数恶化：0 → 0 天（+100%），可能渠道压货",
+        "10% 回报锚超限：当前 ¥14.16 高于安全边际价 ¥5.40（超 162%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 5.402451073219833,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.86元，3 年 EPS CAGR 5.0%（capped 5%），10 年后 EPS 1.40元，退出 PE 10，最高合理买入价 ¥5.40",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "toll_class": "toll_bridge_utility",
+      "king_avg_roe": 15.565999999999999,
+      "name": "粤高速Ａ"
+    }
+  ]
+}
