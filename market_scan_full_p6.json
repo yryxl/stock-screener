@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-04 03:16",
+  "date": "2026-06-05 03:21",
   "mode": "full_p6",
   "p_idx": 5,
   "candidates_count": 7,
@@ -34,9 +34,9 @@
         }
       },
       "signal": "buy_heavy",
-      "signal_text": "PE=13.7，远低于行业底部15→可以重仓买入",
-      "pe": 13.72,
-      "price": 123.5,
+      "signal_text": "PE=13.6，远低于行业底部15→可以重仓买入",
+      "pe": 13.56,
+      "price": 122.1,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
@@ -88,15 +88,15 @@
         }
       },
       "signal": "buy_light",
-      "signal_text": "PE=13.4，低于行业合理区间15-25→可以轻仓买入",
-      "pe": 13.37,
-      "price": 19.48,
+      "signal_text": "PE=13.0，低于行业合理区间15-25→可以轻仓买入",
+      "pe": 13.04,
+      "price": 19.0,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 存货周转天数恶化：13 → 44 天（+244%），可能渠道压货",
-        "10% 回报锚超限：当前 ¥19.48 高于安全边际价 ¥12.29（超 58%）"
+        "10% 回报锚超限：当前 ¥19.00 高于安全边际价 ¥12.29（超 55%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -140,9 +140,9 @@
         }
       },
       "signal": "buy_light",
-      "signal_text": "十年王者合理价（PE=17.3）→ 轻仓买入",
-      "pe": 17.27,
-      "price": 64.3,
+      "signal_text": "十年王者合理价（PE=17.9）→ 轻仓买入",
+      "pe": 17.86,
+      "price": 66.48,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
@@ -158,53 +158,6 @@
       "data_quality": "ok",
       "king_avg_roe": 25.75,
       "name": "珀莱雅"
-    },
-    {
-      "code": "301031",
-      "passed": true,
-      "checks": {
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值24.1%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率49.2%（制造档健康） 流动比率1.84"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值16.8%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率42.4%"
-        }
-      },
-      "signal": "buy_watch",
-      "signal_text": "十年王者（PE=34.8 合理偏高）→ 关注买入",
-      "pe": 34.79,
-      "price": 161.3,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥161.30 高于安全边际价 ¥109.06（超 48%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 109.0627381737369,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 4.14元，3 年 EPS CAGR 52.9%（capped 12%），10 年后 EPS 12.86元，退出 PE 22，最高合理买入价 ¥109.06",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 23.643000000000004,
-      "name": "中熔电气"
     },
     {
       "code": "301589",
@@ -232,14 +185,14 @@
         }
       },
       "signal": "buy_watch",
-      "signal_text": "十年王者（PE=24.1 合理偏高）→ 关注买入",
-      "pe": 24.09,
-      "price": 151.37,
+      "signal_text": "十年王者（PE=24.2 合理偏高）→ 关注买入",
+      "pe": 24.22,
+      "price": 152.19,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥151.37 高于安全边际价 ¥37.42（超 305%）"
+        "10% 回报锚超限：当前 ¥152.19 高于安全边际价 ¥37.42（超 307%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -287,15 +240,15 @@
         }
       },
       "signal": "buy_watch",
-      "signal_text": "十年王者（PE=22.1 合理偏高）→ 关注买入",
-      "pe": 22.06,
-      "price": 5.5,
+      "signal_text": "十年王者（PE=21.8 合理偏高）→ 关注买入",
+      "pe": 21.82,
+      "price": 5.44,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 应收账款周转天数恶化：从 50 天 → 83 天（3 年 +67%），康美式造假特征（应收虚增）",
-        "10% 回报锚超限：当前 ¥5.50 高于安全边际价 ¥1.18（超 366%）"
+        "10% 回报锚超限：当前 ¥5.44 高于安全边际价 ¥1.18（超 361%）"
       ],
       "cashcow_label": "cashcow_elite",
       "cashcow_tier": "🌟卓越印钞机",
@@ -308,6 +261,53 @@
       "data_quality": "ok",
       "king_avg_roe": 34.978,
       "name": "分众传媒"
+    },
+    {
+      "code": "301031",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值24.1%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率49.2%（制造档健康） 流动比率1.84"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值16.8%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率42.4%"
+        }
+      },
+      "signal": "sell_light",
+      "signal_text": "PE=36.4，高于合理区间→可以适当卖出",
+      "pe": 36.35,
+      "price": 113.95,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥113.95 高于安全边际价 ¥109.06（超 4%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 109.0627381737369,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 4.14元，3 年 EPS CAGR 52.9%（capped 12%），10 年后 EPS 12.86元，退出 PE 22，最高合理买入价 ¥109.06",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 23.643000000000004,
+      "name": "中熔电气"
     },
     {
       "code": "001337",
@@ -335,14 +335,14 @@
         }
       },
       "signal": "sell_medium",
-      "signal_text": "PE=32.7，明显高于合理区间→可以中仓卖出",
-      "pe": 32.72,
-      "price": 49.5,
+      "signal_text": "PE=32.3，明显高于合理区间→可以中仓卖出",
+      "pe": 32.32,
+      "price": 48.9,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥49.50 高于安全边际价 ¥19.94（超 148%）"
+        "10% 回报锚超限：当前 ¥48.90 高于安全边际价 ¥19.94（超 145%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
