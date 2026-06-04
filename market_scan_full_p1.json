@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-03 17:26",
+  "date": "2026-06-04 17:37",
   "mode": "full_p1",
   "p_idx": 0,
   "candidates_count": 3,
@@ -34,15 +34,15 @@
         }
       },
       "signal": "buy_heavy",
-      "signal_text": "PE=14.4，远低于行业底部15→可以重仓买入",
-      "pe": 14.41,
-      "price": 35.87,
+      "signal_text": "PE=14.1，远低于行业底部15→可以重仓买入",
+      "pe": 14.06,
+      "price": 35.01,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 应收账款周转天数恶化：从 2 天 → 10 天（3 年 +360%），康美式造假特征（应收虚增）",
-        "10% 回报锚超限：当前 ¥35.87 高于安全边际价 ¥19.12（超 88%）"
+        "10% 回报锚超限：当前 ¥35.01 高于安全边际价 ¥19.12（超 83%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -87,14 +87,14 @@
         }
       },
       "signal": "buy_light",
-      "signal_text": "十年王者合理价（PE=27.6）→ 轻仓买入",
-      "pe": 27.65,
-      "price": 34.4,
+      "signal_text": "十年王者合理价（PE=27.2）→ 轻仓买入",
+      "pe": 27.17,
+      "price": 33.8,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥34.40 高于安全边际价 ¥27.95（超 23%）"
+        "10% 回报锚超限：当前 ¥33.80 高于安全边际价 ¥27.95（超 21%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -134,25 +134,23 @@
         }
       },
       "signal": "buy_watch",
-      "signal_text": "十年王者（PE=20.4 合理偏高）→ 关注买入",
-      "pe": 20.39,
-      "price": 92.6,
+      "signal_text": "十年王者（PE=20.2 合理偏高）→ 关注买入",
+      "pe": 20.19,
+      "price": 91.68,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥92.60 高于安全边际价 ¥37.30（超 148%）"
+        "10% 回报锚超限：当前 ¥91.68 高于安全边际价 ¥37.30（超 146%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
       "cashcow_detail": "",
       "max_buy_price_rr10": 37.30131325230716,
       "rr10_detail": "按 10% required return 倒推：当前 EPS 6.45元，3 年 EPS CAGR -6.4%（capped 0%），10 年后 EPS 6.45元，退出 PE 15，最高合理买入价 ¥37.30",
-      "mgmt_score": null,
-      "mgmt_tier": "数据不足",
-      "mgmt_flags": [
-        "管理层评分：5 个维度全部无数据，无法判定"
-      ],
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
       "data_quality": "ok",
       "king_avg_roe": 27.695999999999998,
       "name": "陕西旅游"
