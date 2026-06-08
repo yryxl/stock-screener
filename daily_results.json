@@ -2176,14 +2176,12 @@
   },
   "etf_unmapped": [],
   "market_temperature": {
-    "level": -1,
-    "label": "🧊 偏冷·重点加仓",
-    "description": "估值进入历史 15%-30% 分位，机会开始显现。处置建议：把手里闲钱和新工资重点投向被低估的好公司和宽基，适当超配股票。芒格原则：便宜是硬道理。",
-    "current_pe_median": 19.44,
-    "percentile": 15.8,
-    "lookback_years": 10,
-    "as_of": "2026-06",
-    "data_points": 120
+    "level": 0,
+    "label": "⚪正常",
+    "description": "温度计数据拉取失败",
+    "current_pe": null,
+    "percentile": null,
+    "as_of": "2026-06-08"
   },
   "position_warnings": [
     {
