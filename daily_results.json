@@ -1,95 +1,9 @@
 {
-  "date": "2026-06-05 20:42",
-  "mode": "watchlist",
+  "date": "2026-06-08 09:09",
+  "mode": "send_ai_with_fallback_merge",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "分段扫描合并 兜底（含 6 个文件）",
   "ai_recommendations": [
-    {
-      "code": "000538",
-      "name": "云南白药",
-      "category": "中药Ⅱ",
-      "note": "国家绝密配方+百年品牌",
-      "price": 48.81,
-      "pe": 16.57,
-      "signal": "buy_watch",
-      "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 30,
-      "dividend_yield": 5.33,
-      "dimensions": {
-        "ROE质量": {
-          "score": 3,
-          "max": 10,
-          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债26%极低 | 流动比率2.6 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率29% | 10年数据"
-        },
-        "股息率": {
-          "score": 5,
-          "max": 10,
-          "detail": "股息率5.3%高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=16.6低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
-    {
-      "code": "600887",
-      "name": "伊利股份",
-      "category": "饮料乳品",
-      "note": "乳业双寡头",
-      "price": 25.67,
-      "pe": 13.44,
-      "signal": "buy_medium",
-      "signal_text": "PE=13.4，明显低于合理区间→可以中仓买入",
-      "total_score": 23,
-      "dividend_yield": 0,
-      "dimensions": {
-        "ROE质量": {
-          "score": 6,
-          "max": 10,
-          "detail": "均值22.9%优秀 | 从未破15% | 下滑"
-        },
-        "财务健康": {
-          "score": 4,
-          "max": 10,
-          "detail": "负债62%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率35% | 10年数据"
-        },
-        "股息率": {
-          "score": 0,
-          "max": 10,
-          "detail": "无股息数据"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=13.4低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
     {
       "code": "603198",
       "passed": true,
@@ -245,116 +159,6 @@
       "source": "段 1"
     },
     {
-      "code": "603277",
-      "passed": true,
-      "checks": {
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值24.6%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率32.9%（制造档健康） 流动比率2.68"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值17.8%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率41.7%"
-        }
-      },
-      "signal": "buy_watch",
-      "signal_text": "十年王者（PE=21.6 合理偏高）→ 关注买入",
-      "pe": 21.55,
-      "price": 11.53,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥11.53 高于安全边际价 ¥4.63（超 149%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 4.626519473154377,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.80元，3 年 EPS CAGR -19.0%（capped 0%），10 年后 EPS 0.80元，退出 PE 15，最高合理买入价 ¥4.63",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 20.928000000000004,
-      "black_swan_warning": {
-        "start": "2026-04-22",
-        "end": "2026-07-31",
-        "type": "earnings_collapse",
-        "impact": "major",
-        "desc": "2026 Q1 归母净利润同比暴降 79.27%（扣非 -51.54%）。海外关税+汇率双压，模型 buy_watch 信号时点未反映 Q1 数据。",
-        "action_suggested": "跳过买入；等 Q2 财报验证是否企稳。",
-        "source_url": "https://q.stock.sohu.com/cn/603277/index.shtml",
-        "warning_text": "🚨 **2026-04-22** 出现个股黑天鹅 | 2026 Q1 归母净利润同比暴降 79.27%（扣非 -51.54%）。海外关税+汇率双压，模型 buy_watch 信号时点未反映 Q1 数据。 | **建议：跳过买入；等 Q2 财报验证是否企稳。**"
-      },
-      "name": "银都股份",
-      "source": "段 2"
-    },
-    {
-      "code": "301609",
-      "passed": true,
-      "checks": {
-        "v3_cashcow": {
-          "passed": true,
-          "detail": "✅印钞机 近3年 CapEx/净利=19.3%（<20% 印钞机）"
-        },
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值22.9%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率29.9%（制造档健康） 流动比率2.97"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值17.3%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率46.2%"
-        }
-      },
-      "signal": "sell_heavy",
-      "signal_text": "PE=59.4，远高于行业上限35→可以大量卖出",
-      "pe": 59.44,
-      "price": 49.21,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥49.21 高于安全边际价 ¥13.02（超 278%）"
-      ],
-      "cashcow_label": "cashcow",
-      "cashcow_tier": "✅印钞机",
-      "cashcow_detail": "近3年 CapEx/净利=19.3%（<20% 印钞机）",
-      "max_buy_price_rr10": 13.019045498185234,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.99元，3 年 EPS CAGR 8.6%（capped 9%），10 年后 EPS 2.25元，退出 PE 15，最高合理买入价 ¥13.02",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 22.913333333333338,
-      "name": "山大电力",
-      "source": "段 2"
-    },
-    {
       "code": "000848",
       "passed": true,
       "checks": {
@@ -381,13 +185,13 @@
       },
       "signal": "buy_medium",
       "signal_text": "PE=12.2，明显低于合理区间→可以中仓买入",
-      "pe": 12.22,
-      "price": 7.91,
+      "pe": 12.25,
+      "price": 7.93,
       "is_10y_king": true,
       "is_good_quality": true,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥7.91 高于安全边际价 ¥3.47（超 128%）"
+        "10% 回报锚超限：当前 ¥7.93 高于安全边际价 ¥3.47（超 129%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -405,171 +209,6 @@
         "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（饮料乳品）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
       },
       "name": "承德露露",
-      "source": "段 3"
-    },
-    {
-      "code": "300770",
-      "passed": true,
-      "checks": {
-        "v3_authenticity_receivable_anomaly": {
-          "passed": true,
-          "detail": "应收账款周转天数恶化：从 22 天 → 35 天（3 年 +57%），康美式造假特征（应收虚增）"
-        },
-        "v3_authenticity_inventory_anomaly": {
-          "passed": true,
-          "detail": "存货周转天数恶化：0 → 2 天（+1043%），可能渠道压货"
-        },
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值20.7%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率22.4%（制造档健康） 流动比率2.85"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值34.5%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率51.2%"
-        }
-      },
-      "signal": "buy_medium",
-      "signal_text": "PE=11.9，明显低于合理区间→可以中仓买入",
-      "pe": 11.92,
-      "price": 33.64,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "⚠ 数据真实性: 应收账款周转天数恶化：从 22 天 → 35 天（3 年 +57%），康美式造假特征（应收虚增）",
-        "⚠ 数据真实性: 存货周转天数恶化：0 → 2 天（+1043%），可能渠道压货",
-        "10% 回报锚超限：当前 ¥33.64 高于安全边际价 ¥16.71（超 101%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 16.713301596770187,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 2.89元，3 年 EPS CAGR -3.3%（capped 0%），10 年后 EPS 2.89元，退出 PE 15，最高合理买入价 ¥16.71",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 22.345999999999997,
-      "name": "新媒股份",
-      "source": "段 3"
-    },
-    {
-      "code": "300866",
-      "passed": true,
-      "checks": {
-        "v3_cashcow": {
-          "passed": true,
-          "detail": "✅印钞机 近3年 CapEx/净利=13.3%（<20% 印钞机）"
-        },
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值56.8%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率46.6%（制造档健康） 流动比率2.38"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值8.6%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率45.7%"
-        }
-      },
-      "signal": "buy_light",
-      "signal_text": "十年王者合理价（PE=24.6）→ 轻仓买入",
-      "pe": 24.56,
-      "price": 115.45,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [],
-      "cashcow_label": "cashcow",
-      "cashcow_tier": "✅印钞机",
-      "cashcow_detail": "近3年 CapEx/净利=13.3%（<20% 印钞机）",
-      "max_buy_price_rr10": 125.69875729371635,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 4.77元，3 年 EPS CAGR 25.0%（capped 12%），10 年后 EPS 14.82元，退出 PE 22，最高合理买入价 ¥125.70",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 33.773,
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "消费电子",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（消费电子）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      },
-      "name": "安克创新",
-      "source": "段 3"
-    },
-    {
-      "code": "300896",
-      "passed": true,
-      "checks": {
-        "v3_cashcow": {
-          "passed": true,
-          "detail": "🌟卓越印钞机 近3年 CapEx/净利=9.3%（<10% 喜诗糖果级）"
-        },
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值28.1%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率8.3%（制造档健康） 流动比率6.41"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值49.2%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率91.9%"
-        }
-      },
-      "signal": "sell_light",
-      "signal_text": "PE=25.8，高于合理区间→可以适当卖出",
-      "pe": 25.81,
-      "price": 97.7,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥97.70 高于安全边际价 ¥24.75（超 295%）"
-      ],
-      "cashcow_label": "cashcow_elite",
-      "cashcow_tier": "🌟卓越印钞机",
-      "cashcow_detail": "近3年 CapEx/净利=9.3%（<10% 喜诗糖果级）",
-      "max_buy_price_rr10": 24.751879181375916,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 4.28元，3 年 EPS CAGR -16.6%（capped 0%），10 年后 EPS 4.28元，退出 PE 15，最高合理买入价 ¥24.75",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 28.224,
-      "name": "爱美客",
       "source": "段 3"
     },
     {
@@ -2306,11 +1945,11 @@
       "name": "沪深300ETF华夏",
       "shares": 700,
       "cost": 4.915,
-      "current_price": 5.038,
-      "pnl_pct": 2.5,
-      "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 +2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "pnl_override": true,
+      "current_price": null,
+      "pnl_pct": null,
+      "pnl_label": "",
+      "pnl_advice": "",
+      "pnl_override": false,
       "must_sell": false,
       "bull_top_alert": false,
       "index_code": "000300",
@@ -2328,7 +1967,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位99.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +2.5%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位99.0%·泡沫区·卖盈利部分·保留底仓",
       "new_records": 20
     },
     {
@@ -2336,11 +1975,11 @@
       "name": "中证500ETF",
       "shares": 100,
       "cost": 8.502,
-      "current_price": 8.339,
-      "pnl_pct": -1.92,
-      "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -1.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "pnl_override": true,
+      "current_price": null,
+      "pnl_pct": null,
+      "pnl_label": "",
+      "pnl_advice": "",
+      "pnl_override": false,
       "must_sell": false,
       "bull_top_alert": false,
       "index_code": "000905",
@@ -2358,7 +1997,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位86.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -1.9%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位86.0%·泡沫区·卖盈利部分·保留底仓",
       "new_records": 20
     },
     {
@@ -2366,11 +2005,11 @@
       "name": "红利低波ETF华泰柏瑞",
       "shares": 3300,
       "cost": 1.221,
-      "current_price": 1.159,
-      "pnl_pct": -5.08,
-      "pnl_label": "浮亏中",
-      "pnl_advice": "⚠ 估值偏高但已浮亏 -5.1%，卖出即割肉。注意区分：如果是估值（市场情绪），继续持有；如果是基本面（ROE 下滑、营收下跌），应该止损。",
-      "pnl_override": true,
+      "current_price": null,
+      "pnl_pct": null,
+      "pnl_label": "",
+      "pnl_advice": "",
+      "pnl_override": false,
       "must_sell": false,
       "bull_top_alert": false,
       "index_code": "H30269",
@@ -2388,7 +2027,7 @@
         "lookback_years": 10
       },
       "signal": "sell_light",
-      "signal_text": "PE分位71.1%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但已浮亏 -5.1%，卖出即割肉。注意区分：如果是估值（市场情绪），继续持有；如果是基本面（ROE 下滑、营收下跌），应该止损。",
+      "signal_text": "PE分位71.1%·偏热·暂停加仓·新钱转便宜标的",
       "new_records": 20
     }
   ],
@@ -2478,7 +2117,7 @@
       "text": "仓位39.2% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ],
-  "push_sent_date": "2026-06-05",
-  "push_sent_at": "2026-06-05T08:01:17+08:00",
+  "push_sent_date": "2026-06-08",
+  "push_sent_at": "2026-06-08T09:09:17+08:00",
   "push_triggered_by": "send_ai"
 }
