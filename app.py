@@ -1019,21 +1019,17 @@ with tab1:
                         "pct": _pct, "level": "warning", "tier": _tier,
                         "warn_line": _warn, "danger_line": _danger,
                     })
+            # 仓位警告提示移到 Tab2 持仓页展示（更合理的位置）
+            # Tab1 模型推荐页只保留'查看持仓'的引导
             if _warnings_live:
-                st.subheader("⚠️ 集中度警告（REQ-189 分档）")
-                for w in _warnings_live:
-                    if w["level"] == "danger":
-                        st.error(
-                            f"🚨 **{w['name']}**（{w['code']}）"
-                            f"仓位 {w['pct']:.1f}% ≥ {w['danger_line']}%"
-                            f"（{w['tier']}危险线），严重偏重！建议减仓"
-                        )
-                    else:
-                        st.warning(
-                            f"⚠️ **{w['name']}**（{w['code']}）"
-                            f"仓位 {w['pct']:.1f}% ≥ {w['warn_line']}%"
-                            f"（{w['tier']}警告线），注意分散"
-                        )
+                _danger_count = sum(1 for w in _warnings_live if w["level"] == "danger")
+                _warn_count = len(_warnings_live) - _danger_count
+                _count_str = []
+                if _danger_count:
+                    _count_str.append(f"🚨 {_danger_count} 只严重偏重")
+                if _warn_count:
+                    _count_str.append(f"⚠️ {_warn_count} 只偏重")
+                st.caption(f"📌 持仓集中度提示：{' / '.join(_count_str)}。详见「📋 持仓管理」页面")
                 st.divider()
 
 # ============================================
@@ -1974,7 +1970,7 @@ with tab2:
                         from scan_freshness import get_alert_level, get_freshness, get_lag_in_trading_days
                         _fr_level = get_alert_level(code)
                         _fr_emoji = {'green': '🟢', 'yellow': '🟡', 'red': '🔴',
-                                      'unknown': '⚪'}.get(_fr_level, '')
+                                      'unknown': '⚪', None: '⚪'}.get(_fr_level, '⚪')
                         _fr = get_freshness(code)
                         if _fr and _fr.get('last_scanned_at'):
                             from datetime import datetime as _dt
@@ -1982,10 +1978,10 @@ with tab2:
                             _lag = get_lag_in_trading_days(code)
                             _lag_str = f'{_lag} 个交易日前' if _lag else '当日'
                             _fr_caption = f"📊 {_fr_emoji} 数据{_lag_str}（最后 {_last.strftime('%m-%d %H:%M')}）"
-                        elif _fr_level == 'unknown':
+                        else:
                             _fr_caption = "📊 ⚪ 暂无成功扫描记录"
                     except Exception:
-                        pass
+                        _fr_caption = "📊 ⚪ 暂无成功扫描记录"
                     if _fr_emoji and _fr_emoji != '🟢':
                         _name_display = f"{_fr_emoji} {_name_display}"
                     st.markdown(f"**{_name_display}**", help=_attr_help)
