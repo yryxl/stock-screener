@@ -827,31 +827,41 @@ def screen_all_stocks(config, code_filter=None, track_freshness=True,
         return []
     print(f"共 {len(stocks)} 只股票")
 
-    # 批量ROE预筛
-    candidate_codes = set()
-    for date in ["20241231", "20231231"]:
-        df = get_batch_roe_data(date=date)
-        if df is not None and not df.empty:
-            roe_col = None
-            for col in df.columns:
-                if "净资产收益率" in col:
-                    roe_col = col
-                    break
-            if roe_col:
-                df[roe_col] = pd.to_numeric(df[roe_col], errors="coerce")
-                filtered = df[df[roe_col] >= 15]
-                code_col = None
+    # 批量ROE预筛（仅在无code_filter的全市场扫描时启用）
+    # BUG-045：分段扫描(full_p1..p6)和补漏轮(patch_round)等code_filter场景跳过预筛
+    #   根因：patch_round 的 418 只过期股先被 ROE 预筛过滤掉大部分，导致
+    #   深度分析永远跑不到那些股，candidates_count 恒为 0。
+    #   更合理的逻辑：code_filter=指定目标集合时，让所有指定股进入深度分析。
+    candidate_codes = set(stocks["code"].tolist())
+    if code_filter is None:
+        for date in ["20241231", "20231231"]:
+            df = get_batch_roe_data(date=date)
+            if df is not None and not df.empty:
+                roe_col = None
                 for col in df.columns:
-                    if "代码" in col or "股票代码" in col:
-                        code_col = col
+                    if "净资产收益率" in col:
+                        roe_col = col
                         break
-                if code_col:
-                    candidate_codes = set(filtered[code_col].astype(str).tolist())
-                    print(f"  ROE≥15%: {len(candidate_codes)} 只")
-            break
-
-    if not candidate_codes:
-        candidate_codes = set(stocks["code"].tolist())
+                if roe_col:
+                    df[roe_col] = pd.to_numeric(df[roe_col], errors="coerce")
+                    filtered = df[df[roe_col] >= 15]
+                    code_col = None
+                    for col in df.columns:
+                        if "代码" in col or "股票代码" in col:
+                            code_col = col
+                            break
+                    if code_col:
+                        filtered_set = set(filtered[code_col].astype(str).tolist())
+                        candidate_codes &= filtered_set
+                        print(f"  ROE≥15%: {len(candidate_codes)} 只")
+                    break
+        # ROE预筛无结果时，降级为全量（由screen_single_stock的roe检过滤）
+        if not candidate_codes:
+            candidate_codes = set(stocks["code"].tolist())
+            print("  ROE预筛无结果，降级为全量扫描")
+    else:
+        print(f"  code_filter已指定，跳过ROE批量预筛（直接进入深度分析）")
+    
     candidate_codes &= set(stocks["code"].tolist())
 
     quotes_df = get_realtime_quotes()

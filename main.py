@@ -1202,12 +1202,15 @@ def main():
         ai_recs = [s for s in candidates if s.get("signal") and s["signal"] not in ("hold", None)]
 
         # 写到段独立 cache（之后第 3 批 merge 用）
+        # BUG-045：同时保存完整候选数据（含 passed/is_10y_king 等字段）
+        # 供 merge_full 阶段调用 auto_add_to_watchlist 填充模型推荐表
         save_json(f"market_scan_{mode}.json", {
             "date": now.strftime("%Y-%m-%d %H:%M"),
             "mode": mode,
             "p_idx": p_idx,
             "candidates_count": len(candidates),
             "ai_recommendations": ai_recs,
+            "candidates": candidates,  # 完整候选列表（auto_add_to_watchlist 需要）
         })
         print(f"  段 {p_idx + 1} 完成：候选 {len(candidates)} / 推荐 {len(ai_recs)}")
 
@@ -1366,6 +1369,28 @@ def main():
             "ai_recommendations": all_recs,
         })
 
+        # BUG-045：合并完整候选数据，供 auto_add_to_watchlist 填充模型推荐表
+        # 从各段文件加载完整 candidate 列表（不是仅 ai_recommendations）
+        all_candidates = []
+        seen_candidate_codes = set()
+        for p in range(1, 7):
+            f = os.path.join(os.path.dirname(__file__), f"market_scan_full_p{p}.json")
+            if os.path.exists(f):
+                try:
+                    data = load_json(f"market_scan_full_p{p}.json")
+                    if isinstance(data, dict):
+                        cands = data.get("candidates", [])
+                        for s in cands:
+                            code = str(s.get("code", "")).zfill(6)
+                            if code and code not in seen_candidate_codes:
+                                seen_candidate_codes.add(code)
+                                all_candidates.append(s)
+                except Exception as _e:
+                    print(f"  ⚠ 段 {p} 候选数据读取失败：{_e}")
+        # 调用 auto_add_to_watchlist（填充 watchlist_model.json）
+        if all_candidates:
+            auto_add_to_watchlist(all_candidates)
+        
         print(f"  ✅ 合并完成：{len(all_recs)} 只推荐 / {len(merged_files)} 个源文件")
         for s in merged_files:
             print(f"     - {s}")

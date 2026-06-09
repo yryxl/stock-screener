@@ -11,6 +11,7 @@ backtest_data/etf_valuation_import/
 
 # e2e 测试截图（每次跑都重新生成，不入库）
 e2e_screenshot_*.png
+_e2e_*.png
 
 # 临时调研脚本（一次性使用，跑完即删；如发现需要保留请逐项 git add）
 debug_*.py
@@ -26,6 +27,23 @@ backtest_compare_3modes.json
 backtest_random_init.json
 backtest_random_init.progress
 backtest_init_quality.progress
+
+# 运行日志归档（手动下载的 zip，不入库）
+_log_*.zip
+_run_log*.zip
+
+# 一次性扫描脚本（跑完即删）
+scan_pool_90.py
+scan_pool_90_result.json
+scan_validator.py
+
+# 本地备份文件
+daily_results.json.bak
+holdings.json.*_backup
+holdings_github_sha.txt
+
+# 夜间跑测清单（本地临时笔记）
+NIGHT_RUN_TODO.md
 
 # 注：stock_industry_cache.json 已被仓库 tracked，
 # 若要停止追踪需 `git rm --cached stock_industry_cache.json` 后再加进来
