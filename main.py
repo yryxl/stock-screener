@@ -1021,6 +1021,27 @@ def _inject_etf_monitor():
             else:
                 print(f"  ⚠ {bubble_title}")
 
+        # 自动更新 peak_price（不依赖用户手动输入目标价）
+        try:
+            from position_tracker import update_peak_prices
+            from data_fetcher import get_realtime_quotes
+            _quotes = get_realtime_quotes()
+            if _quotes is not None and not _quotes.empty:
+                _prices = {}
+                for _, _r in _quotes.iterrows():
+                    _code = str(_r.get('代码','')).zfill(6)
+                    _price = pd.to_numeric(_r.get('最新价',0), errors='coerce')
+                    if _code and _price and _price > 0:
+                        _prices[_code] = _price
+                if _prices:
+                    _holdings, _changed = update_peak_prices(
+                        load_json("holdings.json") or [], _prices)
+                    if _changed:
+                        save_json("holdings.json", _holdings)
+                        print(f"  📈 peak_price 已更新 {sum(1 for h in _holdings if h.get('peak_price'))} 只")
+        except Exception as _pe:
+            print(f"  ⚠ peak_price 更新失败（不影响主流程）：{_pe}")
+
         existing = load_json("daily_results.json")
         if isinstance(existing, dict):
             existing["etf_signals"] = etf_results
