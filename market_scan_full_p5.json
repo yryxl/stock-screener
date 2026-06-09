@@ -1,8 +1,61 @@
 {
-  "date": "2026-06-10 01:23",
-  "mode": "full_p5",
-  "p_idx": 4,
-  "candidates_count": 0,
-  "ai_recommendations": [],
-  "candidates": []
+  "date": "2026-06-09 18:38",
+  "mode": "incremental",
+  "progress": "140/221",
+  "candidates_count": 140,
+  "ai_recommendations": [
+    {
+      "code": "002980",
+      "passed": true,
+      "checks": {
+        "v3_authenticity_receivable_anomaly": {
+          "passed": true,
+          "detail": "应收账款周转天数恶化：从 58 天 → 91 天（3 年 +58%），康美式造假特征（应收虚增）"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值21.6%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率25.0%（制造档健康） 流动比率2.95"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值17.8%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率43.2%"
+        }
+      },
+      "signal": "sell_heavy",
+      "signal_text": "PE=292.7，远高于行业上限35→可以大量卖出",
+      "pe": 292.73,
+      "price": 120.02,
+      "is_10y_king": false,
+      "is_good_quality": false,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "⚠ 数据真实性: 应收账款周转天数恶化：从 58 天 → 91 天（3 年 +58%），康美式造假特征（应收虚增）",
+        "10% 回报锚超限：当前 ¥120.02 高于安全边际价 ¥2.72（超 4316%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 2.7180801904781964,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.47元，3 年 EPS CAGR -22.9%（capped 0%），10 年后 EPS 0.47元，退出 PE 15，最高合理买入价 ¥2.72",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 20.066,
+      "name": "华盛昌"
+    }
+  ],
+  "is_partial": true
 }
