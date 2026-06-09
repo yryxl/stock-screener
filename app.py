@@ -2949,6 +2949,17 @@ with tab4:
             "系统运行会自动开始采集跟踪指数的估值。"
         )
     else:
+        # BUG-046：全市场泡沫警报
+        bubble_alert = daily.get("market_bubble_alert", {}) if isinstance(daily, dict) else {}
+        if bubble_alert and bubble_alert.get("level", 0) >= 2:
+            st.error(f"🚨 **{bubble_alert.get('title', '')}**")
+            st.markdown(bubble_alert.get("detail", ""))
+            st.divider()
+        elif bubble_alert and bubble_alert.get("level", 0) >= 1:
+            st.warning(f"⚠ **{bubble_alert.get('title', '')}**")
+            st.caption(bubble_alert.get("detail", ""))
+            st.divider()
+
         # 价值观提示（永久固定）
         st.warning(
             "⚠ **宽基 ETF 不是类固收**。它仍然是权益资产，2008 年标普 500 跌 37%，"

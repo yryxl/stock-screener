@@ -763,6 +763,66 @@ def screen_single_stock(code, config, quotes_df):
             result["signal"] = signal
             result["signal_text"] = signal_text
 
+    # BUG-046：rr10 要求回报率硬门槛
+    # 当当前价超出最高合理买入价时，按超标幅度降级买入信号
+    # 10% required return 是巴菲特的标准——超过安全边际就不该买入
+    # 注意：检查从高到低排列（先100%再50%），避免逻辑短路
+    try:
+        rr10_max = result.get("max_buy_price_rr10")
+        rr10_price = result.get("price", 0)
+        if rr10_max and rr10_max > 0 and rr10_price and rr10_price > 0:
+            over_pct = (rr10_price / rr10_max - 1) * 100
+            _signal = result.get("signal", "") or ""
+            if "buy" in _signal and over_pct > 0:
+                if over_pct > 100:
+                    # 超出100%+：降2级
+                    _d2 = {"buy_heavy": "buy_light", "buy_medium": "buy_watch",
+                           "buy_light": "hold", "buy_watch": "hold"}
+                    _new = _d2.get(_signal, _signal)
+                    if _new != _signal:
+                        result["signal"] = _new
+                        result["signal_text"] = result.get("signal_text", "") + (
+                            f" | 10%回报锚约束：当前价超出安全边际价{over_pct:.0f}%，"
+                            f"信号从'{_signal}'降级为'{_new}'")
+                elif over_pct > 50:
+                    # 超出50%+：降1级
+                    _d1 = {"buy_heavy": "buy_medium", "buy_medium": "buy_light",
+                           "buy_light": "buy_watch", "buy_watch": "hold"}
+                    _new = _d1.get(_signal, _signal)
+                    if _new != _signal:
+                        result["signal"] = _new
+                        result["signal_text"] = result.get("signal_text", "") + (
+                            f" | 10%回报锚约束：当前价超出安全边际价{over_pct:.0f}%，"
+                            f"信号从'{_signal}'降级为'{_new}'")
+    except Exception:
+        pass
+
+    # BUG-046：管理层评分买入信号约束
+    # 管理层评分 < 60（警告级）时降级买入信号：管理层不可靠则买得保守
+    try:
+        mgmt_score = result.get("mgmt_score")
+        _signal = result.get("signal", "") or ""
+        if mgmt_score is not None and mgmt_score < 60 and "buy" in _signal:
+            if mgmt_score < 40:
+                # 差管理层：任何买入信号都降到 hold
+                _new = "hold"
+                if _new != _signal:
+                    result["signal"] = _new
+                    result["signal_text"] = result.get("signal_text", "") + (
+                        f" | 管理层评分{mgmt_score:.0f}/100（差），建议观望")
+            else:
+                # 中性管理层：降1级
+                _d = {"buy_heavy": "buy_medium", "buy_medium": "buy_light",
+                       "buy_light": "buy_watch", "buy_watch": "hold"}
+                _new = _d.get(_signal, _signal)
+                if _new != _signal:
+                    result["signal"] = _new
+                    result["signal_text"] = result.get("signal_text", "") + (
+                        f" | 管理层评分{mgmt_score:.0f}/100（中性），"
+                        f"信号从'{_signal}'降级为'{_new}'")
+    except Exception:
+        pass
+
     # REQ-203（2026-04-24）：个股黑天鹅警示
     # signal 不改（保留模型基本面评分），只叠加 black_swan_warning 字段
     # 前端展示时用红色警示条提醒用户：哪天出现什么问题，不建议买入

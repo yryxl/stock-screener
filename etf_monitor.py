@@ -866,3 +866,67 @@ if __name__ == "__main__":
     print(f"\n监测完成，ETF {len(results)} 只")
     if unmapped:
         print(f"未映射 ETF {len(unmapped)} 只，需手工补充 etf_index_map.json")
+
+
+def check_market_bubble_alert(etf_signals, broad_only=True):
+    """
+    BUG-046：全市场极端泡沫统一检查
+    当多个宽基/策略ETF同时进入泡沫区时，触发组合级减仓建议。
+    巴菲特1957年：当市场整体高估时，减仓等暴风雨。
+
+    Args:
+      etf_signals: scan_and_update_holdings_etfs 返回的信号列表
+      broad_only: True=只检查宽基ETF，False=检查所有ETF
+
+    Returns:
+      (alert_level, alert_text, detail)
+      alert_level: 0=无警告 / 1=黄色泡沫 / 2=红色泡沫
+    """
+    if not etf_signals:
+        return 0, "", ""
+
+    bubble_count = 0
+    total_count = 0
+    details = []
+
+    for s in etf_signals:
+        if broad_only and s.get("kind") != "broad":
+            continue
+        total_count += 1
+        temp = s.get("temperature", {})
+        level = temp.get("level", 0)
+        percentile = temp.get("percentile", 0)
+        name = s.get("name", "?")
+        if level >= 2:  # 泡沫区
+            bubble_count += 1
+            details.append(f"{name}({percentile:.0f}%分位)")
+
+    if total_count == 0:
+        return 0, "", ""
+
+    # 宽基=至少2/3进入泡沫区，或所有宽基+策略的50%+
+    threshold = 0.67 if broad_only else 0.50
+    bubble_ratio = bubble_count / total_count if total_count > 0 else 0
+
+    if bubble_ratio >= 0.8 and bubble_count >= 2:
+        return 2, (
+            f"红色泡沫警报：持仓{bubble_count}/{total_count}只宽基ETF同时进入泡沫区"
+        ), (
+            "当所有宽基指数同时极端高估时，市场整体见顶风险极高。"
+            "巴菲特1957年做法："
+            "1. 卖出盈利>50%的仓位，保留底仓"
+            "2. 不再新增任何买入"
+            "3. 保留至少20%现金等暴跌"
+            "当前上榜：" + "、".join(details)
+        )
+    elif bubble_ratio >= 0.5 and bubble_count >= 1:
+        return 1, (
+            f"黄色泡沫预警：{bubble_count}/{total_count}只宽基ETF进入泡沫区"
+        ), (
+            "部分指数已极端高估。建议："
+            "1. 停止新增买入泡沫区ETF"
+            "2. 检查盈利>30%的持仓考虑适当减仓"
+            "当前上榜：" + "、".join(details)
+        )
+
+    return 0, "", ""

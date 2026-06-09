@@ -1006,11 +1006,30 @@ def _inject_etf_monitor():
         )
         portfolio_cls = classify_portfolio(holdings)
 
+        # BUG-046：全市场极端泡沫检查
+        from etf_monitor import check_market_bubble_alert
+        bubble_level, bubble_title, bubble_detail = check_market_bubble_alert(etf_results)
+        bubble_alert = {}
+        if bubble_level > 0:
+            bubble_alert = {
+                "level": bubble_level,
+                "title": bubble_title,
+                "detail": bubble_detail,
+            }
+            if bubble_level == 2:
+                print(f"  🚨 {bubble_title}")
+            else:
+                print(f"  ⚠ {bubble_title}")
+
         existing = load_json("daily_results.json")
         if isinstance(existing, dict):
             existing["etf_signals"] = etf_results
             existing["portfolio_classification"] = portfolio_cls
             existing["etf_unmapped"] = unmapped
+            if bubble_alert:
+                existing["market_bubble_alert"] = bubble_alert
+            elif "market_bubble_alert" in existing:
+                del existing["market_bubble_alert"]
             save_json("daily_results.json", existing)
 
         hot_etfs = [r for r in etf_results
