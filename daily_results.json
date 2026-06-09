@@ -1,9 +1,52 @@
 {
-  "date": "2026-06-09 18:51",
+  "date": "2026-06-09 22:22",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
   "ai_recommendations": [
+    {
+      "code": "000848",
+      "name": "承德露露",
+      "category": "饮料乳品",
+      "note": "PE=12.2，明显低于合理区间→可以中仓买入",
+      "price": 7.72,
+      "pe": 11.93,
+      "signal": "buy_heavy",
+      "signal_text": "PE=11.9，远低于行业底部12→可以重仓买入",
+      "total_score": 32,
+      "dividend_yield": 0,
+      "dimensions": {
+        "ROE质量": {
+          "score": 7,
+          "max": 10,
+          "detail": "均值22.4%优秀 | 从未破15% | 下滑 | 低杠杆34%"
+        },
+        "财务健康": {
+          "score": 9,
+          "max": 10,
+          "detail": "负债34%健康 | 流动比率3.4 | 现金流优 | 利润率上升"
+        },
+        "盈利能力": {
+          "score": 6,
+          "max": 10,
+          "detail": "毛利率46%强 | 10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
+        },
+        "估值": {
+          "score": 10,
+          "max": 10,
+          "detail": "PE=11.9极低估 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null,
+      "source": "关注表"
+    },
     {
       "code": "000538",
       "name": "云南白药",
@@ -13,8 +56,8 @@
       "pe": 16.78,
       "signal": "buy_watch",
       "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 30,
-      "dividend_yield": 5.27,
+      "total_score": 25,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -32,9 +75,9 @@
           "detail": "毛利率29% | 10年数据"
         },
         "股息率": {
-          "score": 5,
+          "score": 0,
           "max": 10,
-          "detail": "股息率5.3%高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 8,
@@ -56,8 +99,8 @@
       "pe": 13.15,
       "signal": "buy_medium",
       "signal_text": "PE=13.2，明显低于合理区间→可以中仓买入",
-      "total_score": 28,
-      "dividend_yield": 5.49,
+      "total_score": 23,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 6,
@@ -75,9 +118,9 @@
           "detail": "毛利率35% | 10年数据"
         },
         "股息率": {
-          "score": 5,
+          "score": 0,
           "max": 10,
-          "detail": "股息率5.5%高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 8,
@@ -89,59 +132,6 @@
       "gross_margin": null,
       "debt_ratio": null,
       "source": "关注表"
-    },
-    {
-      "code": "000848",
-      "passed": true,
-      "checks": {
-        "roe": {
-          "passed": true,
-          "detail": "ROE均值24.4%"
-        },
-        "debt": {
-          "passed": true,
-          "detail": "负债率34.3%（消费档健康） 流动比率3.44"
-        },
-        "opm": {
-          "passed": true,
-          "detail": "利润率均值20.1%稳定"
-        },
-        "fcf": {
-          "passed": true,
-          "detail": "现金流充足"
-        },
-        "gross_margin": {
-          "passed": true,
-          "detail": "毛利率45.7%"
-        }
-      },
-      "signal": "buy_medium",
-      "signal_text": "PE=12.2，明显低于合理区间→可以中仓买入",
-      "pe": 12.25,
-      "price": 7.93,
-      "is_10y_king": true,
-      "is_good_quality": true,
-      "is_toll_bridge": false,
-      "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥7.93 高于安全边际价 ¥3.47（超 129%）"
-      ],
-      "cashcow_label": null,
-      "cashcow_tier": "",
-      "cashcow_detail": "",
-      "max_buy_price_rr10": 3.4698896048657826,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.60元，3 年 EPS CAGR -0.8%（capped 0%），10 年后 EPS 0.60元，退出 PE 15，最高合理买入价 ¥3.47",
-      "mgmt_score": 100,
-      "mgmt_tier": "优秀",
-      "mgmt_flags": [],
-      "data_quality": "ok",
-      "king_avg_roe": 22.367,
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "饮料乳品",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（饮料乳品）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      },
-      "name": "承德露露",
-      "source": "段 3"
     },
     {
       "code": "603369",
@@ -1160,6 +1150,49 @@
   ],
   "watchlist_signals": [
     {
+      "code": "000848",
+      "name": "承德露露",
+      "category": "饮料乳品",
+      "note": "PE=12.2，明显低于合理区间→可以中仓买入",
+      "price": 7.72,
+      "pe": 11.93,
+      "signal": "buy_heavy",
+      "signal_text": "PE=11.9，远低于行业底部12→可以重仓买入",
+      "total_score": 32,
+      "dividend_yield": 0,
+      "dimensions": {
+        "ROE质量": {
+          "score": 7,
+          "max": 10,
+          "detail": "均值22.4%优秀 | 从未破15% | 下滑 | 低杠杆34%"
+        },
+        "财务健康": {
+          "score": 9,
+          "max": 10,
+          "detail": "负债34%健康 | 流动比率3.4 | 现金流优 | 利润率上升"
+        },
+        "盈利能力": {
+          "score": 6,
+          "max": 10,
+          "detail": "毛利率46%强 | 10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
+        },
+        "估值": {
+          "score": 10,
+          "max": 10,
+          "detail": "PE=11.9极低估 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null,
+      "source": "关注表"
+    },
+    {
       "code": "603288",
       "name": "海天味业",
       "category": "调味发酵品Ⅱ",
@@ -1168,8 +1201,8 @@
       "pe": 28.05,
       "signal": "hold",
       "signal_text": "PE=28.1，处于合理区间22-35，等待更低点",
-      "total_score": 33,
-      "dividend_yield": 3.15,
+      "total_score": 30,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 8,
@@ -1187,9 +1220,9 @@
           "detail": "毛利率41%强 | 10年数据"
         },
         "股息率": {
-          "score": 3,
+          "score": 0,
           "max": 10,
-          "detail": "股息率3.1%"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 7,
@@ -1210,8 +1243,8 @@
       "pe": 16.78,
       "signal": "buy_watch",
       "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 30,
-      "dividend_yield": 5.27,
+      "total_score": 25,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 3,
@@ -1229,9 +1262,9 @@
           "detail": "毛利率29% | 10年数据"
         },
         "股息率": {
-          "score": 5,
+          "score": 0,
           "max": 10,
-          "detail": "股息率5.3%高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 8,
@@ -1245,6 +1278,48 @@
       "source": "关注表"
     },
     {
+      "code": "601888",
+      "name": "中国中免",
+      "category": "旅游零售Ⅱ",
+      "note": "国内唯一免税全牌照",
+      "price": 57.38,
+      "pe": 29.83,
+      "signal": "hold",
+      "signal_text": "PE=29.8，处于合理区间25-40，等待更低点",
+      "total_score": 24,
+      "dividend_yield": 0,
+      "dimensions": {
+        "ROE质量": {
+          "score": 4,
+          "max": 10,
+          "detail": "均值18.9%良好 | 最低6.5%曾破线 | 下滑 | 低杠杆18%"
+        },
+        "财务健康": {
+          "score": 8,
+          "max": 10,
+          "detail": "负债18%极低 | 流动比率5.8 | 现金流良 | 利润率稳定"
+        },
+        "盈利能力": {
+          "score": 5,
+          "max": 10,
+          "detail": "毛利率35% | 10年数据"
+        },
+        "股息率": {
+          "score": 0,
+          "max": 10,
+          "detail": "无股息数据"
+        },
+        "估值": {
+          "score": 7,
+          "max": 10,
+          "detail": "PE=29.8合理偏低 | 简单生意"
+        }
+      },
+      "roe": null,
+      "gross_margin": null,
+      "debt_ratio": null
+    },
+    {
       "code": "600887",
       "name": "伊利股份",
       "category": "饮料乳品",
@@ -1253,8 +1328,8 @@
       "pe": 13.15,
       "signal": "buy_medium",
       "signal_text": "PE=13.2，明显低于合理区间→可以中仓买入",
-      "total_score": 28,
-      "dividend_yield": 5.49,
+      "total_score": 23,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 6,
@@ -1272,9 +1347,9 @@
           "detail": "毛利率35% | 10年数据"
         },
         "股息率": {
-          "score": 5,
+          "score": 0,
           "max": 10,
-          "detail": "股息率5.5%高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 8,
@@ -1296,8 +1371,8 @@
       "pe": 31.16,
       "signal": "hold",
       "signal_text": "PE=31.2，超出合理区间20-30，等待回落",
-      "total_score": 27,
-      "dividend_yield": 4.08,
+      "total_score": 22,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -1315,56 +1390,14 @@
           "detail": "毛利率46%强 | 10年数据"
         },
         "股息率": {
-          "score": 5,
+          "score": 0,
           "max": 10,
-          "detail": "股息率4.1%高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 4,
           "max": 10,
           "detail": "PE=31.2偏高 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null
-    },
-    {
-      "code": "601888",
-      "name": "中国中免",
-      "category": "旅游零售Ⅱ",
-      "note": "国内唯一免税全牌照",
-      "price": 57.38,
-      "pe": 29.83,
-      "signal": "hold",
-      "signal_text": "PE=29.8，处于合理区间25-40，等待更低点",
-      "total_score": 26,
-      "dividend_yield": 1.22,
-      "dimensions": {
-        "ROE质量": {
-          "score": 4,
-          "max": 10,
-          "detail": "均值18.9%良好 | 最低6.5%曾破线 | 下滑 | 低杠杆18%"
-        },
-        "财务健康": {
-          "score": 8,
-          "max": 10,
-          "detail": "负债18%极低 | 流动比率5.8 | 现金流良 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率35% | 10年数据"
-        },
-        "股息率": {
-          "score": 2,
-          "max": 10,
-          "detail": "股息率1.2%偏低"
-        },
-        "估值": {
-          "score": 7,
-          "max": 10,
-          "detail": "PE=29.8合理偏低 | 简单生意"
         }
       },
       "roe": null,
@@ -1380,8 +1413,8 @@
       "pe": 15.3,
       "signal": "hold",
       "signal_text": "PE偏低但ROE不达标，继续观望",
-      "total_score": 26,
-      "dividend_yield": 4.91,
+      "total_score": 21,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -1399,9 +1432,9 @@
           "detail": "毛利率30%"
         },
         "股息率": {
-          "score": 5,
+          "score": 0,
           "max": 10,
-          "detail": "股息率4.9%高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 7,
@@ -1422,8 +1455,8 @@
       "pe": -643.23,
       "signal": null,
       "signal_text": "PE为负（亏损），不适用PE估值",
-      "total_score": 24,
-      "dividend_yield": 4.17,
+      "total_score": 19,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 4,
@@ -1441,9 +1474,9 @@
           "detail": "毛利率85%极强 | 10年数据"
         },
         "股息率": {
-          "score": 5,
+          "score": 0,
           "max": 10,
-          "detail": "股息率4.2%高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 0,
@@ -1464,8 +1497,8 @@
       "pe": 18.74,
       "signal": "hold",
       "signal_text": "PE=18.7，超出合理区间10-18，等待回落",
-      "total_score": 23,
-      "dividend_yield": 4.38,
+      "total_score": 18,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 5,
@@ -1483,9 +1516,9 @@
           "detail": "毛利率61%极强 | 10年数据"
         },
         "股息率": {
-          "score": 5,
+          "score": 0,
           "max": 10,
-          "detail": "股息率4.4%高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 3,
@@ -1506,8 +1539,8 @@
       "pe": 18.32,
       "signal": "hold",
       "signal_text": "PE=18.3，超出合理区间10-16，等待回落",
-      "total_score": 23,
-      "dividend_yield": 5.04,
+      "total_score": 18,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 2,
@@ -1525,9 +1558,9 @@
           "detail": "毛利率41%强 | 10年数据"
         },
         "股息率": {
-          "score": 5,
+          "score": 0,
           "max": 10,
-          "detail": "股息率5.0%高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 3,
@@ -1548,8 +1581,8 @@
       "pe": 7.47,
       "signal": "hold",
       "signal_text": "PE=7.5，处于合理区间6-9，等待更低点",
-      "total_score": 23,
-      "dividend_yield": 6.3,
+      "total_score": 17,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 2,
@@ -1567,9 +1600,9 @@
           "detail": "10年数据"
         },
         "股息率": {
-          "score": 6,
+          "score": 0,
           "max": 10,
-          "detail": "股息率6.3%极高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 7,
@@ -1590,8 +1623,8 @@
       "pe": 17.73,
       "signal": "hold",
       "signal_text": "PE=17.7，超出合理区间10-16，等待回落",
-      "total_score": 22,
-      "dividend_yield": 7.06,
+      "total_score": 16,
+      "dividend_yield": 0,
       "dimensions": {
         "ROE质量": {
           "score": 1,
@@ -1609,9 +1642,9 @@
           "detail": "毛利率20%偏低 | 10年数据"
         },
         "股息率": {
-          "score": 6,
+          "score": 0,
           "max": 10,
-          "detail": "股息率7.1%极高"
+          "detail": "无股息数据"
         },
         "估值": {
           "score": 3,
@@ -1629,14 +1662,14 @@
       "code": "000538",
       "name": "云南白药",
       "shares": 100,
-      "cost": 56.4,
+      "cost": 54.817,
       "price": 49.42,
       "pe": 16.78,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -12.375886524822688,
-      "pnl_pct": -12.38,
+      "holding_pnl": -9.845485889413863,
+      "pnl_pct": -9.85,
       "pnl_label": "浮亏中",
       "pnl_advice": "",
       "must_sell": false,
@@ -1690,15 +1723,15 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 99.0,
-        "current_pe": 17.0,
-        "current_dividend_yield": 2.41,
-        "as_of": "2026-06-08",
+        "percentile": 99.1,
+        "current_pe": 17.31,
+        "current_dividend_yield": 2.36,
+        "as_of": "2026-06-09",
         "data_points": 2413,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位99.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +2.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位99.1%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +2.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 20
     },
     {
@@ -1720,15 +1753,15 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 85.1,
-        "current_pe": 30.19,
-        "current_dividend_yield": 1.25,
-        "as_of": "2026-06-08",
+        "percentile": 85.8,
+        "current_pe": 30.95,
+        "current_dividend_yield": 1.22,
+        "as_of": "2026-06-09",
         "data_points": 2413,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位85.1%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位85.8%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.7%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 20
     },
     {
@@ -1753,7 +1786,7 @@
         "percentile": 72.2,
         "current_pe": 7.85,
         "current_dividend_yield": 4.76,
-        "as_of": "2026-06-08",
+        "as_of": "2026-06-09",
         "data_points": 1237,
         "lookback_years": 10
       },
@@ -1763,11 +1796,11 @@
     }
   ],
   "portfolio_classification": {
-    "total_value": 22955.0,
+    "total_value": 22796.7,
     "defensive_value": 4290.7,
-    "offensive_value": 18664.3,
-    "defensive_pct": 18.69178828142017,
-    "offensive_pct": 81.30821171857983,
+    "offensive_value": 18506.0,
+    "defensive_pct": 18.82158382572916,
+    "offensive_pct": 81.17841617427084,
     "buckets": {
       "broad_etf": {
         "value": 4290.7,
@@ -1783,7 +1816,7 @@
             "value": 850.2
           }
         ],
-        "pct": 18.69178828142017
+        "pct": 18.82158382572916
       },
       "strategy_etf": {
         "value": 4029.3,
@@ -1794,7 +1827,7 @@
             "value": 4029.3
           }
         ],
-        "pct": 17.55303855369201
+        "pct": 17.674926634118098
       },
       "sector_etf": {
         "value": 0,
@@ -1802,12 +1835,12 @@
         "pct": 0.0
       },
       "single_stock": {
-        "value": 14635.0,
+        "value": 14476.7,
         "items": [
           {
             "code": "000538",
             "name": "云南白药",
-            "value": 5640.0
+            "value": 5481.7
           },
           {
             "code": "000568",
@@ -1815,7 +1848,7 @@
             "value": 8995.0
           }
         ],
-        "pct": 63.75517316488782
+        "pct": 63.50348954015275
       }
     }
   },
@@ -1834,18 +1867,18 @@
     {
       "code": "000538",
       "name": "云南白药",
-      "pct": 24.569810498802003,
+      "pct": 24.046024205257776,
       "level": "warning",
       "tier": "普通标的",
-      "text": "仓位24.6% ≥ 20%（普通标的警告线），注意分散"
+      "text": "仓位24.0% ≥ 20%（普通标的警告线），注意分散"
     },
     {
       "code": "000568",
       "name": "泸州老窖",
-      "pct": 39.18536266608582,
+      "pct": 39.45746533489496,
       "level": "danger",
       "tier": "普通标的",
-      "text": "仓位39.2% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
+      "text": "仓位39.5% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ],
   "push_sent_date": "2026-06-09",
@@ -1854,6 +1887,6 @@
   "market_bubble_alert": {
     "level": 2,
     "title": "红色泡沫警报：持仓2/2只宽基ETF同时进入泡沫区",
-    "detail": "当所有宽基指数同时极端高估时，市场整体见顶风险极高。巴菲特1957年做法：1. 卖出盈利>50%的仓位，保留底仓2. 不再新增任何买入3. 保留至少20%现金等暴跌当前上榜：沪深300ETF华夏(99%分位)、中证500ETF(85%分位)"
+    "detail": "当所有宽基指数同时极端高估时，市场整体见顶风险极高。巴菲特1957年做法：1. 卖出盈利>50%的仓位，保留底仓2. 不再新增任何买入3. 保留至少20%现金等暴跌当前上榜：沪深300ETF华夏(99%分位)、中证500ETF(86%分位)"
   }
 }
