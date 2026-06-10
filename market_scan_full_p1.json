@@ -1,8 +1,7 @@
 {
-  "date": "2026-06-10 11:01",
-  "mode": "incremental",
-  "progress": "120/227",
-  "candidates_count": 120,
-  "ai_recommendations": [],
-  "is_partial": true
+  "date": "2026-06-08 17:11",
+  "mode": "full_p1",
+  "p_idx": 0,
+  "candidates_count": 0,
+  "ai_recommendations": []
 }
