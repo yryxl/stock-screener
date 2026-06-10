@@ -1,9 +1,65 @@
 {
-  "date": "2026-06-09 18:38",
+  "date": "2026-06-10 19:00",
   "mode": "incremental",
-  "progress": "140/221",
-  "candidates_count": 140,
+  "progress": "120/221",
+  "candidates_count": 120,
   "ai_recommendations": [
+    {
+      "code": "000568",
+      "passed": true,
+      "checks": {
+        "v3_cashcow": {
+          "passed": true,
+          "detail": "✅印钞机 近3年 CapEx/净利=12.3%（<20% 印钞机）"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值24.1%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率23.0%（消费档健康） 流动比率3.86"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值32.5%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率75.6%"
+        }
+      },
+      "signal": "buy_medium",
+      "signal_text": "PE=12.6，远低于行业底部15→可以重仓买入 | 10%回报锚约束：当前价超出安全边际价50%，信号从'buy_heavy'降级为'buy_medium'",
+      "pe": 12.64,
+      "price": 85.41,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥85.41 高于安全边际价 ¥56.75（超 50%）"
+      ],
+      "cashcow_label": "cashcow",
+      "cashcow_tier": "✅印钞机",
+      "cashcow_detail": "近3年 CapEx/净利=12.3%（<20% 印钞机）",
+      "max_buy_price_rr10": 56.75197220402703,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 7.36元，3 年 EPS CAGR -9.7%（capped 0%），10 年后 EPS 7.36元，退出 PE 20，最高合理买入价 ¥56.75",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 26.631000000000007,
+      "cycle_opportunity": {
+        "type": "cyclical_opportunity",
+        "industry": "白酒Ⅱ",
+        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（白酒Ⅱ）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
+      },
+      "name": "泸州老窖"
+    },
     {
       "code": "002980",
       "passed": true,
@@ -34,15 +90,15 @@
         }
       },
       "signal": "sell_heavy",
-      "signal_text": "PE=292.7，远高于行业上限35→可以大量卖出",
-      "pe": 292.73,
-      "price": 120.02,
+      "signal_text": "PE=284.4，远高于行业上限35→可以大量卖出",
+      "pe": 284.44,
+      "price": 116.62,
       "is_10y_king": false,
       "is_good_quality": false,
       "is_toll_bridge": false,
       "china_v3_risks": [
         "⚠ 数据真实性: 应收账款周转天数恶化：从 58 天 → 91 天（3 年 +58%），康美式造假特征（应收虚增）",
-        "10% 回报锚超限：当前 ¥120.02 高于安全边际价 ¥2.72（超 4316%）"
+        "10% 回报锚超限：当前 ¥116.62 高于安全边际价 ¥2.72（超 4191%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
