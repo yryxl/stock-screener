@@ -1514,11 +1514,11 @@
   },
   "etf_unmapped": [],
   "market_temperature": {
-    "level": -1,
-    "label": "🧊 偏冷·重点加仓",
-    "description": "估值进入历史 15%-30% 分位，机会开始显现。处置建议：把手里闲钱和新工资重点投向被低估的好公司和宽基，适当超配股票。芒格原则：便宜是硬道理。",
-    "current_pe_median": 19.52,
-    "percentile": 16.7,
+    "level": -2,
+    "label": "❄️ 低估区·全力加仓",
+    "description": "估值在历史最低 15% 区间，历史级别的建仓机会。处置建议：清空闲置现金，全力加仓优质低估标的；动用任何可动用资金，越跌越买。2008 年巴菲特写下《我在买入美国》就是这种时刻。",
+    "current_pe_median": 19.13,
+    "percentile": 11.7,
     "lookback_years": 10,
     "as_of": "2026-06",
     "data_points": 120
