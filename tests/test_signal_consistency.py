@@ -30,13 +30,39 @@ CONTRADICTORY_PAIRS = [
 ]
 
 
+def _strict_word_in_text(word: str, text: str) -> bool:
+    """检查 word 是否在 text 中出现，排除作为否定词后一部分的情况
+    
+    例："加仓"在"不加仓"中不应算作匹配（"不加仓"是否定，"加仓"是正面）
+    """
+    import re as _re
+    for m in _re.finditer(_re.escape(word), text):
+        pos = m.start()
+        # 如果 word 前面有"不"且紧接着，说明是否定形式
+        if pos > 0 and text[pos-1] == "不":
+            continue
+        # 如果是独立出现的（word 本身就是一个词，不在其他词中）
+        return True
+    return False
+
+
 def check_text_consistency(text):
-    """检测一条信号文案内是否包含矛盾动作词"""
+    """检测一条信号文案内是否包含矛盾动作词
+
+    2026-06-11 BUG-047 修："不加仓"里包含子串"加仓"导致假阳性。
+    改为先检查否定前缀，再检查正面对应动作词。
+    """
     if not text:
         return True, None
     for a, b in CONTRADICTORY_PAIRS:
-        if a in text and b in text:
-            return False, f"矛盾：同时出现 '{a}' 和 '{b}'"
+        if a in text:
+            # a 包含否定（如"不加仓"），检查 b 是否以非否定形式出现
+            if _strict_word_in_text(b, text):
+                return False, f"矛盾：同时出现 '{a}' 和 '{b}'"
+        elif b in text:
+            # 不涉及否定干扰，直接检查
+            if a in text:
+                return False, f"矛盾：同时出现 '{a}' 和 '{b}'"
     return True, None
 
 
