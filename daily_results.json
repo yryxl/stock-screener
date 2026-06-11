@@ -1,137 +1,61 @@
 {
-  "date": "2026-06-10 22:52",
-  "mode": "watchlist",
+  "date": "2026-06-11 08:14",
+  "mode": "send_ai_with_fallback_merge",
   "is_trading_day": true,
-  "data_source": "关注表+持仓",
+  "data_source": "分段扫描合并 兜底（含 6 个文件）",
   "ai_recommendations": [
     {
       "code": "000848",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值24.4%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率34.3%（消费档健康） 流动比率3.44"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值20.1%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率45.7%"
+        }
+      },
+      "signal": "buy_medium",
+      "signal_text": "PE=12.2，明显低于合理区间→可以中仓买入",
+      "pe": 12.25,
+      "price": 7.93,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥7.93 高于安全边际价 ¥3.47（超 129%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 3.4698896048657826,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.60元，3 年 EPS CAGR -0.8%（capped 0%），10 年后 EPS 0.60元，退出 PE 15，最高合理买入价 ¥3.47",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 22.367,
+      "cycle_opportunity": {
+        "type": "cyclical_opportunity",
+        "industry": "饮料乳品",
+        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（饮料乳品）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
+      },
       "name": "承德露露",
-      "category": "饮料乳品",
-      "note": "PE=12.2，明显低于合理区间→可以中仓买入",
-      "price": 7.77,
-      "pe": 12.01,
-      "signal": "buy_medium",
-      "signal_text": "PE=12.0，明显低于合理区间→可以中仓买入",
-      "total_score": 36,
-      "dividend_yield": 10.3,
-      "dimensions": {
-        "ROE质量": {
-          "score": 7,
-          "max": 10,
-          "detail": "均值22.4%优秀 | 从未破15% | 下滑 | 低杠杆34%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债34%健康 | 流动比率3.4 | 现金流优 | 利润率上升"
-        },
-        "盈利能力": {
-          "score": 6,
-          "max": 10,
-          "detail": "毛利率46%强 | 10年数据"
-        },
-        "股息率": {
-          "score": 6,
-          "max": 10,
-          "detail": "股息率10.3%极高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=12.0低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
-    {
-      "code": "000538",
-      "name": "云南白药",
-      "category": "中药Ⅱ",
-      "note": "国家绝密配方+百年品牌",
-      "price": 50.14,
-      "pe": 17.02,
-      "signal": "buy_watch",
-      "signal_text": "PE偏低，ROE限制最高关注",
-      "total_score": 30,
-      "dividend_yield": 5.19,
-      "dimensions": {
-        "ROE质量": {
-          "score": 3,
-          "max": 10,
-          "detail": "均值13.2%一般 | 最低7.6%曾破线 | 下滑 | 低杠杆26%"
-        },
-        "财务健康": {
-          "score": 9,
-          "max": 10,
-          "detail": "负债26%极低 | 流动比率2.6 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率29% | 10年数据"
-        },
-        "股息率": {
-          "score": 5,
-          "max": 10,
-          "detail": "股息率5.2%高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=17.0低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
-    },
-    {
-      "code": "600887",
-      "name": "伊利股份",
-      "category": "饮料乳品",
-      "note": "乳业双寡头",
-      "price": 25.58,
-      "pe": 13.39,
-      "signal": "buy_medium",
-      "signal_text": "PE=13.4，明显低于合理区间→可以中仓买入",
-      "total_score": 28,
-      "dividend_yield": 5.39,
-      "dimensions": {
-        "ROE质量": {
-          "score": 6,
-          "max": 10,
-          "detail": "均值22.9%优秀 | 从未破15% | 下滑"
-        },
-        "财务健康": {
-          "score": 4,
-          "max": 10,
-          "detail": "负债62%高 | 流动比率0.7偏紧 | 现金流优 | 利润率稳定"
-        },
-        "盈利能力": {
-          "score": 5,
-          "max": 10,
-          "detail": "毛利率35% | 10年数据"
-        },
-        "股息率": {
-          "score": 5,
-          "max": 10,
-          "detail": "股息率5.4%高"
-        },
-        "估值": {
-          "score": 8,
-          "max": 10,
-          "detail": "PE=13.4低估 | 简单生意"
-        }
-      },
-      "roe": null,
-      "gross_margin": null,
-      "debt_ratio": null,
-      "source": "关注表"
+      "source": "段 3"
     },
     {
       "code": "603369",
@@ -829,24 +753,20 @@
       "source": "段 5"
     },
     {
-      "code": "600809",
+      "code": "001367",
       "passed": true,
       "checks": {
-        "v3_cashcow": {
-          "passed": true,
-          "detail": "🌟卓越印钞机 近3年 CapEx/净利=6.6%（<10% 喜诗糖果级）"
-        },
         "roe": {
           "passed": true,
-          "detail": "ROE均值28.7%"
+          "detail": "ROE均值21.1%"
         },
         "debt": {
           "passed": true,
-          "detail": "负债率28.7%（消费档健康） 流动比率2.86"
+          "detail": "负债率8.4%（制造档健康） 流动比率11.01"
         },
         "opm": {
           "passed": true,
-          "detail": "利润率均值22.2%稳定"
+          "detail": "利润率均值24.9%稳定"
         },
         "fcf": {
           "passed": true,
@@ -854,33 +774,30 @@
         },
         "gross_margin": {
           "passed": true,
-          "detail": "毛利率71.7%"
+          "detail": "毛利率42.6%"
         }
       },
-      "signal": "buy_heavy",
-      "signal_text": "PE=13.0，远低于行业底部15→可以重仓买入",
-      "pe": 12.98,
-      "price": 116.85,
-      "is_10y_king": true,
-      "is_good_quality": true,
+      "signal": "sell_watch",
+      "signal_text": "PE=23.2，合理偏高→重点关注卖出",
+      "pe": 23.18,
+      "price": 20.32,
+      "is_10y_king": false,
+      "is_good_quality": false,
       "is_toll_bridge": false,
-      "china_v3_risks": [],
-      "cashcow_label": "cashcow_elite",
-      "cashcow_tier": "🌟卓越印钞机",
-      "cashcow_detail": "近3年 CapEx/净利=6.6%（<10% 喜诗糖果级）",
-      "max_buy_price_rr10": 171.3998847771384,
-      "rr10_detail": "按 10% required return 倒推：当前 EPS 10.04元，3 年 EPS CAGR 8.3%（capped 8%），10 年后 EPS 22.23元，退出 PE 20，最高合理买入价 ¥171.40",
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥20.32 高于安全边际价 ¥5.26（超 286%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 5.262665900713103,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 0.91元，3 年 EPS CAGR -10.3%（capped 0%），10 年后 EPS 0.91元，退出 PE 15，最高合理买入价 ¥5.26",
       "mgmt_score": 100,
       "mgmt_tier": "优秀",
       "mgmt_flags": [],
       "data_quality": "ok",
-      "king_avg_roe": 32.287000000000006,
-      "cycle_opportunity": {
-        "type": "cyclical_opportunity",
-        "industry": "白酒Ⅱ",
-        "text": "⭐ **巴菲特式抄底候选**：十年王者 + 行业（白酒Ⅱ）周期性下行。参考巴菲特 2008 年金融危机买高盛/富国银行：危机前 10 年 ROE ≥ 15% 的王者，在行业整体崩塌时进场。**前提：你能承受 1-2 年浮亏等行业拐点**。"
-      },
-      "name": "山西汾酒",
+      "king_avg_roe": 21.13375,
+      "name": "海森药业",
       "source": "段 6"
     }
   ],
@@ -1617,8 +1534,8 @@
       "text": "仓位39.5% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
     }
   ],
-  "push_sent_date": "2026-06-10",
-  "push_sent_at": "2026-06-10T08:40:11+08:00",
+  "push_sent_date": "2026-06-11",
+  "push_sent_at": "2026-06-11T08:14:04+08:00",
   "push_triggered_by": "send_ai",
   "market_bubble_alert": {
     "level": 2,
