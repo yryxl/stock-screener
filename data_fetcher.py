@@ -8,6 +8,7 @@ import os
 import socket
 import time
 import platform
+import requests
 import akshare as ak
 import pandas as pd
 import numpy as np
@@ -47,6 +48,180 @@ if _USE_ALARM:
 else:
     class _FetchTimeout(Exception):
         pass
+
+
+# ============================================================
+# 腾讯财经数据源（2026-06-11 加）
+# 东方财富/sina 对美国IP有限制，腾讯 qt.gtimg.cn 对全球可用
+# ============================================================
+
+_TENCENT_MARKET_MAP = {
+    "1": "sh",   # 上海
+    "51": "sz",  # 深圳
+    # 没有北交所映射（akshare 不支持），忽略
+}
+
+
+def _tencent_parse_row(raw: str):
+    """解析单条 Tencent API 返回行"""
+    # 格式: v_sz000538="51~云南白药~000538~50.55~...~17.16~...";
+    if not raw or not raw.startswith("v_"):
+        return None
+    try:
+        eq_pos = raw.find("=")
+        if eq_pos < 0:
+            return None
+        # 提取引号内内容
+        content = raw[eq_pos+1:]
+        if content.startswith('"'):
+            content = content[1:]
+        if content.endswith('";'):
+            content = content[:-2]
+        elif content.endswith('"'):
+            content = content[:-1]
+        fields = content.split("~")
+        if len(fields) < 40:
+            return None
+        market_id = fields[0]
+        prefix = _TENCENT_MARKET_MAP.get(market_id, "")
+        code = fields[2].strip()
+        name = fields[1].strip()
+        price = fields[3].strip() or "0"
+        change_pct = fields[32].strip() or "0"
+        high = fields[33].strip() or "0"
+        low = fields[34].strip() or "0"
+        volume = fields[6].strip() or "0"
+        pe = fields[39].strip() or "0"
+        return {
+            "代码": code,
+            "名称": name,
+            "最新价": float(price),
+            "涨跌幅": float(change_pct),
+            "最高": float(high),
+            "最低": float(low),
+            "成交量": float(volume),
+            "PE": float(pe) if pe.replace(".","",1).lstrip("-").isdigit() else 0,
+            "market_prefix": prefix,
+        }
+    except (IndexError, ValueError, AttributeError):
+        return None
+
+
+def _tencent_fetch_batch(codes_with_prefix):
+    """向腾讯API请求一批股票行情"""
+    if not codes_with_prefix:
+        return []
+    # 每批最多30只（超了可能会被截断）
+    batch_size = 20
+    results = []
+    for i in range(0, len(codes_with_prefix), batch_size):
+        batch = codes_with_prefix[i:i+batch_size]
+        query = ",".join(batch)
+        url = f"https://qt.gtimg.cn/q={query}"
+        try:
+            resp = requests.get(url, timeout=8)
+            resp.encoding = "gbk"
+            text = resp.text
+            for line in text.split("\n"):
+                parsed = _tencent_parse_row(line.strip())
+                if parsed:
+                    results.append(parsed)
+        except requests.RequestException as e:
+            print(f"  [腾讯] 批次请求失败: {e}", flush=True)
+            continue
+    return results
+
+
+def _tencent_realtime_quotes(codes_list=None):
+    """使用腾讯财经 API 获取实时行情
+
+    Args:
+        codes_list: 6位代码列表，如 ["000538", "600887"]
+                    为 None 时从 stock_industry_cache 提取
+    Returns:
+        DataFrame (代码, 名称, 最新价, 涨跌幅, ...) 或 None
+    """
+    if codes_list is None:
+        # 从行业缓存中提取已知股票
+        _cache = _load_industry_cache()
+        codes_list = list(_cache.keys())
+        if not codes_list:
+            # 兜底：用持仓+关注表
+            _script_dir = os.path.dirname(os.path.abspath(__file__))
+            _all_codes = set()
+            for _fname in ["holdings.json", "watchlist.json", "watchlist_my.json", "watchlist_model.json"]:
+                _fp = os.path.join(_script_dir, _fname)
+                if os.path.exists(_fp):
+                    try:
+                        with open(_fp) as _f:
+                            _data = json.load(_f)
+                        if isinstance(_data, list):
+                            for _item in _data:
+                                _c = _item.get("code", "") if isinstance(_item, dict) else ""
+                                if _c:
+                                    _all_codes.add(str(_c).zfill(6))
+                    except Exception:
+                        pass
+            codes_list = list(_all_codes)
+
+    if not codes_list:
+        return None
+
+    # 去重 + 去前缀
+    seen = set()
+    unique_codes = []
+    for c in codes_list:
+        c = str(c).zfill(6)
+        if c not in seen:
+            seen.add(c)
+            unique_codes.append(c)
+
+    # 构建带前缀的代码列表
+    prefixed = []
+    for c in unique_codes:
+        if c.startswith("6") or c.startswith("9"):
+            prefixed.append(f"sh{c}")
+        else:
+            prefixed.append(f"sz{c}")
+
+    print(f"  [腾讯] 请求 {len(prefixed)} 只股票行情...", flush=True)
+    rows = _tencent_fetch_batch(prefixed)
+    if not rows:
+        return None
+
+    df = pd.DataFrame(rows)
+    print(f"  [腾讯] 成功获取 {len(df)} 只实时行情", flush=True)
+    return df
+
+
+def _tencent_stock_list():
+    """用腾讯数据源生成全A股列表（从行业缓存+持仓+关注表）"""
+    _cache = _load_industry_cache()
+    codes = set(_cache.keys())
+    # 补充持仓/关注表中可能有但缓存还没有的
+    _script_dir = os.path.dirname(os.path.abspath(__file__))
+    for _fname in ["holdings.json", "watchlist.json", "watchlist_my.json", "watchlist_model.json"]:
+        _fp = os.path.join(_script_dir, _fname)
+        if os.path.exists(_fp):
+            try:
+                with open(_fp) as _f:
+                    _data = json.load(_f)
+                if isinstance(_data, list):
+                    for _item in _data:
+                        _c = _item.get("code", "") if isinstance(_item, dict) else ""
+                        if _c:
+                            codes.add(str(_c).zfill(6))
+            except Exception:
+                pass
+    if not codes:
+        return pd.DataFrame()
+    records = []
+    for c in sorted(codes):
+        name = _cache.get(c, {}).get("name", "") if isinstance(_cache.get(c), dict) else ""
+        records.append({"code": c, "name": name})
+    df = pd.DataFrame(records)
+    df = df[~df["name"].str.contains("ST|退市", na=False)]
+    return df.reset_index(drop=True)
 
 
 def safe_fetch(func, *args, retry=2, delay=2, timeout=None, **kwargs):
@@ -169,10 +344,15 @@ def get_all_stocks():
         timeout_sec=30,
         retry=2,
         delay=3,
-        alt_funcs=[_alt_from_spot],
+        alt_funcs=[_alt_from_spot, _tencent_stock_list],
     )
     if df is None:
         return pd.DataFrame()
+    if df.empty:
+        print(f"  [fallback] 东财+新浪均失败 → 切腾讯数据源", flush=True)
+        df = _tencent_stock_list()
+        if df is None or df.empty:
+            return pd.DataFrame()
     df = df[~df["name"].str.contains("ST|退市", na=False)]
     df = df[df["code"].str.match(r"^(00|30|60)")]
     return df.reset_index(drop=True)
@@ -207,7 +387,8 @@ def get_realtime_quotes():
         alt_funcs=[ak.stock_zh_a_spot, _pytdx_fetch],  # 新浪源 → Pytdx 兜底
     )
     if df is None or df.empty:
-        return pd.DataFrame()
+        print(f"  [fallback] 东财+新浪+Pytdx 均失败 → 切腾讯数据源", flush=True)
+        df = _tencent_realtime_quotes()
 
     # 规范化代码格式：若走了新浪源，代码带 sh/sz/bj 前缀，去掉保持和 em 一致
     try:
