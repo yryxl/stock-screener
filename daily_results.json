@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-11 18:14",
+  "date": "2026-06-11 22:16",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -1453,9 +1453,9 @@
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
         "percentile": 99.0,
-        "current_pe": 17.11,
-        "current_dividend_yield": 2.39,
-        "as_of": "2026-06-10",
+        "current_pe": 16.97,
+        "current_dividend_yield": 2.4,
+        "as_of": "2026-06-11",
         "data_points": 2413,
         "lookback_years": 10
       },
@@ -1483,9 +1483,9 @@
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
         "percentile": 85.3,
-        "current_pe": 30.47,
+        "current_pe": 30.38,
         "current_dividend_yield": 1.24,
-        "as_of": "2026-06-10",
+        "as_of": "2026-06-11",
         "data_points": 2413,
         "lookback_years": 10
       },
@@ -1512,15 +1512,15 @@
         "level": 1,
         "label": "🔥 偏热·暂停加仓",
         "description": "估值处于历史 70%-85% 分位，还没到极端泡沫，但安全边际已经很薄。处置建议：停止往高估标的加钱，新钱转向仍然便宜的品种（红利/低估行业）；老仓位继续持有不动。巴菲特原则：不在偏贵时加码，等便宜了再重仓。",
-        "percentile": 74.3,
-        "current_pe": 7.89,
-        "current_dividend_yield": 4.73,
-        "as_of": "2026-06-10",
+        "percentile": 71.1,
+        "current_pe": 7.83,
+        "current_dividend_yield": 4.77,
+        "as_of": "2026-06-11",
         "data_points": 1237,
         "lookback_years": 10
       },
       "signal": "sell_light",
-      "signal_text": "PE分位74.3%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但持仓浮盈仅 -4.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位71.1%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但持仓浮盈仅 -4.8%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 20
     }
   ],
