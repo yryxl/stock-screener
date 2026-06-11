@@ -1,8 +1,8 @@
 {
-  "date": "2026-06-10 20:17",
+  "date": "2026-06-11 20:44",
   "mode": "incremental",
-  "progress": "120/247",
-  "candidates_count": 120,
+  "progress": "140/247",
+  "candidates_count": 140,
   "ai_recommendations": [
     {
       "code": "001367",
@@ -30,14 +30,14 @@
         }
       },
       "signal": "sell_watch",
-      "signal_text": "PE=23.2，合理偏高→重点关注卖出",
-      "pe": 23.18,
-      "price": 20.32,
+      "signal_text": "PE=22.2，合理偏高→重点关注卖出",
+      "pe": 22.21,
+      "price": 19.47,
       "is_10y_king": false,
       "is_good_quality": false,
       "is_toll_bridge": false,
       "china_v3_risks": [
-        "10% 回报锚超限：当前 ¥20.32 高于安全边际价 ¥5.26（超 286%）"
+        "10% 回报锚超限：当前 ¥19.47 高于安全边际价 ¥5.26（超 270%）"
       ],
       "cashcow_label": null,
       "cashcow_tier": "",
@@ -50,6 +50,105 @@
       "data_quality": "ok",
       "king_avg_roe": 21.13375,
       "name": "海森药业"
+    },
+    {
+      "code": "001337",
+      "passed": true,
+      "checks": {
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值27.8%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率39.0%（制造档健康） 流动比率2.22"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值37.1%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率53.5%"
+        }
+      },
+      "signal": "sell_light",
+      "signal_text": "PE=26.7，高于合理区间→可以适当卖出",
+      "pe": 26.72,
+      "price": 40.42,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "10% 回报锚超限：当前 ¥40.42 高于安全边际价 ¥19.94（超 103%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 19.93735826298551,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.11元，3 年 EPS CAGR 47.5%（capped 12%），10 年后 EPS 3.45元，退出 PE 15，最高合理买入价 ¥19.94",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 27.77875,
+      "name": "四川黄金"
+    },
+    {
+      "code": "002555",
+      "passed": true,
+      "checks": {
+        "v3_authenticity_inventory_anomaly": {
+          "passed": true,
+          "detail": "存货周转天数恶化：13 → 44 天（+244%），可能渠道压货"
+        },
+        "roe": {
+          "passed": true,
+          "detail": "ROE均值23.3%"
+        },
+        "debt": {
+          "passed": true,
+          "detail": "负债率38.7%（制造档健康） 流动比率1.26"
+        },
+        "opm": {
+          "passed": true,
+          "detail": "利润率均值18.5%稳定"
+        },
+        "fcf": {
+          "passed": true,
+          "detail": "现金流充足"
+        },
+        "gross_margin": {
+          "passed": true,
+          "detail": "毛利率73.7%"
+        }
+      },
+      "signal": "buy_medium",
+      "signal_text": "PE=12.1，明显低于合理区间→可以中仓买入",
+      "pe": 12.08,
+      "price": 17.61,
+      "is_10y_king": true,
+      "is_good_quality": true,
+      "is_toll_bridge": false,
+      "china_v3_risks": [
+        "⚠ 数据真实性: 存货周转天数恶化：13 → 44 天（+244%），可能渠道压货",
+        "10% 回报锚超限：当前 ¥17.61 高于安全边际价 ¥12.29（超 43%）"
+      ],
+      "cashcow_label": null,
+      "cashcow_tier": "",
+      "cashcow_detail": "",
+      "max_buy_price_rr10": 12.294242196571272,
+      "rr10_detail": "按 10% required return 倒推：当前 EPS 1.32元，3 年 EPS CAGR 4.9%（capped 5%），10 年后 EPS 2.13元，退出 PE 15，最高合理买入价 ¥12.29",
+      "mgmt_score": 100,
+      "mgmt_tier": "优秀",
+      "mgmt_flags": [],
+      "data_quality": "ok",
+      "king_avg_roe": 25.756,
+      "name": "三七互娱"
     }
   ],
   "is_partial": true
