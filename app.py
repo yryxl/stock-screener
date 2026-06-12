@@ -824,14 +824,25 @@ with tab1:
                                               f'margin-left:6px;" title="{_reason}">{_label}</span>')
                             except Exception:
                                 _tag_html = ''
-                            st.markdown(f"**{s.get('name', '')}**（{code}）{_tag_html}",
+                            # 状态标签：已持仓 / 已关注 / 未关注
+                            _watchlist_all = set()
+                            for _wl in (st.session_state.get("watchlist", []) or []):
+                                _watchlist_all.add(str(_wl.get("code", "")).zfill(6))
+                            _status_tags = []
+                            _is_held = code in {str(h.get("code", "")).zfill(6)
+                                                for h in (st.session_state.get("holdings", []) or [])}
+                            if _is_held:
+                                _status_tags.append('<span style="background:#e3f2fd;padding:1px 5px;border-radius:3px;font-size:11px;color:#1565c0;">已持仓</span>')
+                            elif code in _watchlist_all:
+                                _status_tags.append('<span style="background:#f3e5f5;padding:1px 5px;border-radius:3px;font-size:11px;color:#7b1fa2;">已关注</span>')
+                            _status_html = ''.join(_status_tags) if _status_tags else '<span style="font-size:11px;color:#999;">未关注</span>'
+                            _name_html = f"{_status_html} <b>{s.get('name', '')}</b>（{code}）{_tag_html}"
+                            st.markdown(_name_html,
                                          unsafe_allow_html=True)
                             st.caption(metrics_str)
                             # TODO-035：可买性 + 换仓建议（仅对 buy_* 信号且非已持有的股）
                             _sig_for_aff = s.get("signal", "")
                             _is_buy = _sig_for_aff.startswith("buy_")
-                            _is_held = code in {str(h.get("code", "")).zfill(6)
-                                                for h in (st.session_state.get("holdings", []) or [])}
                             if _is_buy and not _is_held and _funds:
                                 try:
                                     _aff = classify_affordability(s, _funds)
