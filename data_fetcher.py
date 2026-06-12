@@ -111,8 +111,8 @@ def _tencent_fetch_batch(codes_with_prefix):
     """向腾讯API请求一批股票行情"""
     if not codes_with_prefix:
         return []
-    # 每批最多30只（超了可能会被截断）
-    batch_size = 20
+    # 每批最多50只（实测100只也能返回，取50保稳）
+    batch_size = 50
     results = []
     for i in range(0, len(codes_with_prefix), batch_size):
         batch = codes_with_prefix[i:i+batch_size]
@@ -137,14 +137,19 @@ def _tencent_realtime_quotes(codes_list=None):
 
     Args:
         codes_list: 6位代码列表，如 ["000538", "600887"]
-                    为 None 时从 stock_industry_cache 提取
+                    为 None 时调用 get_all_stocks() 获取全量列表
     Returns:
         DataFrame (代码, 名称, 最新价, 涨跌幅, ...) 或 None
     """
     if codes_list is None:
-        # 从行业缓存中提取已知股票
-        _cache = _load_industry_cache()
-        codes_list = list(_cache.keys())
+        # 从完整股票列表获取（确保全量扫描时不漏股）
+        _stocks_df = get_all_stocks()
+        if _stocks_df is not None and not _stocks_df.empty:
+            codes_list = _stocks_df["code"].tolist()
+        else:
+            # 兜底：从行业缓存获取
+            _cache = _load_industry_cache()
+            codes_list = list(_cache.keys())
         if not codes_list:
             # 兜底：用持仓+关注表
             _script_dir = os.path.dirname(os.path.abspath(__file__))
