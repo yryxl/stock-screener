@@ -1,8 +1,8 @@
 {
-  "date": "2026-06-12 11:53",
-  "mode": "all_with_fallback_push",
+  "date": "2026-06-12 13:02",
+  "mode": "holdings",
   "is_trading_day": true,
-  "data_source": "all + 复用当天 cache",
+  "data_source": "持仓检查",
   "ai_recommendations": [
     {
       "code": "000848",
@@ -706,13 +706,13 @@
       "name": "云南白药",
       "shares": 100,
       "cost": 54.817,
-      "price": 50.6,
+      "price": 50.54,
       "pe": 17.16,
       "signal": "hold_keep",
       "signal_text": "非十年王者/好公司（ROE未达15%连续10年标准）→ 虽然PE偏低但不加仓，等ROE真正恢复到15%+再考虑",
       "industry": "中药Ⅱ",
-      "holding_pnl": -7.692869000492541,
-      "pnl_pct": -7.69,
+      "holding_pnl": -7.802324096539392,
+      "pnl_pct": -7.8,
       "pnl_label": "浮亏中",
       "pnl_advice": "",
       "must_sell": false,
@@ -728,13 +728,13 @@
       "name": "泸州老窖",
       "shares": 100,
       "cost": 89.95,
-      "price": 85.81,
+      "price": 85.6,
       "pe": 12.65,
       "signal": "buy_add",
       "signal_text": "十年王者 + PE偏低→可加仓 | PE=12.7，远低于行业底部15→可以重仓买入",
       "industry": "白酒Ⅱ",
-      "holding_pnl": -4.602556976097838,
-      "pnl_pct": -4.6,
+      "holding_pnl": -4.836020011117292,
+      "pnl_pct": -4.84,
       "pnl_label": "几乎平本",
       "pnl_advice": "",
       "must_sell": false,
@@ -782,10 +782,10 @@
       "name": "中证500ETF",
       "shares": 100,
       "cost": 8.502,
-      "current_price": 8.332,
-      "pnl_pct": -2.0,
+      "current_price": 8.311,
+      "pnl_pct": -2.25,
       "pnl_label": "几乎平本",
-      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "pnl_advice": "⚠ 估值偏高但持仓浮盈仅 -2.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "pnl_override": true,
       "must_sell": false,
       "bull_top_alert": false,
@@ -804,7 +804,7 @@
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位85.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "signal_text": "PE分位85.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -2.2%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
       "new_records": 20
     },
     {
@@ -903,5 +903,33 @@
   },
   "push_sent_date": "2026-06-12",
   "push_sent_at": "2026-06-12T11:53:37+08:00",
-  "push_triggered_by": "all"
+  "push_triggered_by": "all",
+  "market_temperature": {
+    "level": -2,
+    "label": "❄️ 低估区·重点加仓",
+    "description": "估值在历史最低 15% 区间，历史级别的建仓机会。处置建议：将仓位提升至 80%，重点买入优质低估标的；注意留 20% 现金应对极端流动性，分批建仓不追低。2008 年巴菲特写下《我在买入美国》时也保留了 36% 现金。",
+    "current_pe_median": 18.97,
+    "percentile": 10.8,
+    "lookback_years": 10,
+    "as_of": "2026-06",
+    "data_points": 120
+  },
+  "position_warnings": [
+    {
+      "code": "000538",
+      "name": "云南白药",
+      "pct": 24.046024205257776,
+      "level": "warning",
+      "tier": "普通标的",
+      "text": "仓位24.0% ≥ 20%（普通标的警告线），注意分散"
+    },
+    {
+      "code": "000568",
+      "name": "泸州老窖",
+      "pct": 39.45746533489496,
+      "level": "danger",
+      "tier": "普通标的",
+      "text": "仓位39.5% ≥ 30%（普通标的危险线），严重偏重！建议减仓分散"
+    }
+  ]
 }
