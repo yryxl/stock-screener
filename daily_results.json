@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-12 18:00",
+  "date": "2026-06-12 20:22",
   "mode": "watchlist",
   "is_trading_day": true,
   "data_source": "关注表+持仓",
@@ -369,9 +369,9 @@
       "category": "中药Ⅱ",
       "note": "350年国药老字号",
       "price": 24.95,
-      "pe": 30.91,
+      "pe": 31.73,
       "signal": "hold",
-      "signal_text": "PE=30.9，超出合理区间20-30，等待回落",
+      "signal_text": "PE=31.7，超出合理区间20-30，等待回落",
       "total_score": 27,
       "dividend_yield": 4.01,
       "dimensions": {
@@ -398,7 +398,7 @@
         "估值": {
           "score": 4,
           "max": 10,
-          "detail": "PE=30.9偏高 | 简单生意"
+          "detail": "PE=31.7偏高 | 简单生意"
         }
       },
       "roe": null,
@@ -766,16 +766,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 99.0,
-        "current_pe": 16.97,
-        "current_dividend_yield": 2.4,
-        "as_of": "2026-06-11",
+        "percentile": 99.1,
+        "current_pe": 17.17,
+        "current_dividend_yield": 2.38,
+        "as_of": "2026-06-12",
         "data_points": 2413,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位99.0%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 20
+      "signal_text": "PE分位99.1%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 +2.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 1
     },
     {
       "code": "510500",
@@ -796,16 +796,16 @@
         "level": 2,
         "label": "🔴 泡沫区·贵到不舒服",
         "description": "估值在历史最高 15% 区间。芒格原话：贵到让我不舒服，宁愿持有现金。处置建议：停止任何新增买入；卖出盈利 50% 以上的仓位，保留底仓；长期持有的好公司继续拿。注意：不是全部清仓，是卖盈利部分。",
-        "percentile": 85.3,
-        "current_pe": 30.38,
-        "current_dividend_yield": 1.24,
-        "as_of": "2026-06-11",
+        "percentile": 85.6,
+        "current_pe": 30.64,
+        "current_dividend_yield": 1.23,
+        "as_of": "2026-06-12",
         "data_points": 2413,
         "lookback_years": 10
       },
       "signal": "sell_heavy",
-      "signal_text": "PE分位85.3%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -3.1%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 20
+      "signal_text": "PE分位85.6%·泡沫区·卖盈利部分·保留底仓 | ⚠ 估值偏高但持仓浮盈仅 -3.1%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 1
     },
     {
       "code": "512890",
@@ -826,16 +826,16 @@
         "level": 1,
         "label": "🔥 偏热·暂停加仓",
         "description": "估值处于历史 70%-85% 分位，还没到极端泡沫，但安全边际已经很薄。处置建议：停止往高估标的加钱，新钱转向仍然便宜的品种（红利/低估行业）；老仓位继续持有不动。巴菲特原则：不在偏贵时加码，等便宜了再重仓。",
-        "percentile": 71.1,
-        "current_pe": 7.83,
-        "current_dividend_yield": 4.77,
-        "as_of": "2026-06-11",
-        "data_points": 1237,
+        "percentile": 74.8,
+        "current_pe": 7.9,
+        "current_dividend_yield": 4.73,
+        "as_of": "2026-06-12",
+        "data_points": 1238,
         "lookback_years": 10
       },
       "signal": "sell_light",
-      "signal_text": "PE分位71.1%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但持仓浮盈仅 -4.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
-      "new_records": 20
+      "signal_text": "PE分位74.8%·偏热·暂停加仓·新钱转便宜标的 | ⚠ 估值偏高但持仓浮盈仅 -4.0%，扣手续费后卖出无实际收益。建议：停止新增买入，但老仓位继续持有。",
+      "new_records": 1
     }
   ],
   "portfolio_classification": {
@@ -899,11 +899,11 @@
   "market_bubble_alert": {
     "level": 2,
     "title": "红色泡沫警报：持仓2/2只宽基ETF同时进入泡沫区",
-    "detail": "当所有宽基指数同时极端高估时，市场整体见顶风险极高。巴菲特1957年做法：1. 卖出盈利>50%的仓位，保留底仓2. 不再新增任何买入3. 保留至少20%现金等暴跌当前上榜：沪深300ETF华夏(99%分位)、中证500ETF(85%分位)"
+    "detail": "当所有宽基指数同时极端高估时，市场整体见顶风险极高。巴菲特1957年做法：1. 卖出盈利>50%的仓位，保留底仓2. 不再新增任何买入3. 保留至少20%现金等暴跌当前上榜：沪深300ETF华夏(99%分位)、中证500ETF(86%分位)"
   },
   "push_sent_date": "2026-06-12",
-  "push_sent_at": "2026-06-12T11:53:37+08:00",
-  "push_triggered_by": "all",
+  "push_sent_at": "2026-06-12T19:06:19+08:00",
+  "push_triggered_by": "send_ai",
   "market_temperature": {
     "level": -2,
     "label": "❄️ 低估区·重点加仓",
