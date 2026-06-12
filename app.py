@@ -155,7 +155,8 @@ BUY_SIGNALS = ["buy_heavy", "buy_medium", "buy_light", "buy_watch"]
 
 # 全部信号展示顺序（和消息推送 notifier.py 的 SIGNAL_GROUPS 对齐）
 ALL_SIGNAL_ORDER = [
-    "buy_heavy", "buy_medium", "buy_light", "buy_watch",
+    "buy_heavy", "buy_medium", "buy_light", "buy_watch", "buy_add",
+    "hold_keep",
     "sell_watch", "sell_light", "sell_medium", "sell_heavy",
     "true_decline",
 ]
@@ -902,54 +903,8 @@ with tab1:
                                     st.rerun()
                 st.divider()
 
-            # 持仓附加信号（加仓/持有建议）
-            extra_sigs = [s for s in all_recs
-                          if s.get("signal") in ("buy_add", "hold_keep")]
-            if extra_sigs:
-                st.subheader("📋 持仓信号")
-                for s in extra_sigs:
-                    code = s.get("code", "")
-                    sig_label = SIGNAL_LABELS.get(s.get("signal", ""), "")
-                    metrics = []
-                    pe = s.get("pe", 0)
-                    if pe and pe > 0:
-                        metrics.append(f"市盈率 {pe:.1f}")
-                    roe = s.get("roe")
-                    if roe is not None:
-                        metrics.append(f"净收益率 {roe}%")
-                    gm = s.get("gross_margin")
-                    if gm is not None:
-                        metrics.append(f"毛利 {gm}%")
-                    debt = s.get("debt_ratio")
-                    if debt is not None:
-                        metrics.append(f"负债 {debt}%")
-                    div_y = s.get("dividend_yield", 0)
-                    if div_y and div_y > 0:
-                        metrics.append(f"股息 {div_y:.1f}%")
-
-                    col1, col2, col3 = st.columns([3, 1.2, 4])
-                    with col1:
-                        # TODO-046：防守/进攻分类标签
-                        try:
-                            from stock_classifier import classify_stock
-                            _cat, _label, _reason = classify_stock(s)
-                            _cat_color = {'defensive': '#2e7d32', 'offensive': '#c62828',
-                                          'neutral': '#666', 'unknown': '#999'}[_cat]
-                            _tag_html = (f'<span style="background:#f5f5f5;padding:2px 6px;'
-                                          f'border-radius:3px;font-size:11px;color:{_cat_color};'
-                                          f'margin-left:6px;" title="{_reason}">{_label}</span>')
-                        except Exception:
-                            _tag_html = ''
-                        st.markdown(f"**{s.get('name', '')}**（{code}）{_tag_html}",
-                                     unsafe_allow_html=True)
-                        st.caption(" | ".join(metrics))
-                    with col2:
-                        price = s.get("price", 0)
-                        st.metric("股价", f"¥{price:.2f}" if price else "—")
-                    with col3:
-                        st.markdown(f"{sig_label}")
-                        st.caption(s.get("signal_text", ""))
-                st.divider()
+            # 持仓附加信号（加仓/持有建议）——已合并到 ALL_SIGNAL_ORDER，此处不再重复渲染
+            # 保留这个判断是为了兼容
 
             # 仓位警告（REQ-189 分档：十年王者+小资金/大资金/普通标的）
             # 实时基于当前 holdings + holding_signals 重算（不用 daily.position_warnings 可能不同步）
