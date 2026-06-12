@@ -1308,7 +1308,7 @@ def main():
                 priority_holdings=non_etf_holdings,
                 priority_etf=etf_codes,
                 priority_watchlist=watchlist_codes,
-                max_count=1100,  # 单轮上限
+                max_count=300,  # 2026-06-12 降低单轮上限防75min超时（当前积压454只，分多轮消化）
                 max_lag_hours=30,
             )
             stale_codes = [c for c, _, _ in stale]

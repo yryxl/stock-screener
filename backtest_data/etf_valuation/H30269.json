@@ -7304,7 +7304,127 @@
       "pe": 8.17,
       "dividend_yield": 4.93,
       "source": "csindex"
+    },
+    {
+      "date": "2026-05-15",
+      "pe": 7.92,
+      "dividend_yield": 4.76,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-18",
+      "pe": 7.87,
+      "dividend_yield": 4.79,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-19",
+      "pe": 7.92,
+      "dividend_yield": 4.75,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-20",
+      "pe": 7.89,
+      "dividend_yield": 4.77,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-21",
+      "pe": 7.84,
+      "dividend_yield": 4.8,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-22",
+      "pe": 7.82,
+      "dividend_yield": 4.82,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-25",
+      "pe": 7.81,
+      "dividend_yield": 4.83,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-26",
+      "pe": 7.83,
+      "dividend_yield": 4.81,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-27",
+      "pe": 7.78,
+      "dividend_yield": 4.84,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-28",
+      "pe": 7.74,
+      "dividend_yield": 4.87,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-05-29",
+      "pe": 7.87,
+      "dividend_yield": 4.74,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-06-01",
+      "pe": 7.99,
+      "dividend_yield": 4.67,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-06-02",
+      "pe": 7.98,
+      "dividend_yield": 4.68,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-06-03",
+      "pe": 7.91,
+      "dividend_yield": 4.72,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-06-04",
+      "pe": 7.81,
+      "dividend_yield": 4.78,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-06-05",
+      "pe": 7.83,
+      "dividend_yield": 4.77,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-06-08",
+      "pe": 7.85,
+      "dividend_yield": 4.76,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-06-09",
+      "pe": 7.85,
+      "dividend_yield": 4.76,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-06-10",
+      "pe": 7.89,
+      "dividend_yield": 4.73,
+      "source": "csindex"
+    },
+    {
+      "date": "2026-06-11",
+      "pe": 7.83,
+      "dividend_yield": 4.77,
+      "source": "csindex"
     }
   ],
-  "last_updated": "2026-04-19 15:15"
+  "last_updated": "2026-06-12 11:07"
 }

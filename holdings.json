@@ -15,7 +15,8 @@
     "cost": 54.817,
     "buy_date": "2026-04-07",
     "attribution": "pre_model",
-    "venue": "onshore"
+    "venue": "onshore",
+    "peak_price": 54.817
   },
   {
     "code": "510500",
@@ -42,6 +43,7 @@
     "cost": 89.95,
     "buy_date": "2026-05-22",
     "attribution": "model",
-    "venue": "onshore"
+    "venue": "onshore",
+    "peak_price": 89.95
   }
 ]
