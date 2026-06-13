@@ -1101,7 +1101,17 @@ def main():
         _inject_market_temperature()
 
     # 休市日处理
+    # BUG-051（2026-06-13）：扫描类模式跳过（不需要拉数据），
+    # 非扫描类模式（send_ai/merge_full/holdings/watchlist/reanalyze 等）继续执行，
+    # 使用上一交易日的数据推送推荐——解决周五晚扫描到周六、周六仍能收到周五推荐的问题
+    _SCAN_MODES = {"full", "full_p1", "full_p2", "full_p3", "full_p4",
+                    "full_p5", "full_p6", "patch_round"}
     if not trading and mode != "all":
+        if mode in _SCAN_MODES:
+            print(f"📅 休市日，跳过扫描模式: {mode}")
+            return
+        # 非扫描模式：继续执行（使用上一交易日数据）
+        print(f"📅 休市日，模式 {mode} 继续执行（使用上一交易日数据）")
         _, _, has_data = get_data_info()
         if not has_data:
             # 首次使用，无数据，跑一次获取休市前数据
@@ -1120,8 +1130,11 @@ def main():
                     "ai_recommendations": cache.get("ai_recommendations", []) if isinstance(cache, dict) else [],
                 }
                 save_json("daily_results.json", daily_data)
-        # 发休市消息（保持48小时互动）
-        send_simple_msg(config, f"芒格选股 {today}\n\n本日休市\n关注表和持仓数据已同步\n下个交易日自动运行")
+        # 休市日首次初始化的消息发送（已有数据时无需再发"本日休市"，
+        # send_ai 自行会推推荐；holdings/watchlist 等静默更新）
+        # 只有首次且无数据时才发提醒
+        if not has_data:
+            send_simple_msg(config, f"芒格选股 {today}\n\n本日休市\n关注表和持仓数据已同步\n下个交易日自动运行")
         return
 
     # ========================================
