@@ -494,6 +494,7 @@ def get_balance_sheet_latest(code):
           "total_liabilities": 负债合计,
           "accounts_receivable": 应收账款,
           "goodwill": 商誉,
+          "other_receivables": 其他应收款（大股东占用资金检测用）,
       }
     """
     if code in _BALANCE_SHEET_CACHE:
@@ -521,6 +522,8 @@ def get_balance_sheet_latest(code):
             "total_liabilities": float(row.get("TOTAL_LIABILITIES", 0) or 0),
             "accounts_receivable": float(row.get("ACCOUNTS_RECE", 0) or 0) if pd.notna(row.get("ACCOUNTS_RECE")) else 0,
             "goodwill": float(row.get("GOODWILL", 0) or 0) if pd.notna(row.get("GOODWILL")) else 0,
+            # 其他应收款（大股东占用资金检测用，列名可能有多个变体）
+            "other_receivables": float(next((row.get(c, 0) for c in ["OTHER_RECE", "OTHER_RECEIVABLES", "OTHER_RC"] if c in row), 0) or 0),
         }
         _BALANCE_SHEET_CACHE[code] = result
         return result

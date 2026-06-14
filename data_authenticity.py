@@ -276,6 +276,31 @@ def check_authenticity_all(code, industry, df_annual, balance_sheet=None):
     if t:
         alerts.append({'rule': 'gm_anomaly', 'detail': d, 'severity': 'warning'})
 
+    # 规则 7：其他应收款占比过高（大股东占用资金信号）
+    # 康得新/康美共性：大股东通过"其他应收款"科目占用上市公司资金
+    # A 股特色：正常公司其他应收款/总资产 <3%，>10% 非常可疑
+    try:
+        from china_adjustments import get_balance_sheet_latest
+        bs7 = get_balance_sheet_latest(code)
+        if bs7 and bs7.get("total_assets", 0) > 0:
+            _other_rece = bs7.get("other_receivables", 0) or 0
+            _total_a = bs7["total_assets"]
+            _other_ratio = _other_rece / _total_a * 100
+            if _other_ratio > 10:
+                alerts.append({
+                    'rule': 'other_receivables_high',
+                    'detail': f"其他应收款占比{_other_ratio:.1f}%（>{'10%'}），疑似大股东占用资金（A股造假常见手法）",
+                    'severity': 'warning'
+                })
+            elif _other_ratio > 5:
+                alerts.append({
+                    'rule': 'other_receivables_high',
+                    'detail': f"其他应收款占比{_other_ratio:.1f}%（>5%），需关注（正常公司通常<3%）",
+                    'severity': 'info'
+                })
+    except Exception:
+        pass  # 平衡表数据拉取失败不影响主流程
+
     return alerts
 
 

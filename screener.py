@@ -904,16 +904,45 @@ def screen_all_stocks(config, code_filter=None, track_freshness=True,
                         break
                 if roe_col:
                     df[roe_col] = pd.to_numeric(df[roe_col], errors="coerce")
-                    filtered = df[df[roe_col] >= 15]
                     code_col = None
                     for col in df.columns:
                         if "代码" in col or "股票代码" in col:
                             code_col = col
                             break
                     if code_col:
-                        filtered_set = set(filtered[code_col].astype(str).tolist())
-                        candidate_codes &= filtered_set
-                        print(f"  ROE≥15%: {len(candidate_codes)} 只")
+                        # 加载行业缓存，识别过路费生意（如电力/铁路/高速）
+                        # 过路费生意用 8% 门槛，其他用 15% 门槛
+                        from data_fetcher import _load_industry_cache
+                        _ind_cache = _load_industry_cache() or {}
+                        _toll_keywords = ['电力','铁路','高速','公路','港口','燃气','水务','通信服务','电信']
+                        _is_toll = lambda ind: any(kw in (ind or '') for kw in _toll_keywords)
+                        
+                        # 逐个判断：过路费生意 ROE≥8%，其他 ROE≥15%
+                        passed_codes = []
+                        for _, row in df.iterrows():
+                            _code = str(row[code_col]).zfill(6)
+                            _roe = row[roe_col]
+                            if pd.isna(_roe) or _roe <= 0:
+                                continue
+                            _ind_info = _ind_cache.get(_code, {})
+                            _ind = _ind_info.get('industry', '') if isinstance(_ind_info, dict) else ''
+                            _threshold = 8 if _is_toll(_ind) else 15
+                            if _roe >= _threshold:
+                                passed_codes.append(_code)
+                        
+                        passed_set = set(passed_codes)
+                        candidate_codes &= passed_set
+                        print(f"  ROE预筛后: {len(candidate_codes)} 只")
+                        
+                        # 记录过路费生意通过数量供调试
+                        _toll_debug_passed = 0
+                        for _c in passed_codes:
+                            _ci = _ind_cache.get(_c, {})
+                            _ci_ind = _ci.get('industry', '') if isinstance(_ci, dict) else ''
+                            if _is_toll(_ci_ind):
+                                _toll_debug_passed += 1
+                        if _toll_debug_passed > 0:
+                            print(f"  其中过路费生意（ROE≥8%）: {_toll_debug_passed} 只")
                     break
         # ROE预筛无结果时，降级为全量（由screen_single_stock的roe检过滤）
         if not candidate_codes:
