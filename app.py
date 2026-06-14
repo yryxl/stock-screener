@@ -701,6 +701,7 @@ with tab1:
                         unsafe_allow_html=True
                     )
             st.caption("💡 推荐列表中：✅=现金够买，🔄=需换仓，❌=暂买不起")
+            st.caption("💡 显示的现金为本账户可用资金。若现金不足可跨账户调资金，推荐列表仅供参考")
         except Exception:
             _funds = None
 
@@ -1102,7 +1103,8 @@ with tab2:
             st.metric("可投资现金", f"¥{investable_cash:,.2f}",
                       f"占{investable_cash/total_assets*100:.1f}%" if total_assets > 0 else None)
         with _ta_col3:
-            st.metric("总资产", f"¥{total_assets:,.2f}")
+            st.metric("总资产", f"¥{total_assets:,.2f}",
+                      help="持仓市值 + 可用现金。下方各分类占比以此为基础（含现金），与模型推荐页（仅持仓市值）可能有约 0.2pp 差异")
         with _ta_col4:
             _stock_pct = total_market_value / total_assets * 100 if total_assets > 0 else 0
             # REQ-187：按市场温度取建议上限
@@ -2222,9 +2224,10 @@ with tab2:
                                 st.metric("交易记录中持有", f"{_summary['shares_held']} 股",
                                           help="基于交易明细累计的持有数量（建仓+加仓-减仓）。BUG-024 后会自动同步到上方持仓表")
                             with _s2:
-                                _avg = _summary['avg_cost']
-                                st.metric("交易记录均价", f"¥{_avg:.4f}" if _avg else "—",
-                                          help="按交易明细累计的加权平均成本（含手续费摊薄）。ETF 等小价股 4 位小数")
+                                _holdings_cost_display = h.get('cost', 0)
+                                _tx_avg = _summary['avg_cost']
+                                st.metric("持仓表成本价", f"¥{_holdings_cost_display:.4f}" if _holdings_cost_display else "—",
+                                          help="持仓表（holdings.json）中记录的成本价，以此为准")
                             with _s3:
                                 _rp = _summary['realized_pnl']
                                 _color = "normal" if _rp >= 0 else "inverse"
@@ -2240,24 +2243,18 @@ with tab2:
                                     f"累计 {_summary['transaction_count']} 笔交易 · "
                                     f"投入 ¥{_summary['total_invested']:,.2f} · "
                                     f"收回 ¥{_summary['total_received']:,.2f}")
+                            if _tx_avg and _holdings_cost_display:
+                                _diff_pct = abs(_tx_avg - _holdings_cost_display) / _holdings_cost_display * 100
+                                _txt += f" ｜ 交易明细算出均价 ¥{_tx_avg:.4f}（与持仓表差 {_diff_pct:.1f}%）"
                             st.caption(_txt)
 
-                            # H5-4：与 holdings.json 对账（不强制同步，只提示）
+                            # H5-4：与 holdings.json 对账（仅提醒股份数量差异，成本差异已在 caption 中标明）
                             _holdings_shares = h.get('shares', 0)
-                            _holdings_cost = h.get('cost', 0)
                             _diff_shares = _summary['shares_held'] - _holdings_shares
-                            _cost_diff_pct = 0
-                            if _summary['avg_cost'] and _holdings_cost:
-                                _cost_diff_pct = abs(_summary['avg_cost'] - _holdings_cost) / _holdings_cost * 100
-                            if _diff_shares != 0 or _cost_diff_pct > 10:
-                                _msg = []
-                                if _diff_shares != 0:
-                                    _msg.append(f"持仓数量：交易记录 {_summary['shares_held']} 股 vs 持仓表 {_holdings_shares} 股（差 {_diff_shares:+d}）")
-                                if _cost_diff_pct > 10:
-                                    _msg.append(f"成本均价：交易记录 ¥{_summary['avg_cost']:.4f} vs 持仓表 ¥{_holdings_cost:.4f}（差 {_cost_diff_pct:.1f}%）")
+                            if _diff_shares != 0:
                                 st.warning(
-                                    "⚠️ 交易记录与持仓表不一致：\n\n- " + "\n- ".join(_msg) +
-                                    "\n\n💡 BUG-024 后：每次记录新交易会自动同步持仓表。"
+                                    f"⚠️ 持仓数量不一致：交易记录 {_summary['shares_held']} 股 vs 持仓表 {_holdings_shares} 股（差 {_diff_shares:+d}）\n\n"
+                                    "💡 每次记录新交易会自动同步持仓表。"
                                     "若仍不一致，可能是历史持仓没用'记录新交易'录入，"
                                     "或上方'修改持仓'被手动改过。再加一笔交易即可强制同步。"
                                 )
