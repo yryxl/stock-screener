@@ -963,6 +963,34 @@ def screen_all_stocks(config, code_filter=None, track_freshness=True,
         candidate_codes &= set(valid["代码"].tolist())
         print(f"  价格有效: {len(candidate_codes)} 只（不再按 100 元硬过滤）")
 
+    # REQ-025：第一阶段初筛——只用行情数据做低成本过滤
+    # 不需要额外 API 请求，直接从已有行情数据中判断
+    if quotes_df is not None and not quotes_df.empty:
+        phase1_rejected = set()
+        for _, row in quotes_df.iterrows():
+            q_code = str(row.get("代码", "")).zfill(6)
+            name = str(row.get("名称", ""))
+            pe = pd.to_numeric(row.get("市盈率-动态"), errors="coerce")
+            market_cap = pd.to_numeric(row.get("总市值"), errors="coerce")
+            # 1. 特殊处理股票 → 跳过（铁定差股）
+            if name.startswith("*ST") or name.startswith("ST") or "退" in name:
+                phase1_rejected.add(q_code)
+                continue
+            # 2. 市盈率缺失或 > 200 → 跳过（离谱的高，周期股也走不到这里）
+            if pd.isna(pe):
+                phase1_rejected.add(q_code)
+                continue
+            if pe > 200:
+                phase1_rejected.add(q_code)
+                continue
+            # 3. 市值 < 5 亿 → 跳过（垃圾股区，巴查不买）
+            if not pd.isna(market_cap) and market_cap < 5e8:
+                phase1_rejected.add(q_code)
+                continue
+        before_phase1 = len(candidate_codes)
+        candidate_codes -= phase1_rejected
+        print(f"  初筛（ST/市盈率>200/市值<5亿）: 剔除 {before_phase1 - len(candidate_codes)} 只，剩 {len(candidate_codes)} 只")
+
     # TODO-022 第 2 批：按 code_filter 分段扫描
     if code_filter is not None:
         before = len(candidate_codes)

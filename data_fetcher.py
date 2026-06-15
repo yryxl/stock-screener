@@ -574,6 +574,18 @@ def get_batch_dividend_data():
     return pd.DataFrame()
 
 
+def _save_finance_cache(code, df):
+    """保存财务数据到本地缓存（季报周期不变，不用天天拉）"""
+    import os as _os
+    _dir = _os.path.join(_os.path.dirname(__file__), "finance_cache")
+    _os.makedirs(_dir, exist_ok=True)
+    _path = _os.path.join(_dir, f"{code}.json")
+    try:
+        df.to_json(_path, orient="split", force_ascii=False, date_format="iso")
+    except Exception:
+        pass  # 存缓存失败不阻塞主流程
+
+
 def get_financial_indicator(stock_code):
     """
     获取单只股票的财务分析指标
@@ -586,12 +598,28 @@ def get_financial_indicator(stock_code):
     列名，无需 col_map。银行股列数 17（没有毛利率/流动比率是正常的），
     铁路股 23 列。不再强制 len(cols) >= 25。
     """
+    # REQ-022：先看本地缓存（财报数据不会每天变）
+    _cache_dir = os.path.join(os.path.dirname(__file__), "finance_cache")
+    _cache_path = os.path.join(_cache_dir, f"{stock_code}.json")
+    if os.path.exists(_cache_path):
+        try:
+            _mtime = os.path.getmtime(_cache_path)
+            _age_days = (time.time() - _mtime) / 86400
+            if _age_days < 14:  # 14 天内缓存有效（季报周期够用）
+                _df_cache = pd.read_json(_cache_path, orient="split")
+                if not _df_cache.empty and "日期" in _df_cache.columns:
+                    _df_cache["日期"] = pd.to_datetime(_df_cache["日期"], errors="coerce")
+                    return _df_cache
+        except Exception:
+            pass  # 缓存读失败就降级到 API
+
     # 源1: 新浪财务指标（最全，但部分股票返回空，如银行/铁路）
     df = safe_fetch(ak.stock_financial_analysis_indicator, symbol=stock_code)
     if df is not None and not df.empty:
         df["日期"] = pd.to_datetime(df["日期"], errors="coerce")
         df = df.dropna(subset=["日期"])
         if not df.empty:
+            _save_finance_cache(stock_code, df)
             return df
 
     # 源2: 同花顺财务摘要（银行/铁路/保险等覆盖面更广）
@@ -623,6 +651,7 @@ def get_financial_indicator(stock_code):
                 df_ths[col] = pd.to_numeric(s, errors="coerce")
 
             if not df_ths.empty:
+                _save_finance_cache(stock_code, df_ths)
                 return df_ths
     except Exception as e:
         pass
@@ -636,6 +665,7 @@ def get_financial_indicator(stock_code):
         df_bs = get_financial_analysis_via_baostock(stock_code, lookback_years=10)
         if df_bs is not None and not df_bs.empty:
             print(f"  [OK] baostock 兜底成功 {stock_code}: {len(df_bs)} 行", flush=True)
+            _save_finance_cache(stock_code, df_bs)
             return df_bs
     except Exception as e:
         print(f"  [!] baostock 兜底异常 {stock_code}: {e}", flush=True)
