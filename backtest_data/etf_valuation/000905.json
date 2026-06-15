@@ -28202,7 +28202,13 @@
       "pe": 30.38,
       "dividend_yield": 1.24,
       "source": "csindex"
+    },
+    {
+      "date": "2026-06-12",
+      "pe": 30.64,
+      "dividend_yield": 1.23,
+      "source": "csindex"
     }
   ],
-  "last_updated": "2026-06-12 11:07"
+  "last_updated": "2026-06-15 04:08"
 }

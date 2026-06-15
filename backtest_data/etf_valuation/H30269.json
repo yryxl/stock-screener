@@ -7424,7 +7424,13 @@
       "pe": 7.83,
       "dividend_yield": 4.77,
       "source": "csindex"
+    },
+    {
+      "date": "2026-06-12",
+      "pe": 7.9,
+      "dividend_yield": 4.73,
+      "source": "csindex"
     }
   ],
-  "last_updated": "2026-06-12 11:07"
+  "last_updated": "2026-06-15 04:08"
 }
