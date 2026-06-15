@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-15 08:02",
+  "date": "2026-06-15 08:06",
   "mode": "send_ai_with_fallback_merge",
   "is_trading_day": true,
   "data_source": "分段扫描合并 兜底（含 6 个文件）",
@@ -1613,7 +1613,7 @@
     "detail": "当所有宽基指数同时极端高估时，市场整体见顶风险极高。巴菲特1957年做法：1. 卖出盈利>50%的仓位，保留底仓2. 不再新增任何买入3. 保留至少20%现金等暴跌当前上榜：沪深300ETF华夏(99%分位)、中证500ETF(86%分位)"
   },
   "push_sent_date": "2026-06-15",
-  "push_sent_at": "2026-06-15T08:02:20+08:00",
+  "push_sent_at": "2026-06-15T08:06:17+08:00",
   "push_triggered_by": "send_ai",
   "market_temperature": {
     "level": -2,
